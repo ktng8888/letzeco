@@ -123,15 +123,22 @@ const authController = {
   // VALIDATE OTP
   validateOtp: async (req, res) => {
     const { email, otp } = req.body;
-
     try {
       const user = await userModel.findByEmail(email);
       if (!user) {
         return res.status(404).json({ message: 'Email not found.' });
       }
 
+      // Check OTP matches
       if (user.otp !== otp) {
         return res.status(400).json({ message: 'Invalid OTP.' });
+      }
+
+      // Check OTP not expired
+      if (!user.otp_expires_at || new Date() > new Date(user.otp_expires_at)) {
+        return res.status(400).json({
+          message: 'OTP has expired. Please request a new one.'
+        });
       }
 
       res.json({ message: 'OTP validated successfully.' });
@@ -145,21 +152,25 @@ const authController = {
   // RESET PASSWORD
   resetPassword: async (req, res) => {
     const { email, otp, newPassword } = req.body;
-
     try {
       const user = await userModel.findByEmail(email);
       if (!user) {
         return res.status(404).json({ message: 'Email not found.' });
       }
 
+      // Check OTP matches
       if (user.otp !== otp) {
         return res.status(400).json({ message: 'Invalid OTP.' });
       }
 
-      // Hash new password
-      const hashedPassword = await bcrypt.hash(newPassword, 10);
+      // Check OTP not expired
+      if (!user.otp_expires_at || new Date() > new Date(user.otp_expires_at)) {
+        return res.status(400).json({
+          message: 'OTP has expired. Please request a new one.'
+        });
+      }
 
-      // Update password and clear OTP
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
       await userModel.updatePassword(email, hashedPassword);
       await userModel.clearOtp(email);
 
@@ -172,14 +183,14 @@ const authController = {
   },
 
     // LOGOUT
-    logout: async (req, res) => {
+  logout: async (req, res) => {
     try {
         res.json({ message: 'Logged out successfully.' });
     } catch (err) {
         console.error('Logout error:', err);
         res.status(500).json({ message: 'Server error.' });
     }
-    },
+  },
 
 };
 

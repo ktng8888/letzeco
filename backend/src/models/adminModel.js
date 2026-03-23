@@ -20,10 +20,13 @@ const adminModel = {
     return result.rows[0];
   },
 
-  // Save OTP
+  // Save OTP with expiry (5 minutes)
   saveOtp: async (email, otp) => {
     await pool.query(
-      'UPDATE admin SET otp = $1 WHERE email = $2',
+      `UPDATE admin
+       SET otp = $1,
+           otp_expires_at = NOW() + INTERVAL '5 minutes'
+       WHERE email = $2`,
       [otp, email]
     );
   },
@@ -31,7 +34,10 @@ const adminModel = {
   // Clear OTP
   clearOtp: async (email) => {
     await pool.query(
-      'UPDATE admin SET otp = NULL WHERE email = $1',
+      `UPDATE admin
+       SET otp = NULL,
+           otp_expires_at = NULL
+       WHERE email = $1`,
       [email]
     );
   },

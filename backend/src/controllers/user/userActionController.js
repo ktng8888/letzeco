@@ -74,6 +74,44 @@ const userActionController = {
       // Get action details for XP and impact values
       const action = await actionModel.getById(userAction.action_id);
 
+      //Check if action is expired
+      if (action.time_limit) {
+        const startTime = new Date(userAction.start_time);
+        const now = new Date();
+
+        let timeLimitMs = 0;
+
+        //In DB, datatype of interval returns an object, not string, so need to check type first before convert to ms
+        if (typeof action.time_limit === 'string') {
+          const [hours, minutes, seconds] = action.time_limit
+            .split(':').map(Number);
+
+          timeLimitMs =
+            (hours * 3600 + minutes * 60 + seconds) * 1000;
+
+        } else {
+          const interval = action.time_limit;
+
+          const hours = interval.hours || 0;
+          const minutes = interval.minutes || 0;
+          const seconds = interval.seconds || 0;
+
+          timeLimitMs =
+            (hours * 3600 + minutes * 60 + seconds) * 1000;
+        }
+
+        const elapsed = now - startTime; //diff will be always shown in ms, so need use ms
+
+        if (elapsed > timeLimitMs) {
+          // Auto cancel — time exceeded
+          await userActionModel.cancel(id);
+          return res.status(400).json({
+            message: 'Time is over! Action has been cancelled.',
+            time_exceeded: true
+          });
+        }
+      }
+
       // Complete the action in DB
       const completed = await userActionModel.complete(
         id,

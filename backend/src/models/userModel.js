@@ -188,10 +188,13 @@ const userModel = {
     );
   },
 
-  // Save OTP
+  // Save OTP with expiry (5 minutes)
   saveOtp: async (email, otp) => {
     await pool.query(
-      'UPDATE "user" SET otp = $1 WHERE email = $2',
+      `UPDATE "user"
+       SET otp = $1,
+           otp_expires_at = NOW() + INTERVAL '5 minutes'
+       WHERE email = $2`,
       [otp, email]
     );
   },
@@ -199,7 +202,10 @@ const userModel = {
   // Clear OTP
   clearOtp: async (email) => {
     await pool.query(
-      'UPDATE "user" SET otp = NULL WHERE email = $1',
+      `UPDATE "user"
+       SET otp = NULL,
+           otp_expires_at = NULL
+       WHERE email = $1`,
       [email]
     );
   },

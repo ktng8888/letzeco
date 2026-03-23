@@ -86,6 +86,13 @@ const adminAuthController = {
         return res.status(400).json({ message: 'Invalid OTP.' });
       }
 
+      // Check OTP not expired
+      if (!admin.otp_expires_at || new Date() > new Date(admin.otp_expires_at)) {
+        return res.status(400).json({
+          message: 'OTP has expired. Please request a new one.'
+        });
+      }
+
       res.json({ message: 'OTP validated successfully.' });
 
     } catch (err) {
@@ -106,6 +113,13 @@ const adminAuthController = {
 
       if (admin.otp !== otp) {
         return res.status(400).json({ message: 'Invalid OTP.' });
+      }
+
+      // Check OTP not expired
+      if (!admin.otp_expires_at || new Date() > new Date(admin.otp_expires_at)) {
+        return res.status(400).json({
+          message: 'OTP has expired. Please request a new one.'
+        });
       }
 
       // Hash new password
