@@ -1,12 +1,13 @@
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, ScrollView
+  ActivityIndicator, Alert, ScrollView, Image
 } from 'react-native';
 import { useState } from 'react';
 import { Link } from 'expo-router';
 import useAuthStore from '../../store/authStore';
 import colors from '../../constants/colors';
+import images from '../../constants/images';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -47,9 +48,11 @@ export default function RegisterScreen() {
       >
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>🌿</Text>
-          </View>
+          <Image
+            source={images.logo}            
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.appName}>LetzECO</Text>
         </View>
 
@@ -146,16 +149,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: colors.primaryBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+  logo: {
+    width: 72,
+    height: 72,
   },
-  logoText: { fontSize: 32 },
   appName: {
     fontSize: 22,
     fontWeight: '700',
@@ -167,11 +164,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 6,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 24,
+    textAlign: 'center',
   },
   form: { gap: 4 },
   label: {

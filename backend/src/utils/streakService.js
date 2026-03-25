@@ -123,6 +123,44 @@ const streakService = {
     }
   },
 
+  checkAndResetStreak: async (userId) => {
+    try {
+      const user = await userModel.findById(userId);
+
+      const lastActionResult = await pool.query(
+        `SELECT DATE(end_time) AS last_date
+        FROM user_action
+        WHERE user_id = $1
+        AND status = 'completed'
+        ORDER BY end_time DESC
+        LIMIT 1`,
+        [userId]
+      );
+
+      if (lastActionResult.rows.length === 0) return;
+
+      const lastDate = new Date(lastActionResult.rows[0].last_date);
+      lastDate.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const diffDays = Math.floor(
+        (today - lastDate) / (1000 * 60 * 60 * 24)
+      );
+
+      // If more than 1 day gap → reset streak
+      if (diffDays > 1 && user.streak > 0) {
+        await userModel.updateStreak(userId, 0);
+        console.log(`Streak reset for user ${userId}`);
+      }
+
+    } catch (err) {
+      console.error('Check reset streak error:', err);
+      throw err;
+    }
+  },
+
 };
 
 module.exports = streakService;

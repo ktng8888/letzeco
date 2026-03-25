@@ -139,7 +139,7 @@ export default function HomeScreen() {
             <Text style={styles.todayCount}>
               Total action logged/logging today: {todayActions.length}
             </Text>
-            {todayActions.slice(0, 3).map((a) => (
+            {todayActions.map((a) => (
               <TodayActionCard key={a.id} action={a} />
             ))}
           </>

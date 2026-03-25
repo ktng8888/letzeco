@@ -54,12 +54,15 @@ const userActionModel = {
       `SELECT ua.*, a.name AS action_name,
               a.image AS action_image,
               a.xp_reward, a.time_limit,
+              a.tag_bg_colour_code,
+              a.tag_text_colour_code,
               ac.name AS category_name
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
        WHERE ua.user_id = $1
        AND DATE(ua.start_time) = CURRENT_DATE
+       AND ua.status = 'completed'
        ORDER BY ua.start_time DESC`,
       [userId]
     );
@@ -72,6 +75,8 @@ const userActionModel = {
       `SELECT ua.*, a.name AS action_name,
               a.image AS action_image,
               a.xp_reward,
+              a.tag_bg_colour_code,
+              a.tag_text_colour_code,
               ac.name AS category_name
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id

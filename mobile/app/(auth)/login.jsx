@@ -1,12 +1,13 @@
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, KeyboardAvoidingView,
-  Platform, ActivityIndicator, Alert
+  Platform, ActivityIndicator, Alert, Image
 } from 'react-native';
 import { useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import useAuthStore from '../../store/authStore';
 import colors from '../../constants/colors';
+import images from '../../constants/images';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -37,9 +38,11 @@ export default function LoginScreen() {
 
         {/* Logo */}
         <View style={styles.logoContainer}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>🌿</Text>
-          </View>
+          <Image
+            source={images.logo}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.appName}>LetzECO</Text>
         </View>
 
@@ -118,21 +121,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     justifyContent: 'center',
   },
+  logo: {
+    width: 72,
+    height: 72,
+  },
   logoContainer: {
     alignItems: 'center',
     marginBottom: 32,
-  },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.primaryBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  logoText: {
-    fontSize: 36,
   },
   appName: {
     fontSize: 24,
@@ -145,11 +140,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.textPrimary,
     marginBottom: 6,
+    textAlign: 'center',
   },
   subtitle: {
     fontSize: 14,
     color: colors.textSecondary,
     marginBottom: 28,
+    textAlign: 'center',
   },
   form: {
     gap: 4,
