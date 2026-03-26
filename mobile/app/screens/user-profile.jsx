@@ -1,92 +1,107 @@
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl
+  StyleSheet, Alert, RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'expo-router';
-import { useFocusEffect } from '@react-navigation/native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import profileService from '../../services/profileService';
-import useAuthStore from '../../store/authStore';
-
-import LoadingScreen from '../../components/common/LoadingScreen';
+import friendService from '../../services/friendService';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import BadgeGrid from '../../components/profile/BadgeGrid';
 import ImpactStats from '../../components/profile/ImpactStats';
-import StatsSummary from '../../components/profile/StatsSummary';
+import LoadingScreen from '../../components/common/LoadingScreen';
 import colors from '../../constants/colors';
 
 const TABS = ['Badge', 'Impact', 'Stat'];
 
-export default function ProfileScreen() {
+export default function UserProfileScreen() {
   const router = useRouter();
-  const { user, updateUser } = useAuthStore();
+  const { userId } = useLocalSearchParams();
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState('Badge');
   const [profile, setProfile] = useState(null);
   const [badges, setBadges] = useState(null);
+  const [activeTab, setActiveTab] = useState('Badge');
+  const [friendshipStatus, setFriendshipStatus] = useState('none');
+  const [friendshipId, setFriendshipId] = useState(null);
 
   const loadData = async () => {
     try {
       const [profileData, badgesData] = await Promise.all([
-        profileService.getProfile(),
-        profileService.getBadges(),
+        friendService.getFriendProfile(userId),
+        profileService.getFriendBadges(userId),
       ]);
+
       setProfile(profileData.data);
-      updateUser(profileData.data);
       setBadges(badgesData.data);
+      setFriendshipStatus(profileData.data.friendship_status);
+      setFriendshipId(profileData.data.friendship_id);
+
     } catch (err) {
-      console.error('Load profile error:', err);
+      console.error('Load user profile error:', err);
     } finally {
       setIsLoading(false);
       setRefreshing(false);
     }
   };
 
-  useFocusEffect(
-    useCallback(() => { loadData(); }, [])
-  );
+  useEffect(() => { loadData(); }, [userId]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
   }, []);
 
+  const handleFriendAction = async () => {
+    try {
+      if (friendshipStatus === 'none') {
+        await friendService.sendRequest(userId);
+        setFriendshipStatus('request_sent');
+        Alert.alert('Success', 'Friend request sent!');
+      } else if (friendshipStatus === 'request_received') {
+        await friendService.approve(friendshipId);
+        setFriendshipStatus('friends');
+        Alert.alert('Success', 'Friend request approved!');
+      } else if (friendshipStatus === 'friends') {
+        Alert.alert(
+          'Remove Friend',
+          'Are you sure you want to remove this friend?',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            {
+              text: 'Remove',
+              style: 'destructive',
+              onPress: async () => {
+                await friendService.removeFriend(friendshipId);
+                setFriendshipStatus('none');
+                setFriendshipId(null);
+              }
+            }
+          ]
+        );
+      }
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Failed.');
+    }
+  };
+
   if (isLoading) return <LoadingScreen />;
 
   return (
     <View style={styles.container}>
 
-      {/* Header with Settings */}
-      <View style={styles.topBar}>
-        <Text style={styles.topBarTitle}>
-          {user?.username}
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>
+          {profile?.username}
         </Text>
-        <View style={styles.topBarRight}>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => router.push('/screens/friends')}
-          >
-            <Ionicons
-              name="people-outline"
-              size={22}
-              color={colors.textPrimary}
-            />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconBtn}
-            onPress={() => router.push('/screens/settings')}
-          >
-            <Ionicons
-              name="settings-outline"
-              size={22}
-              color={colors.textPrimary}
-            />
-          </TouchableOpacity>
-        </View>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView
@@ -104,9 +119,9 @@ export default function ProfileScreen() {
           user={profile}
           totalBadges={badges?.total_unlocked || 0}
           totalActions={profile?.total_actions || 0}
-          totalFriends={profile?.total_friends || 0}
-          isOwnProfile
-          onEditPress={() => router.push('/screens/edit-profile')}
+          isOwnProfile={false}
+          friendshipStatus={friendshipStatus}
+          onFriendPress={handleFriendAction}
         />
 
         {/* Tabs */}
@@ -143,10 +158,11 @@ export default function ProfileScreen() {
         )}
 
         {activeTab === 'Stat' && (
-          <StatsSummary
-            user={profile}
-            totalBadges={badges?.total_unlocked || 0}
-          />
+          <View style={styles.statPlaceholder}>
+            <Text style={styles.statPlaceholderText}>
+              Stats coming soon
+            </Text>
+          </View>
         )}
 
         <View style={{ height: 20 }} />
@@ -160,7 +176,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgLight,
   },
-  topBar: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -171,17 +187,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  topBarTitle: {
-    fontSize: 18,
+  headerTitle: {
+    fontSize: 17,
     fontWeight: '700',
     color: colors.textPrimary,
-  },
-  topBarRight: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  iconBtn: {
-    padding: 6,
   },
   tabs: {
     flexDirection: 'row',
@@ -196,9 +205,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
   },
-  tabActive: {
-    borderBottomColor: colors.primary,
-  },
+  tabActive: { borderBottomColor: colors.primary },
   tabText: {
     fontSize: 14,
     fontWeight: '500',
@@ -207,5 +214,13 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '700',
+  },
+  statPlaceholder: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  statPlaceholderText: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
 });
