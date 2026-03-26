@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 
 import leaderboardService from '../../services/leaderboardService';
 import useAuthStore from '../../store/authStore';
@@ -40,7 +41,10 @@ export default function LeaderboardScreen() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useFocusEffect(
+      useCallback(() => { loadData(); }, [])
+  );
+  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

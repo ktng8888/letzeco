@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
-import useAuthStore from '../store/authStore';
 import { useRouter, useSegments } from 'expo-router';
+import useAuthStore from '../store/authStore';
+import streakService from '../services/streakService';
+
 
 export default function RootLayout() {
   const { isAuthenticated, initialize } = useAuthStore();
@@ -11,9 +13,11 @@ export default function RootLayout() {
   const segments = useSegments();
   const [isReady, setIsReady] = useState(false); // ← add this line
 
+  /*
   useEffect(() => {
     initialize().then(() => setIsReady(true)); // ← update this
   }, []);
+  */
 
   useEffect(() => {
 
@@ -30,7 +34,24 @@ export default function RootLayout() {
     }
   }, [isAuthenticated, segments]);
 
-    // show blank screen while checking token
+  // check streak every time app opens
+  useEffect(() => {
+    const init = async () => {
+      await initialize();
+
+      try {
+        await streakService.checkAndResetStreak();
+      } catch (err) {
+        console.warn('Streak check failed:', err);
+      }
+
+      setIsReady(true);
+    };
+
+    init();
+  }, []);
+
+  // show blank screen while checking token
   if (!isReady) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

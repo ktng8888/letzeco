@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 import progressService from '../../services/progressService';
 import useAuthStore from '../../store/authStore';
@@ -61,6 +62,12 @@ export default function ProgressScreen() {
     setIsLoading(true);
     loadData();
   }, [period]);
+
+  useFocusEffect(
+  useCallback(() => {
+    setIsLoading(true);
+    loadData();
+  }, [period]));
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

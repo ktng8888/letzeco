@@ -1,28 +1,28 @@
 import { View, Text, StyleSheet } from 'react-native';
 import colors from '../../constants/colors';
 
-export default function ImpactStats({ user }) {
+export default function ImpactStats({ impact }) {
   const items = [
     {
       icon: '🌿',
-      value: user?.total_co2_saved || 0,
+      value: impact?.co2_saved || 0,
       unit: 'Kg',
       label: 'CO₂ Saved',
-      equiv: `${Math.round((user?.total_co2_saved || 0) / 1.0)} young trees`,
+      equiv: `${Math.round((impact?.co2_saved || 0) / 1.0)} young trees`,
     },
     {
       icon: '💧',
-      value: user?.total_litre_saved || 0,
+      value: impact?.litre_saved || 0,
       unit: 'L',
       label: 'Water Saved',
-      equiv: `${Math.round((user?.total_litre_saved || 0) / 9.5)} showers`,
+      equiv: `${Math.round((impact?.litre_saved || 0) / 9.5)} showers`,
     },
     {
       icon: '⚡',
-      value: user?.total_kwh_saved || 0,
+      value: impact?.kwh_saved || 0,
       unit: 'kWh',
       label: 'Energy Saved',
-      equiv: `${Math.round((user?.total_kwh_saved || 0) * 66.7)} phone charges`,
+      equiv: `${Math.round((impact?.kwh_saved || 0) * 66.7)} phone charges`,
     },
   ];
 

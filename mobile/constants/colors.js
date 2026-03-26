@@ -15,6 +15,7 @@ const colors = {
   bgWhite: '#ffffff',
   bgLight: '#f9fafb',
   bgGrey: '#f3f4f6',
+  bgGreyDark: '#C7C7C7',
 
   // Status
   success: '#22c55e',

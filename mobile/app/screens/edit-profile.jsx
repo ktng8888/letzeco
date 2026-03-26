@@ -1,11 +1,12 @@
 import {
   View, Text, TextInput, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator,
-  ScrollView
+  ScrollView, Image
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../../constants/api';
 import * as ImagePicker from 'expo-image-picker';
 
 import profileService from '../../services/profileService';
@@ -111,11 +112,18 @@ export default function EditProfileScreen() {
         {/* Avatar */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
-                {user?.username?.charAt(0).toUpperCase()}
-              </Text>
-            </View>
+            {user?.profile_image ? (
+                <Image
+                    source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+                    style={styles.avatar}
+                />
+            ) : (
+                <View style={styles.avatarPlaceholder}>
+                <Text style={styles.avatarText}>
+                    {user?.username?.charAt(0).toUpperCase()}
+                </Text>
+                </View>
+            )}
             {isUploadingPic && (
               <View style={styles.uploadingOverlay}>
                 <ActivityIndicator color={colors.textWhite} />
@@ -222,6 +230,13 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: colors.primary,
   },
+  avatar: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    borderWidth: 3,
+    borderColor: colors.primary,
+},
   avatarText: {
     fontSize: 36,
     fontWeight: '700',

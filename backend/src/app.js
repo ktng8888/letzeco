@@ -19,6 +19,7 @@ const progressRoutes = require('./routes/user/progressRoutes');
 const friendshipRoutes = require('./routes/user/friendshipRoutes');
 const achievementRoutes = require('./routes/user/achievementRoutes');
 const notificationRoutes = require('./routes/user/notificationRoutes');
+const streakRoutes = require('./routes/user/streakRoutes');
 
 // Admin routes
 const adminAuthRoutes = require('./routes/admin/adminAuthRoutes');
@@ -54,6 +55,7 @@ app.use('/api/progress', progressRoutes);
 app.use('/api/friends', friendshipRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/streak', streakRoutes);
 
 // Admin routes
 app.use('/api/admin/auth', adminAuthRoutes);

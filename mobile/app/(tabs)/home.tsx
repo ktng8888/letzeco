@@ -3,7 +3,7 @@ import {
   RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 
 import useAuthStore from '../../store/authStore';
 import userService from '../../services/userService';
@@ -59,8 +59,10 @@ export default function HomeScreen() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
-
+  useFocusEffect(
+      useCallback(() => { loadData(); }, [])
+  );
+  
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();

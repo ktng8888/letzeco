@@ -139,7 +139,7 @@ function getFriendBtnText(status) {
 
 function getFriendBtnStyle(status) {
   if (status === 'friends') return { backgroundColor: colors.primaryBg };
-  if (status === 'request_sent') return { backgroundColor: colors.bgGrey };
+  if (status === 'request_sent') return { backgroundColor: colors.bgGreyDark };
   return { backgroundColor: colors.primary };
 }
 

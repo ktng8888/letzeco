@@ -81,6 +81,7 @@ export default function FriendsScreen() {
       await friendService.sendRequest(userId);
       // Refresh search results
       handleSearch(searchQuery);
+      loadData();
       Alert.alert('Success', 'Friend request sent!');
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed.');
@@ -90,7 +91,8 @@ export default function FriendsScreen() {
   const handleApprove = async (friendshipId) => {
     try {
       await friendService.approve(friendshipId);
-      loadData();
+        handleSearch(searchQuery);
+        loadData();
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed.');
     }
@@ -99,7 +101,8 @@ export default function FriendsScreen() {
   const handleReject = async (friendshipId) => {
     try {
       await friendService.reject(friendshipId);
-      loadData();
+        handleSearch(searchQuery);
+        loadData();
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed.');
     }
@@ -108,7 +111,8 @@ export default function FriendsScreen() {
   const handleCancel = async (friendshipId) => {
     try {
       await friendService.cancelRequest(friendshipId);
-      loadData();
+        handleSearch(searchQuery);
+        loadData();
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed.');
     }
@@ -126,7 +130,8 @@ export default function FriendsScreen() {
           onPress: async () => {
             try {
               await friendService.removeFriend(friendshipId);
-              loadData();
+                handleSearch(searchQuery);
+                loadData();
             } catch (err) {
               Alert.alert('Error', err.response?.data?.message || 'Failed.');
             }

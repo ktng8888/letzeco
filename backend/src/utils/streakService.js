@@ -79,7 +79,7 @@ const streakService = {
       const rewardResult = await pool.query(
         `SELECT sr.*, b.name AS badge_name, b.image AS badge_image
          FROM streak_reward sr
-         LEFT JOIN badge b ON sr.bagde_id = b.id
+         LEFT JOIN badge b ON sr.badge_id = b.id
          WHERE sr.day = $1`,
         [currentStreak]
       );

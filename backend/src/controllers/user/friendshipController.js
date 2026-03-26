@@ -152,10 +152,15 @@ const friendshipController = {
       const sender = await userModel.findById(senderId);
 
       // Notify receiver
-      await notificationService.friendRequest(
-        parseInt(id),
-        sender.username
-      );
+      // wrap notification so it doesn't crash if push_token is null
+      try {
+        await notificationService.friendRequest(
+          parseInt(id),
+          sender.username
+        );
+      } catch (notifErr) {
+        console.warn('Notification failed (non-critical):', notifErr.message);
+      }
 
       res.status(201).json({
         message: 'Friend request sent successfully.',
@@ -206,11 +211,15 @@ const friendshipController = {
       );
 
       // Friend approved — push + DB
-      await notificationService.friendRequestApproved(
-        friendship.request_sender_user_id,
-        approver.username,
-        originalSender.push_token  // ← push token needed
-      );
+      try {
+        await notificationService.friendRequestApproved(
+          friendship.request_sender_user_id,
+          approver.username,
+          originalSender.push_token  // ← push token needed
+        );
+      } catch (notifErr) {
+        console.warn('Notification failed (non-critical):', notifErr.message);
+      }
 
       res.json({
         message: 'Friend request approved!',

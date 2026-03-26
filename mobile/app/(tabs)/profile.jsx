@@ -16,6 +16,7 @@ import BadgeGrid from '../../components/profile/BadgeGrid';
 import ImpactStats from '../../components/profile/ImpactStats';
 import StatsSummary from '../../components/profile/StatsSummary';
 import colors from '../../constants/colors';
+import progressService from '../../services/progressService';
 
 const TABS = ['Badge', 'Impact', 'Stat'];
 
@@ -28,16 +29,19 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState('Badge');
   const [profile, setProfile] = useState(null);
   const [badges, setBadges] = useState(null);
+  const [impact, setImpact] = useState(null);
 
   const loadData = async () => {
     try {
-      const [profileData, badgesData] = await Promise.all([
+      const [profileData, badgesData, impactData] = await Promise.all([
         profileService.getProfile(),
         profileService.getBadges(),
+        progressService.getProgress('all_time'),
       ]);
       setProfile(profileData.data);
       updateUser(profileData.data);
       setBadges(badgesData.data);
+      setImpact(impactData.data?.environmental_impact);
     } catch (err) {
       console.error('Load profile error:', err);
     } finally {
@@ -139,7 +143,7 @@ export default function ProfileScreen() {
         )}
 
         {activeTab === 'Impact' && (
-          <ImpactStats user={profile} />
+          <ImpactStats impact={impact} />
         )}
 
         {activeTab === 'Stat' && (
