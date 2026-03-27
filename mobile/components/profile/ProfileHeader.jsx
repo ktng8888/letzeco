@@ -162,8 +162,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    borderWidth: 3,
-    borderColor: colors.primary,
   },
   avatarPlaceholder: {
     width: 80,

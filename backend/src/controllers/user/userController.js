@@ -1,5 +1,7 @@
 const bcrypt = require('bcryptjs');
 const userModel = require('../../models/userModel');
+const { deleteFile } = require('../../utils/uploadService');
+const friendshipModel = require('../../models/friendshipModel');
 
 const userController = {
 
@@ -28,6 +30,52 @@ const userController = {
 
     } catch (err) {
       console.error('Get profile error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+    // VIEW OTHER USER PROFILE
+  getUserProfile: async (req, res) => {
+    const userId = req.user.id;
+    const { id } = req.params; // user id
+
+    try {
+      const user = await userModel.getPublicProfile(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      // Get friendship status
+      const friendship = await friendshipModel.checkExists(userId, id);
+      let friendshipStatus = 'none';
+      if (friendship) {
+        if (friendship.status === 'approved') {
+          friendshipStatus = 'friends';
+        } else if (
+          friendship.request_sender_user_id === parseInt(userId)
+        ) {
+          friendshipStatus = 'request_sent';
+        } else {
+          friendshipStatus = 'request_received';
+        }
+      }
+
+      const totalBadges = await userModel.getTotalBadges(id);
+      const totalActions = await userModel.getTotalActions(id);
+
+      res.json({
+        message: 'Friend profile retrieved successfully.',
+        data: {
+          ...user,
+          total_badges: totalBadges,
+          total_actions: totalActions,
+          friendship_status: friendshipStatus,
+          friendship_id: friendship ? friendship.id : null
+        }
+      });
+
+    } catch (err) {
+      console.error('Get friend profile error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },
@@ -137,6 +185,11 @@ const userController = {
       if (!req.file) {
         return res.status(400).json({ message: 'No image uploaded.' });
       }
+
+      // Get current profile image before updating
+      const user = await userModel.findById(userId);
+
+      deleteFile(user.profile_image);
 
       const imagePath = req.file.path.replace(/\\/g, '/');
       const updated = await userModel.updateProfileImage(userId, imagePath);

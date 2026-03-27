@@ -6,8 +6,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+import userService from '../../services/userService';
 import profileService from '../../services/profileService';
 import friendService from '../../services/friendService';
+import progressService from '../../services/progressService';
 import ProfileHeader from '../../components/profile/ProfileHeader';
 import BadgeGrid from '../../components/profile/BadgeGrid';
 import ImpactStats from '../../components/profile/ImpactStats';
@@ -27,16 +29,19 @@ export default function UserProfileScreen() {
   const [activeTab, setActiveTab] = useState('Badge');
   const [friendshipStatus, setFriendshipStatus] = useState('none');
   const [friendshipId, setFriendshipId] = useState(null);
+  const [impact, setImpact] = useState(null);
 
   const loadData = async () => {
     try {
-      const [profileData, badgesData] = await Promise.all([
-        friendService.getFriendProfile(userId),
+      const [profileData, badgesData, impactData] = await Promise.all([
+        userService.getUserProfile(userId),
         profileService.getFriendBadges(userId),
+        progressService.getUserProgress(userId),
       ]);
 
       setProfile(profileData.data);
       setBadges(badgesData.data);
+      setImpact(impactData.data?.environmental_impact);
       setFriendshipStatus(profileData.data.friendship_status);
       setFriendshipId(profileData.data.friendship_id);
 
@@ -153,9 +158,15 @@ export default function UserProfileScreen() {
           />
         )}
 
+{/*}
         {activeTab === 'Impact' && (
           <ImpactStats user={profile} />
         )}
+          */}
+
+          {activeTab === 'Impact' && (
+  <ImpactStats impact={impact} /> // ← pass impact not user
+)}
 
         {activeTab === 'Stat' && (
           <View style={styles.statPlaceholder}>

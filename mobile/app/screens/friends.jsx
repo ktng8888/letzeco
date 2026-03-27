@@ -1,12 +1,13 @@
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, TextInput, RefreshControl,
-  ActivityIndicator, Alert
+  ActivityIndicator, Alert, Image
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../../constants/api';
 
 import friendService from '../../services/friendService';
 import useAuthStore from '../../store/authStore';
@@ -355,9 +356,16 @@ function FriendCard({ user, onViewPress, onRemovePress, primaryAction, secondary
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        <Text style={styles.friendAvatarText}>
-          {user.username?.charAt(0).toUpperCase()}
-        </Text>
+        {user?.profile_image ? (
+          <Image
+              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              style={styles.avatar}
+          />
+        ) : (
+          <Text style={styles.friendAvatarText}>
+            {user.username?.charAt(0).toUpperCase()}
+          </Text>
+        )}
       </View>
       <View style={styles.friendInfo}>
         <Text style={styles.friendName}>{user.username}</Text>
@@ -387,9 +395,16 @@ function PendingCard({ user, onApprove, onReject, onViewPress }) {
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        <Text style={styles.friendAvatarText}>
-          {user.username?.charAt(0).toUpperCase()}
-        </Text>
+        {user?.profile_image ? (
+          <Image
+              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              style={styles.avatar}
+          />
+        ) : (
+          <Text style={styles.friendAvatarText}>
+            {user.username?.charAt(0).toUpperCase()}
+          </Text>
+        )}
       </View>
       <View style={styles.friendInfo}>
         <Text style={styles.friendName}>{user.username}</Text>
@@ -427,9 +442,16 @@ function SearchResultCard({ user, onViewPress, onActionPress }) {
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        <Text style={styles.friendAvatarText}>
-          {user.username?.charAt(0).toUpperCase()}
-        </Text>
+        {user?.profile_image ? (
+          <Image
+              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              style={styles.avatar}
+          />
+        ) : (
+          <Text style={styles.friendAvatarText}>
+            {user.username?.charAt(0).toUpperCase()}
+          </Text>
+        )}
       </View>
       <View style={styles.friendInfo}>
         <Text style={styles.friendName}>{user.username}</Text>
@@ -570,6 +592,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowRadius: 2,
     elevation: 1,
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    overflow: 'hidden',
   },
   friendAvatar: {
     width: 42,

@@ -325,51 +325,7 @@ const friendshipController = {
     }
   },
 
-  // VIEW FRIEND PROFILE
-  getFriendProfile: async (req, res) => {
-    const userId = req.user.id;
-    const { id } = req.params; // friend user id
 
-    try {
-      const user = await userModel.getPublicProfile(id);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
-      }
-
-      // Get friendship status
-      const friendship = await friendshipModel.checkExists(userId, id);
-      let friendshipStatus = 'none';
-      if (friendship) {
-        if (friendship.status === 'approved') {
-          friendshipStatus = 'friends';
-        } else if (
-          friendship.request_sender_user_id === parseInt(userId)
-        ) {
-          friendshipStatus = 'request_sent';
-        } else {
-          friendshipStatus = 'request_received';
-        }
-      }
-
-      const totalBadges = await userModel.getTotalBadges(id);
-      const totalActions = await userModel.getTotalActions(id);
-
-      res.json({
-        message: 'Friend profile retrieved successfully.',
-        data: {
-          ...user,
-          total_badges: totalBadges,
-          total_actions: totalActions,
-          friendship_status: friendshipStatus,
-          friendship_id: friendship ? friendship.id : null
-        }
-      });
-
-    } catch (err) {
-      console.error('Get friend profile error:', err);
-      res.status(500).json({ message: 'Server error.' });
-    }
-  },
 
 };
 

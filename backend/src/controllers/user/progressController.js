@@ -260,6 +260,28 @@ const progressController = {
     }
   },
 
+  getUserProgress: async (req, res) => {
+    const { userId } = req.params;
+    try {
+      const impact = await progressModel.getEnvironmentalImpact(userId, 'all_time');
+      res.json({
+        message: 'User progress retrieved successfully.',
+        data: {
+          environmental_impact: {
+            co2_saved: parseFloat(impact.total_co2_saved),  
+            litre_saved: parseFloat(impact.total_litre_saved),
+            kwh_saved: parseFloat(impact.total_kwh_saved),   
+            xp_earned: parseInt(impact.total_xp_earned),   
+            total_actions: parseInt(impact.total_actions)
+          }
+        }
+      });
+    } catch (err) {
+      console.error('Get user progress error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
 };
 
 module.exports = progressController;

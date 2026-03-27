@@ -47,11 +47,6 @@ const friendService = {
     return response.data;
   },
 
-  getFriendProfile: async (userId) => {
-    const response = await api.get(`/friends/${userId}/profile`);
-    return response.data;
-  },
-
 };
 
 export default friendService;

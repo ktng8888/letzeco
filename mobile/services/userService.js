@@ -7,6 +7,11 @@ const userService = {
     return response.data;
   },
 
+  getUserProfile: async (userId) => {
+    const response = await api.get(`/user/${userId}/profile`);
+    return response.data;
+  },
+
   savePushToken: async (pushToken) => {
     const response = await api.post('/user/push-token', { push_token: pushToken });
     return response.data;

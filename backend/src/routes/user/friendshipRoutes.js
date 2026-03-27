@@ -8,7 +8,6 @@ router.get('/search', verifyToken, friendshipController.searchUsers);
 router.get('/requests', verifyToken, friendshipController.getPendingRequests);
 router.get('/sent', verifyToken, friendshipController.getSentRequests);
 router.get('/', verifyToken, friendshipController.getFriends);
-router.get('/:id/profile', verifyToken, friendshipController.getFriendProfile);
 router.post('/request/:id', verifyToken, friendshipController.sendRequest);
 router.put('/approve/:id', verifyToken, friendshipController.approve);
 router.delete('/reject/:id', verifyToken, friendshipController.reject);

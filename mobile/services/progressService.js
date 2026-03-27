@@ -32,6 +32,11 @@ const progressService = {
     return response.data;
   },
 
+  getUserProgress: async (userId) => {
+    const response = await api.get(`/progress/user/${userId}`);
+    return response.data;
+  },
+
 };
 
 export default progressService;

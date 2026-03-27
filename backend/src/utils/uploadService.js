@@ -58,4 +58,12 @@ const uploadProof = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
 });
 
-module.exports = { uploadProfile, uploadProof };
+const deleteFile = (filePath) => {
+  if (!filePath) return;
+  const fullPath = path.join(__dirname, '../../', filePath);
+  if (fs.existsSync(fullPath)) {
+    fs.unlinkSync(fullPath);
+  }
+};
+
+module.exports = { uploadProfile, uploadProof, deleteFile };

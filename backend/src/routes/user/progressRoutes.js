@@ -9,5 +9,6 @@ router.get('/litre-breakdown', verifyToken, progressController.getLitreBreakdown
 router.get('/kwh-breakdown', verifyToken, progressController.getKwhBreakdown);
 router.get('/comparison', verifyToken, progressController.getComparison);
 router.get('/trend', verifyToken, progressController.getTrend);
+router.get('/user/:userId', verifyToken, progressController.getUserProgress);
 
 module.exports = router;

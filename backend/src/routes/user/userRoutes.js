@@ -6,6 +6,7 @@ const { uploadProfile } = require('../../utils/uploadService');
 
 // All routes require login
 router.get('/profile', verifyToken, userController.getProfile);
+router.get('/:id/profile', verifyToken, userController.getUserProfile);
 router.get('/profile/:id', verifyToken, userController.getUserById);
 router.put('/profile/username', verifyToken, userController.updateUsername);
 router.put('/profile/email', verifyToken, userController.updateEmail);
