@@ -30,6 +30,7 @@ const adminAchievementRoutes = require('./routes/admin/adminAchievementRoutes');
 const adminStreakRewardRoutes = require('./routes/admin/adminStreakRewardRoutes');
 const adminChallengeRoutes = require('./routes/admin/adminChallengeRoutes');
 const adminUserRoutes = require('./routes/admin/adminUserRoutes');
+const adminManageRoutes = require('./routes/admin/adminManageRoutes');
 const adminDashboardRoutes = require('./routes/admin/adminDashboardRoutes');
 
 const app = express();
@@ -66,6 +67,7 @@ app.use('/api/admin/achievements', adminAchievementRoutes);
 app.use('/api/admin/streak-rewards', adminStreakRewardRoutes);
 app.use('/api/admin/challenges', adminChallengeRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+app.use('/api/admin/admins',adminManageRoutes);
 app.use('/api/admin/dashboard', adminDashboardRoutes);
 
 app.get('/', (req, res) => {
