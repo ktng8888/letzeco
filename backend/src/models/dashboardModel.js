@@ -52,6 +52,41 @@ const dashboardModel = {
     return result.rows;
   },
 
+  getTotalAdmins: async () => {
+    const result = await pool.query('SELECT COUNT(*) FROM admin');
+    return parseInt(result.rows[0].count);
+  },
+
+  getTotalCategories: async () => {
+    const result = await pool.query('SELECT COUNT(*) FROM action_category');
+    return parseInt(result.rows[0].count);
+  },
+
+  getTotalEnvironmentalImpact: async () => {
+    const result = await pool.query(
+      `SELECT
+        COALESCE(SUM(co2_saved), 0) AS total_co2,
+        COALESCE(SUM(litre_saved), 0) AS total_litre,
+        COALESCE(SUM(kwh_saved), 0) AS total_kwh
+      FROM user_action WHERE status = 'completed'`
+    );
+    return result.rows[0];
+  },
+
+  getTopActions: async (limit = 10) => {
+    const result = await pool.query(
+      `SELECT a.name, COUNT(ua.id) AS log_count
+      FROM user_action ua
+      LEFT JOIN action a ON ua.action_id = a.id
+      WHERE ua.status = 'completed'
+      GROUP BY a.name
+      ORDER BY log_count DESC
+      LIMIT $1`,
+      [limit]
+    );
+    return result.rows;
+  },
+
 };
 
 module.exports = dashboardModel;
