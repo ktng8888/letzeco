@@ -1,0 +1,31 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Backend",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/backend" },
+      "presentation": { "panel": "new" }
+    },
+    {
+      "label": "Admin",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/admin" },
+      "presentation": { "panel": "new" }
+    },
+    {
+      "label": "Mobile",
+      "type": "shell",
+      "command": "npx expo start --clear",
+      "options": { "cwd": "${workspaceFolder}/mobile" },
+      "presentation": { "panel": "new" }
+    },
+    {
+      "label": "Dev All",
+      "dependsOn": ["Backend", "Admin", "Mobile"],
+      "group": { "kind": "build", "isDefault": true }
+    }
+  ]
+}
