@@ -37,10 +37,13 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-green-500 rounded-xl
-            flex items-center justify-center text-xl">
-            🌿
-          </div>
+          <Image
+            src="/app_logo.png"
+            alt="LetzEco"
+            width={40}
+            height={40}
+            className="rounded-xl"
+          />
           <div>
             <p className="text-white font-bold text-sm leading-tight">
               LetzEco Admin

@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, ChevronDown, User, KeyRound, LogOut } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageUrl';
 import useAuthStore from '../../store/authStore';
 
 export default function Topbar() {
@@ -60,7 +61,7 @@ export default function Topbar() {
               flex items-center justify-center overflow-hidden">
               {admin?.profile_image ? (
                 <img
-                  src={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/${admin.profile_image}`}
+                  src={getImageUrl(admin.profile_image)}
                   alt="avatar"
                   className="w-full h-full object-cover"
                 />
@@ -93,7 +94,7 @@ export default function Topbar() {
               <button
                 onClick={() => {
                   setShowDropdown(false);
-                  router.push('/reset-password');
+                  router.push('/change-password');
                 }}
                 className="w-full flex items-center gap-3 px-4 py-3
                   text-sm text-gray-700 hover:bg-gray-50 transition"

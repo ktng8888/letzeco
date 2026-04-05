@@ -12,14 +12,20 @@ const createFolderIfNotExists = (folder) => {
 // Profile picture upload
 const profileStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = 'uploads/profiles/';
+    const folder = req.admin?.id
+      ? 'uploads/profiles/admins/'
+      : 'uploads/profiles/users/';
     createFolderIfNotExists(folder);
     cb(null, folder);
   },
   filename: (req, file, cb) => {
-    // filename: userId_timestamp.extension
+    // filename: role_Id_timestamp.extension
     const ext = path.extname(file.originalname);
-    cb(null, `user_${req.user.id}_${Date.now()}${ext}`);
+        if (req.admin?.id) {
+      cb(null, `admin_${req.admin.id}_${Date.now()}${ext}`);
+    } else {
+      cb(null, `user_${req.user.id}_${Date.now()}${ext}`);
+    }
   }
 });
 

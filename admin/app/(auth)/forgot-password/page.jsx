@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import authService from '../../../services/authService';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
+import Image from 'next/image';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -45,11 +46,14 @@ export default function ForgotPasswordPage() {
   return (
     <div className="w-full max-w-sm">
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-green-500 rounded-2xl
-          flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg">
-          🌿
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Forgot Password</h1>
+        <Image
+          src="/app_logo.png"
+          alt="LetzEco"
+          width={64}
+          height={64}
+          className="rounded-2xl shadow-lg mx-auto block mb-4"
+        />
+        <h1 className="text-2xl font-bold text-white">Forgot Password</h1>
       </div>
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
         {step === 'email' ? (

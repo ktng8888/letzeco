@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import useAuthStore from '../../../store/authStore';
 import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,12 +35,15 @@ export default function LoginPage() {
     <div className="w-full max-w-sm">
       {/* Logo */}
       <div className="text-center mb-8">
-        <div className="w-16 h-16 bg-green-500 rounded-2xl
-          flex items-center justify-center mx-auto mb-4 text-3xl shadow-lg">
-          🌿
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">LetzEco Admin</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <Image
+          src="/app_logo.png"
+          alt="LetzEco"
+          width={64}
+          height={64}
+          className="rounded-2xl shadow-lg mx-auto block mb-4"
+        />
+        <h1 className="text-2xl font-bold text-white">LetzEco Admin</h1>
+        <p className="text-white text-sm mt-1">
           Sign in to access the admin dashboard
         </p>
       </div>
