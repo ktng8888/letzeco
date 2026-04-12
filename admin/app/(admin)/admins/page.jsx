@@ -144,7 +144,7 @@ export default function AdminsPage() {
         subtitle="Manage all admins"
         action={
           <Button onClick={() => router.push('/admins/create')}>
-            <Plus className="w-4 h-4" /> + Create Admin
+            <Plus className="w-4 h-4" />Create Admin
           </Button>
         }
       />

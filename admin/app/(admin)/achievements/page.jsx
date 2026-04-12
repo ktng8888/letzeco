@@ -119,7 +119,7 @@ export default function AchievementsPage() {
         subtitle="Manage achievements and badges users can unlock"
         action={
           <Button onClick={() => router.push('/achievements/create')}>
-            <Plus className="w-4 h-4" /> + Add Achievement
+            <Plus className="w-4 h-4" />Add Achievement
           </Button>
         }
       />

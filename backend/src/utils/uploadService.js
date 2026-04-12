@@ -29,6 +29,32 @@ const profileStorage = multer.diskStorage({
   }
 });
 
+// Action icon upload
+const actionStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = 'uploads/actions/';
+    createFolderIfNotExists(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `action_${Date.now()}${ext}`);
+  }
+});
+
+// Category icon upload
+const categoryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = 'uploads/category/';
+    createFolderIfNotExists(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `category_${Date.now()}${ext}`);
+  }
+});
+
 // Proof photo upload
 const proofStorage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -58,6 +84,18 @@ const uploadProfile = multer({
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
 });
 
+const uploadAction = multer({
+  storage: actionStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+const uploadCategory = multer({
+  storage: categoryStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 const uploadProof = multer({
   storage: proofStorage,
   fileFilter: imageFilter,
@@ -72,4 +110,4 @@ const deleteFile = (filePath) => {
   }
 };
 
-module.exports = { uploadProfile, uploadProof, deleteFile };
+module.exports = { uploadProfile, uploadProof, uploadAction, uploadCategory, deleteFile };

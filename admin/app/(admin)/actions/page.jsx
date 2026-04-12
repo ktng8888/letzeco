@@ -132,7 +132,7 @@ export default function ActionsPage() {
         subtitle="Manage all eco-friendly actions"
         action={
           <Button onClick={() => router.push('/actions/create')}>
-            <Plus className="w-4 h-4" /> + Create Action
+            <Plus className="w-4 h-4" />Create Action
           </Button>
         }
       />

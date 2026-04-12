@@ -12,8 +12,11 @@ const MMU_IP = '10.121.33.212';
 //Hotspot (in MMU)
 const MMU_HOTSPOT_IP = '10.143.15.170';
 
+//Hospot (in supervisor's office)
+const MMU_SUPERVISOR_IP = '10.143.15.170';
+
 // Change this to switch networks
-const NETWORK_IP = MMU_HOTSPOT_IP;
+const NETWORK_IP = UNIFI_IP;
 
 const API_BASE_URL = Platform.OS === 'web'
   ? 'http://localhost:5000/api'

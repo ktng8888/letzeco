@@ -34,14 +34,19 @@ const adminActionCategoryController = {
     }
   },
 
-  // CREATE CATEGORY
   create: async (req, res) => {
-    const { name, image } = req.body;
+    const {
+      name, description,
+      tag_bg_colour_code, tag_text_colour_code
+    } = req.body;
     try {
       if (!name) {
-        return res.status(400).json({ message: 'Category name is required.' });
+        return res.status(400).json({ message: 'Name is required.' });
       }
-      const category = await actionCategoryModel.create(name, image || null);
+      const category = await actionCategoryModel.create({
+        name, description,
+        tag_bg_colour_code, tag_text_colour_code
+      });
       res.status(201).json({
         message: 'Category created successfully.',
         data: category
@@ -52,20 +57,14 @@ const adminActionCategoryController = {
     }
   },
 
-  // UPDATE CATEGORY
   update: async (req, res) => {
     const { id } = req.params;
-    const { name, image } = req.body;
     try {
       const existing = await actionCategoryModel.getById(id);
       if (!existing) {
         return res.status(404).json({ message: 'Category not found.' });
       }
-      const updated = await actionCategoryModel.update(
-        id,
-        name || existing.name,
-        image || existing.image
-      );
+      const updated = await actionCategoryModel.update(id, req.body);
       res.json({
         message: 'Category updated successfully.',
         data: updated
@@ -76,7 +75,6 @@ const adminActionCategoryController = {
     }
   },
 
-  // DELETE CATEGORY
   delete: async (req, res) => {
     const { id } = req.params;
     try {

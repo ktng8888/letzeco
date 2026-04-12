@@ -20,7 +20,6 @@ export default function CreateActionPage() {
     description: '', importance: '', xp_reward: 10,
     co2_saved: '', litre_saved: '', kwh_saved: '',
     calc_info: '', source: '',
-    tag_bg_colour_code: '', tag_text_colour_code: '',
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -102,20 +101,6 @@ export default function CreateActionPage() {
               placeholder="Explain why this action matters..."
               rows={3} />
           </div>
-        </FormSection>
-
-        {/* Tag Colours */}
-        <FormSection title="Tag Colours (Optional)">
-          <Input label="Tag Background Colour"
-            value={form.tag_bg_colour_code}
-            onChange={(e) => set('tag_bg_colour_code', e.target.value)}
-            placeholder="#E3F2FD"
-            hint="Hex colour code e.g. #E3F2FD" />
-          <Input label="Tag Text Colour"
-            value={form.tag_text_colour_code}
-            onChange={(e) => set('tag_text_colour_code', e.target.value)}
-            placeholder="#1565C0"
-            hint="Hex colour code e.g. #1565C0" />
         </FormSection>
 
         {/* Rewards */}

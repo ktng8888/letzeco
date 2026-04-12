@@ -30,7 +30,7 @@ const userModel = {
   getProfile: async (id) => {
     const result = await pool.query(
       `SELECT id, username, email, level, level_xp,
-              total_xp, weekly_xp, streak, profile_image
+              total_xp, weekly_xp, streak, profile_image, created_at
        FROM "user" WHERE id = $1`,
       [id]
     );

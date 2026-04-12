@@ -130,7 +130,7 @@ export default function ChallengesPage() {
         subtitle="Manage challenges users can participate"
         action={
           <Button onClick={() => router.push('/challenges/create')}>
-            <Plus className="w-4 h-4" /> + Create Challenge
+            <Plus className="w-4 h-4" />Create Challenge
           </Button>
         }
       />

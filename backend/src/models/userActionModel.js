@@ -54,8 +54,8 @@ const userActionModel = {
       `SELECT ua.*, a.name AS action_name,
               a.image AS action_image,
               a.xp_reward, a.time_limit,
-              a.tag_bg_colour_code,
-              a.tag_text_colour_code,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code,
               ac.name AS category_name
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
@@ -75,8 +75,8 @@ const userActionModel = {
       `SELECT ua.*, a.name AS action_name,
               a.image AS action_image,
               a.xp_reward,
-              a.tag_bg_colour_code,
-              a.tag_text_colour_code,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code,
               ac.name AS category_name
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id

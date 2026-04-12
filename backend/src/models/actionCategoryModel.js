@@ -19,25 +19,49 @@ const actionCategoryModel = {
     return result.rows[0];
   },
 
-  // Create category
-  create: async (name, image) => {
+  create: async (data) => {
+    const {
+      name, description,
+      tag_bg_colour_code, tag_text_colour_code
+    } = data;
     const result = await pool.query(
-      `INSERT INTO action_category (name, image)
-       VALUES ($1, $2)
+      `INSERT INTO action_category
+        (name, description, tag_bg_colour_code, tag_text_colour_code)
+       VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [name, image]
+      [
+        name, description || null,
+        tag_bg_colour_code || null,
+        tag_text_colour_code || null
+      ]
     );
     return result.rows[0];
   },
 
-  // Update category
-  update: async (id, name, image) => {
+  update: async (id, data) => {
+    const existing = await pool.query(
+      'SELECT * FROM action_category WHERE id = $1', [id]
+    );
+    const current = existing.rows[0];
     const result = await pool.query(
-      `UPDATE action_category
-       SET name = $1, image = $2
-       WHERE id = $3
+      `UPDATE action_category SET
+        name = $1,
+        description = $2,
+        tag_bg_colour_code = $3,
+        tag_text_colour_code = $4
+       WHERE id = $5
        RETURNING *`,
-      [name, image, id]
+      [
+        data.name || current.name,
+        data.description || current.description,
+        data.tag_bg_colour_code !== undefined
+          ? data.tag_bg_colour_code
+          : current.tag_bg_colour_code,
+        data.tag_text_colour_code !== undefined
+          ? data.tag_text_colour_code
+          : current.tag_text_colour_code,
+        id
+      ]
     );
     return result.rows[0];
   },

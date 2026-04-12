@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
+import { getImageUrl } from '../../../utils/imageUrl';
 import toast from 'react-hot-toast';
 import categoryService from '../../../services/categoryService';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -71,11 +72,21 @@ export default function CategoriesPage() {
   const columns = [
     {
       key: 'name', label: 'Category',
-      render: (val) => (
+      render: (val, row) => (
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-green-100
-            flex items-center justify-center text-lg">
-            🌿
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
+            style={{ backgroundColor: row.colour || '#dcfce7' }}
+          >
+            {row.icon ? (
+              <img
+                src={getImageUrl(row.icon)}
+                alt={val}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-lg">🌿</span>
+            )}
           </div>
           <span className="font-medium text-gray-800">{val}</span>
         </div>
@@ -104,7 +115,7 @@ export default function CategoriesPage() {
         subtitle="Manage categories for eco-friendly actions"
         action={
           <Button onClick={() => router.push('/categories/create')}>
-            <Plus className="w-4 h-4" /> + Create Category
+            <Plus className="w-4 h-4" />Create Category
           </Button>
         }
       />
