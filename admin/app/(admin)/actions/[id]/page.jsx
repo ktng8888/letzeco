@@ -25,7 +25,6 @@ function ActionDetail() {
     description: '', importance: '', xp_reward: 10,
     co2_saved: '', litre_saved: '', kwh_saved: '',
     calc_info: '', source: '',
-    tag_bg_colour_code: '', tag_text_colour_code: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -49,8 +48,6 @@ function ActionDetail() {
         kwh_saved: a.kwh_saved || '',
         calc_info: a.calc_info || '',
         source: a.source || '',
-        tag_bg_colour_code: a.tag_bg_colour_code || '',
-        tag_text_colour_code: a.tag_text_colour_code || '',
       });
     }).catch(() => toast.error('Failed to load.'))
       .finally(() => setIsLoading(false));
@@ -113,17 +110,6 @@ function ActionDetail() {
               onChange={(e) => set('importance', e.target.value)}
               rows={3} disabled={isView} />
           </div>
-        </FormSection>
-
-        <FormSection title="Tag Colours">
-          <Input label="Tag Background Colour"
-            value={form.tag_bg_colour_code}
-            onChange={(e) => set('tag_bg_colour_code', e.target.value)}
-            disabled={isView} />
-          <Input label="Tag Text Colour"
-            value={form.tag_text_colour_code}
-            onChange={(e) => set('tag_text_colour_code', e.target.value)}
-            disabled={isView} />
         </FormSection>
 
         <FormSection title="Rewards">

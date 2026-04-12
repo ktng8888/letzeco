@@ -144,7 +144,7 @@ export default function UsersPage() {
         subtitle="Manage all registered users"
         action={
           <Button onClick={() => router.push('/users/create')}>
-            <Plus className="w-4 h-4" /> + Create User
+            <Plus className="w-4 h-4" />Create User
           </Button>
         }
       />
