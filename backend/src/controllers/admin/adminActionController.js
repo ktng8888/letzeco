@@ -1,5 +1,6 @@
 const actionModel = require('../../models/actionModel');
 const actionCategoryModel = require('../../models/actionCategoryModel');
+const { deleteFile } = require('../../utils/uploadService');
 
 const adminActionController = {
 
@@ -50,64 +51,44 @@ const adminActionController = {
     }
   },
 
-  // CREATE ACTION
   create: async (req, res) => {
     const {
-      name,
-      action_category_id,
-      image,
-      time_limit,
-      description,
-      importance,
-      xp_reward,
-      co2_saved,
-      litre_saved,
-      kwh_saved,
-      calc_info,
-      source
+      name, action_category_id, time_limit,
+      description, importance, xp_reward,
+      co2_saved, litre_saved, kwh_saved,
+      calc_info, source
     } = req.body;
 
+    const image = req.file
+      ? req.file.path.replace(/\\/g, '/')
+      : null;
+
     try {
-      // Validate required fields
       if (!name || !action_category_id) {
         return res.status(400).json({
           message: 'Name and category are required.'
         });
       }
-
-      // Check if category exists
       const category = await actionCategoryModel.getById(action_category_id);
       if (!category) {
         return res.status(404).json({ message: 'Category not found.' });
       }
-
       const action = await actionModel.create({
-        name,
-        action_category_id,
-        image,
-        time_limit,
-        description,
-        importance,
-        xp_reward,
-        co2_saved,
-        litre_saved,
-        kwh_saved,
-        calc_info,
-        source
+        name, action_category_id, image,
+        time_limit, description, importance,
+        xp_reward, co2_saved, litre_saved,
+        kwh_saved, calc_info, source
       });
-
       res.status(201).json({
         message: 'Action created successfully.',
         data: action
       });
-
     } catch (err) {
       console.error('Create action error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },
 
-  // UPDATE ACTION
   update: async (req, res) => {
     const { id } = req.params;
     try {
@@ -116,22 +97,22 @@ const adminActionController = {
         return res.status(404).json({ message: 'Action not found.' });
       }
 
-      // If category is being changed, check if new category exists
-      if (req.body.action_category_id) {
-        const category = await actionCategoryModel.getById(
-          req.body.action_category_id
-        );
-        if (!category) {
-          return res.status(404).json({ message: 'Category not found.' });
-        }
+      const image = req.file
+        ? req.file.path.replace(/\\/g, '/')
+        : undefined;
+
+      if (image && existing.image) {
+        deleteFile(existing.image);
       }
 
-      const updated = await actionModel.update(id, req.body);
+      const updated = await actionModel.update(id, {
+        ...req.body,
+        ...(image !== undefined && { image })
+      });
       res.json({
         message: 'Action updated successfully.',
         data: updated
       });
-
     } catch (err) {
       console.error('Update action error:', err);
       res.status(500).json({ message: 'Server error.' });

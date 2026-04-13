@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import actionService from '../../../../services/actionService';
 import categoryService from '../../../../services/categoryService';
@@ -12,6 +13,7 @@ import Textarea from '../../../../components/common/Textarea';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 function ActionDetail() {
   const router = useRouter();
@@ -28,6 +30,9 @@ function ActionDetail() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -49,6 +54,7 @@ function ActionDetail() {
         calc_info: a.calc_info || '',
         source: a.source || '',
       });
+      setCurrentImage(a.image || null);
     }).catch(() => toast.error('Failed to load.'))
       .finally(() => setIsLoading(false));
   }, [id]);
@@ -59,13 +65,13 @@ function ActionDetail() {
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      const payload = {
-        ...form,
-        time_limit: form.time_limit
-          ? `00:${String(form.time_limit).padStart(2, '0')}:00`
-          : null,
-      };
-      await actionService.update(id, payload);
+      const payload = { ...form };
+      if (payload.time_limit) {
+        payload.time_limit =
+          `00:${String(payload.time_limit).padStart(2, '0')}:00`;
+      }
+      const formData = buildFormData(payload, imageFile);
+      await actionService.update(id, formData);
       toast.success('Action updated!');
       router.push('/actions');
     } catch (err) {
@@ -109,6 +115,23 @@ function ActionDetail() {
             <Textarea label="Why This Matters" value={form.importance}
               onChange={(e) => set('importance', e.target.value)}
               rows={3} disabled={isView} />
+          </div>
+          <div className="md:col-span-2">
+            <ImageUpload
+              label="Action Icon"
+              value={currentImage}
+              preview={imagePreview}
+              onChange={(f) => {
+                setImageFile(f);
+                setImagePreview(URL.createObjectURL(f));
+              }}
+              onRemove={() => {
+                setImageFile(null);
+                setImagePreview(null);
+                setCurrentImage(null);
+              }}
+              disabled={isView}
+            />
           </div>
         </FormSection>
 

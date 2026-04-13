@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import actionService from '../../../../services/actionService';
 import categoryService from '../../../../services/categoryService';
@@ -11,6 +12,7 @@ import Input from '../../../../components/common/Input';
 import Textarea from '../../../../components/common/Textarea';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 export default function CreateActionPage() {
   const router = useRouter();
@@ -23,6 +25,8 @@ export default function CreateActionPage() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     categoryService.getAll()
@@ -33,6 +37,11 @@ export default function CreateActionPage() {
   const set = (key, val) => {
     setForm(p => ({ ...p, [key]: val }));
     setErrors(p => ({ ...p, [key]: '' }));
+  };
+
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = async () => {
@@ -46,17 +55,14 @@ export default function CreateActionPage() {
     setIsLoading(true);
     try {
       // Convert time to interval format if provided
-      const payload = {
-        ...form,
-        time_limit: form.time_limit
-          ? `00:${String(form.time_limit).padStart(2, '0')}:00`
-          : null,
-        xp_reward: parseInt(form.xp_reward) || 10,
-        co2_saved: form.co2_saved || null,
-        litre_saved: form.litre_saved || null,
-        kwh_saved: form.kwh_saved || null,
-      };
-      await actionService.create(payload);
+  const payload = { ...form };
+      // Convert time
+      if (payload.time_limit) {
+        payload.time_limit =
+          `00:${String(payload.time_limit).padStart(2, '0')}:00`;
+      }
+      const formData = buildFormData(payload, imageFile);
+      await actionService.create(formData);
       toast.success('Action created!');
       router.push('/actions');
     } catch (err) {
@@ -100,6 +106,17 @@ export default function CreateActionPage() {
               onChange={(e) => set('importance', e.target.value)}
               placeholder="Explain why this action matters..."
               rows={3} />
+          </div>
+          <div className="md:col-span-2">
+            <ImageUpload
+              label="Action Icon (Optional)"
+              preview={imagePreview}
+              onChange={handleImageChange}
+              onRemove={() => {
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            />
           </div>
         </FormSection>
 

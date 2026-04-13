@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import achievementService from '../../../../services/achievementService';
 import categoryService from '../../../../services/categoryService';
@@ -10,6 +11,7 @@ import FormSection from '../../../../components/common/FormSection';
 import Input from '../../../../components/common/Input';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 const ACHIEVEMENT_TYPES = [
   { value: 'log', label: 'Log X actions in Y category' },
@@ -27,6 +29,8 @@ export default function CreateAchievementPage() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
 
   useEffect(() => {
     categoryService.getAll()
@@ -51,12 +55,14 @@ export default function CreateAchievementPage() {
 
     setIsLoading(true);
     try {
-      await achievementService.create({
-        ...form,
-        target_value: parseInt(form.target_value),
-        bonus_xp: parseInt(form.bonus_xp),
-        action_category_id: form.action_category_id || null,
-      });
+      const formData = buildFormData({
+          ...form,
+          target_value: parseInt(form.target_value),
+          bonus_xp: parseInt(form.bonus_xp),
+          action_category_id: form.action_category_id || '',
+        }, imageFile);
+
+      await achievementService.create(formData);
       toast.success('Achievement created!');
       router.push('/achievements');
     } catch (err) {
@@ -112,6 +118,21 @@ export default function CreateAchievementPage() {
             value={form.bonus_xp}
             onChange={(e) => set('bonus_xp', e.target.value)}
             placeholder="e.g. 200" required error={errors.bonus_xp} />
+          <div className="md:col-span-2">
+            <ImageUpload
+              label="Badge Graphic"
+              preview={imagePreview}
+              onChange={(f) => {
+                setImageFile(f);
+                setImagePreview(URL.createObjectURL(f));
+              }}
+              onRemove={() => {
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+              hint="PNG, JPG (max. 5MB)"
+            />
+          </div>
         </FormSection>
 
         <div className="flex gap-3 p-6 border-t border-gray-100">

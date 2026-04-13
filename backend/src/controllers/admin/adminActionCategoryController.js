@@ -1,4 +1,5 @@
 const actionCategoryModel = require('../../models/actionCategoryModel');
+const { deleteFile } = require('../../utils/uploadService');
 
 const adminActionCategoryController = {
 
@@ -39,13 +40,20 @@ const adminActionCategoryController = {
       name, description,
       tag_bg_colour_code, tag_text_colour_code
     } = req.body;
+
+    // Get uploaded image path if any
+    const image = req.file
+      ? req.file.path.replace(/\\/g, '/')
+      : null;
+
     try {
       if (!name) {
         return res.status(400).json({ message: 'Name is required.' });
       }
       const category = await actionCategoryModel.create({
         name, description,
-        tag_bg_colour_code, tag_text_colour_code
+        tag_bg_colour_code, tag_text_colour_code,
+        image
       });
       res.status(201).json({
         message: 'Category created successfully.',
@@ -64,7 +72,20 @@ const adminActionCategoryController = {
       if (!existing) {
         return res.status(404).json({ message: 'Category not found.' });
       }
-      const updated = await actionCategoryModel.update(id, req.body);
+
+      // Get new image if uploaded, else keep existing
+      const image = req.file
+        ? req.file.path.replace(/\\/g, '/')
+        : undefined;
+
+      if (image && existing.image) {
+        deleteFile(existing.image);
+      }
+
+      const updated = await actionCategoryModel.update(id, {
+        ...req.body,
+        ...(image !== undefined && { image })
+      });
       res.json({
         message: 'Category updated successfully.',
         data: updated

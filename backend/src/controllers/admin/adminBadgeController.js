@@ -1,4 +1,5 @@
 const badgeModel = require('../../models/badgeModel');
+const { deleteFile } = require('../../utils/uploadService');
 
 const adminBadgeController = {
 
@@ -27,14 +28,21 @@ const adminBadgeController = {
   },
 
   create: async (req, res) => {
-    const { name, image } = req.body;
+    const image = req.file
+      ? req.file.path.replace(/\\/g, '/')
+      : null;
+
     try {
-      if (!name) {
-        return res.status(400).json({ message: 'Badge name is required.' });
+      if (!req.body.name) {
+        return res.status(400).json({ message: 'Name is required.' });
       }
-      const badge = await badgeModel.create(name, image);
+      const badge = await badgeModel.create({
+        ...req.body,
+        image
+      });
       res.status(201).json({
-        message: 'Badge created successfully.', data: badge
+        message: 'Badge created successfully.',
+        data: badge
       });
     } catch (err) {
       console.error('Create badge error:', err);
@@ -44,18 +52,28 @@ const adminBadgeController = {
 
   update: async (req, res) => {
     const { id } = req.params;
-    const { name, image } = req.body;
     try {
       const existing = await badgeModel.getById(id);
       if (!existing) {
         return res.status(404).json({ message: 'Badge not found.' });
       }
-      const updated = await badgeModel.update(
-        id,
-        name || existing.name,
-        image || existing.image
-      );
-      res.json({ message: 'Badge updated successfully.', data: updated });
+
+      const image = req.file
+        ? req.file.path.replace(/\\/g, '/')
+        : undefined;
+
+      if (image && existing.image) {
+        deleteFile(existing.image);
+      }
+
+      const updated = await badgeModel.update(id, {
+        ...req.body,
+        ...(image !== undefined && { image })
+      });
+      res.json({
+        message: 'Badge updated successfully.',
+        data: updated
+      });
     } catch (err) {
       console.error('Update badge error:', err);
       res.status(500).json({ message: 'Server error.' });

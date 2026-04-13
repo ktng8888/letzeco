@@ -21,16 +21,16 @@ const actionCategoryModel = {
 
   create: async (data) => {
     const {
-      name, description,
+      name, description, image,
       tag_bg_colour_code, tag_text_colour_code
     } = data;
     const result = await pool.query(
       `INSERT INTO action_category
-        (name, description, tag_bg_colour_code, tag_text_colour_code)
-       VALUES ($1, $2, $3, $4)
+        (name, description, image, tag_bg_colour_code, tag_text_colour_code)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING *`,
       [
-        name, description || null,
+        name, description || null, image || null,
         tag_bg_colour_code || null,
         tag_text_colour_code || null
       ]
@@ -47,13 +47,15 @@ const actionCategoryModel = {
       `UPDATE action_category SET
         name = $1,
         description = $2,
-        tag_bg_colour_code = $3,
-        tag_text_colour_code = $4
-       WHERE id = $5
+        image = $3,
+        tag_bg_colour_code = $4,
+        tag_text_colour_code = $5
+       WHERE id = $6
        RETURNING *`,
       [
         data.name || current.name,
         data.description || current.description,
+        data.image !== undefined ? data.image : current.image,
         data.tag_bg_colour_code !== undefined
           ? data.tag_bg_colour_code
           : current.tag_bg_colour_code,

@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import challengeService from '../../../../services/challengeService';
 import actionService from '../../../../services/actionService';
@@ -13,6 +14,7 @@ import Textarea from '../../../../components/common/Textarea';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 function ChallengeDetail() {
   const router = useRouter();
@@ -31,6 +33,9 @@ function ChallengeDetail() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -51,6 +56,9 @@ function ChallengeDetail() {
         tag_bg_colour_code: c.tag_bg_colour_code || '',
         tag_text_colour_code: c.tag_text_colour_code || '',
       });
+
+      setCurrentImage(c.image || null);
+
       setEligibleActions(eligRes.data || []);
       setActions(actRes.data);
     }).catch(() => toast.error('Failed to load.'))
@@ -84,10 +92,22 @@ function ChallengeDetail() {
     }
   };
 
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setCurrentImage(null);
+  };
+
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      await challengeService.update(id, form);
+      const formData = buildFormData(form, imageFile);
+      await categoryService.update(id, formData);
       toast.success('Challenge updated!');
       router.push('/challenges');
     } catch (err) {
@@ -144,6 +164,16 @@ function ChallengeDetail() {
               onChange={(e) => set('about', e.target.value)}
               rows={3} disabled={isView} />
           </div>
+          <div className="md:col-span-2">
+            <ImageUpload
+              label="Challenge Image (Optional)"
+              value={currentImage}
+              preview={imagePreview}
+              onChange={handleImageChange}
+              onRemove={handleImageRemove}
+              disabled={isView}
+            />
+          </div>  
         </FormSection>
 
         <FormSection title="Challenge Goal">
