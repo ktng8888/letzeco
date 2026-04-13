@@ -34,26 +34,14 @@ const adminAchievementController = {
   },
 
   create: async (req, res) => {
-    const { name, bagde_id, bonus_xp, type,
-            action_category_id, action_id,
-            target_type, target_value } = req.body;
+    const image = req.file
+      ? req.file.path.replace(/\\/g, '/')
+      : null;
+
     try {
-      if (!name) {
-        return res.status(400).json({ message: 'Achievement name is required.' });
-      }
-
-      // Check badge exists if provided
-      if (bagde_id) {
-        const badge = await badgeModel.getById(bagde_id);
-        if (!badge) {
-          return res.status(404).json({ message: 'Badge not found.' });
-        }
-      }
-
       const achievement = await achievementModel.create({
-        name, bagde_id, bonus_xp, type,
-        action_category_id, action_id,
-        target_type, target_value
+        ...req.body,
+        image
       });
       res.status(201).json({
         message: 'Achievement created successfully.',

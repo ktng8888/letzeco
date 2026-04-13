@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import challengeService from '../../../../services/challengeService';
 import actionService from '../../../../services/actionService';
@@ -13,6 +14,7 @@ import Input from '../../../../components/common/Input';
 import Textarea from '../../../../components/common/Textarea';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 export default function CreateChallengePage() {
   const router = useRouter();
@@ -28,7 +30,9 @@ export default function CreateChallengePage() {
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  
   useEffect(() => {
     Promise.all([actionService.getAll(), categoryService.getAll()])
       .then(([actRes, catRes]) => {
@@ -68,15 +72,15 @@ export default function CreateChallengePage() {
 
     setIsLoading(true);
     try {
-      // Create challenge first
-      const res = await challengeService.create(form);
+      const formData = buildFormData(form, imageFile);
+
+      // Create challenge
+      const res = await challengeService.create(formData);
       const challengeId = res.data.id;
 
       // Add eligible actions
       for (const action of eligibleActions) {
-        await challengeService.addEligibleAction(
-          challengeId, action.id
-        );
+        await challengeService.addEligibleAction(challengeId, action.id);
       }
 
       toast.success('Challenge created!');
@@ -131,6 +135,20 @@ export default function CreateChallengePage() {
               onChange={(e) => set('about', e.target.value)}
               placeholder="Describe the challenge..."
               rows={3} />
+          </div>
+          <div className="md:col-span-2">
+            <ImageUpload
+              label="Challenge Image (Optional)"
+              preview={imagePreview}
+              onChange={(f) => {
+                setImageFile(f);
+                setImagePreview(URL.createObjectURL(f));
+              }}
+              onRemove={() => {
+                setImageFile(null);
+                setImagePreview(null);
+              }}
+            />
           </div>
         </FormSection>
 

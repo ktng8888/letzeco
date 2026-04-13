@@ -1,6 +1,7 @@
 const challengeModel = require('../../models/challengeModel');
 const eligibleActionModel = require('../../models/eligibleActionModel');
 const actionModel = require('../../models/actionModel');
+const { deleteFile } = require('../../utils/uploadService');
 
 const adminChallengeController = {
 
@@ -37,17 +38,19 @@ const adminChallengeController = {
   },
 
   create: async (req, res) => {
-    const { name, image, type, start_date, end_date,
-            about, target_type, target_value, status } = req.body;
+    const image = req.file
+      ? req.file.path.replace(/\\/g, '/')
+      : null;
+
     try {
-      if (!name || !start_date || !end_date) {
+      if (!req.body.name || !req.body.start_date || !req.body.end_date) {
         return res.status(400).json({
           message: 'Name, start date and end date are required.'
         });
       }
       const challenge = await challengeModel.create({
-        name, image, type, start_date, end_date,
-        about, target_type, target_value, status
+        ...req.body,
+        image
       });
       res.status(201).json({
         message: 'Challenge created successfully.',
@@ -66,7 +69,19 @@ const adminChallengeController = {
       if (!existing) {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
-      const updated = await challengeModel.update(id, req.body);
+
+      const image = req.file
+        ? req.file.path.replace(/\\/g, '/')
+        : undefined;
+
+      if (image && existing.image) {
+        deleteFile(existing.image);
+      }
+
+      const updated = await challengeModel.update(id, {
+        ...req.body,
+        ...(image !== undefined && { image })
+      });
       res.json({
         message: 'Challenge updated successfully.',
         data: updated

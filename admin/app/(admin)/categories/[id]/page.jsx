@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
+import { buildFormData } from '../../../../utils/buildFormData';
 import toast from 'react-hot-toast';
 import categoryService from '../../../../services/categoryService';
 import PageHeader from '../../../../components/layout/PageHeader';
@@ -10,6 +11,7 @@ import Input from '../../../../components/common/Input';
 import Textarea from '../../../../components/common/Textarea';
 import Button from '../../../../components/common/Button';
 import LoadingSpinner from '../../../../components/common/LoadingSpinner';
+import ImageUpload from '../../../../components/common/ImageUpload';
 
 function CategoryDetail() {
   const router = useRouter();
@@ -26,23 +28,42 @@ function CategoryDetail() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [currentImage, setCurrentImage] = useState(null);
 
   useEffect(() => {
     categoryService.getById(id)
-      .then((res) => setForm({
-        name: res.data.name || '',
-        description: res.data.description || '',
-        tag_bg_colour_code: res.data.tag_bg_colour_code || '',
-        tag_text_colour_code: res.data.tag_text_colour_code || '',
-      }))
+      .then((res) => {
+        setForm({
+          name: res.data.name || '',
+          description: res.data.description || '',
+          tag_bg_colour_code: res.data.tag_bg_colour_code || '',
+          tag_text_colour_code: res.data.tag_text_colour_code || '',
+        });
+        setCurrentImage(res.data.image || null);
+      })
       .catch(() => toast.error('Failed to load.'))
       .finally(() => setIsLoading(false));
   }, [id]);
 
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleImageRemove = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    setCurrentImage(null);
+  };
+
+  // In handleSubmit — use FormData
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      await categoryService.update(id, form);
+      const formData = buildFormData(form, imageFile);
+      await categoryService.update(id, formData);
       toast.success('Category updated!');
       router.push('/categories');
     } catch (err) {
@@ -75,6 +96,16 @@ function CategoryDetail() {
                 ...p, description: e.target.value
               }))}
               rows={4} required disabled={isView} />
+          </div>
+          <div className="md:col-span-2">
+            <ImageUpload
+            label="Category Icon"
+            value={currentImage}
+            preview={imagePreview}
+            onChange={handleImageChange}
+            onRemove={handleImageRemove}
+            disabled={isView}
+            />
           </div>
         </FormSection>
 

@@ -29,7 +29,18 @@ const profileStorage = multer.diskStorage({
   }
 });
 
-// Action icon upload
+const categoryStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = 'uploads/categories/';
+    createFolderIfNotExists(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `category_${Date.now()}${ext}`);
+  }
+});
+
 const actionStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const folder = 'uploads/actions/';
@@ -42,16 +53,27 @@ const actionStorage = multer.diskStorage({
   }
 });
 
-// Category icon upload
-const categoryStorage = multer.diskStorage({
+const challengeStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = 'uploads/category/';
+    const folder = 'uploads/challenges/';
     createFolderIfNotExists(folder);
     cb(null, folder);
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname);
-    cb(null, `category_${Date.now()}${ext}`);
+    cb(null, `challenge_${Date.now()}${ext}`);
+  }
+});
+
+const badgeStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const folder = 'uploads/badges/';
+    createFolderIfNotExists(folder);
+    cb(null, folder);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `badge_${Date.now()}${ext}`);
   }
 });
 
@@ -81,12 +103,6 @@ const imageFilter = (req, file, cb) => {
 const uploadProfile = multer({
   storage: profileStorage,
   fileFilter: imageFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max
-});
-
-const uploadAction = multer({
-  storage: actionStorage,
-  fileFilter: imageFilter,
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
@@ -96,10 +112,28 @@ const uploadCategory = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
+const uploadAction = multer({
+  storage: actionStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+const uploadChallenge = multer({
+  storage: challengeStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+const uploadBadge = multer({
+  storage: badgeStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 const uploadProof = multer({
   storage: proofStorage,
   fileFilter: imageFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB max
+  limits: { fileSize: 10 * 1024 * 1024 }
 });
 
 const deleteFile = (filePath) => {
@@ -110,4 +144,12 @@ const deleteFile = (filePath) => {
   }
 };
 
-module.exports = { uploadProfile, uploadProof, uploadAction, uploadCategory, deleteFile };
+module.exports = {
+  uploadProfile,
+  uploadCategory,
+  uploadAction,
+  uploadChallenge,
+  uploadBadge,
+  uploadProof,
+  deleteFile
+};
