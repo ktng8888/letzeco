@@ -78,7 +78,8 @@ const adminActionCategoryController = {
         ? req.file.path.replace(/\\/g, '/')
         : undefined;
 
-      if (image && existing.image) {
+      const removeImage = req.body.remove_image === 'true';
+      if ((image || removeImage) && existing.image) {
         deleteFile(existing.image);
       }
 

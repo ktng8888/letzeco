@@ -31,6 +31,7 @@ function CategoryDetail() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   useEffect(() => {
     categoryService.getById(id)
@@ -47,22 +48,24 @@ function CategoryDetail() {
       .finally(() => setIsLoading(false));
   }, [id]);
 
-  const handleImageChange = (file) => {
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
   const handleImageRemove = () => {
     setImageFile(null);
     setImagePreview(null);
     setCurrentImage(null);
+    setImageRemoved(true);
+  };
+
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setImageRemoved(false);
   };
 
   // In handleSubmit — use FormData
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      const formData = buildFormData(form, imageFile);
+      const formData = buildFormData(form, imageFile, imageRemoved);
       await categoryService.update(id, formData);
       toast.success('Category updated!');
       router.push('/categories');

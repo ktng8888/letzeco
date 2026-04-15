@@ -1,4 +1,4 @@
-export function buildFormData(fields, imageFile) {
+export function buildFormData(fields, imageFile, removeImage = false) {
   const formData = new FormData();
 
   // Add all text fields
@@ -11,6 +11,10 @@ export function buildFormData(fields, imageFile) {
   // Add image if selected
   if (imageFile) {
     formData.append('image', imageFile);
+  }
+
+  if (removeImage) {
+    formData.append('remove_image', 'true');
   }
 
   return formData;

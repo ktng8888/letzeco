@@ -74,13 +74,15 @@ const adminChallengeController = {
         ? req.file.path.replace(/\\/g, '/')
         : undefined;
 
-      if (image && existing.image) {
+      const removeImage = req.body.remove_image === 'true';
+      if ((image || removeImage) && existing.image) {
         deleteFile(existing.image);
       }
 
       const updated = await challengeModel.update(id, {
         ...req.body,
-        ...(image !== undefined && { image })
+        ...(image !== undefined && { image }),
+        ...(removeImage && { remove_image: 'true' })
       });
       res.json({
         message: 'Challenge updated successfully.',

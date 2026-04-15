@@ -33,7 +33,8 @@ function ActionDetail() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
-
+  const [imageRemoved, setImageRemoved] = useState(false);
+  
   useEffect(() => {
     Promise.all([
       actionService.getById(id),
@@ -70,7 +71,7 @@ function ActionDetail() {
         payload.time_limit =
           `00:${String(payload.time_limit).padStart(2, '0')}:00`;
       }
-      const formData = buildFormData(payload, imageFile);
+      const formData = buildFormData(payload, imageFile, imageRemoved);
       await actionService.update(id, formData);
       toast.success('Action updated!');
       router.push('/actions');
@@ -124,11 +125,13 @@ function ActionDetail() {
               onChange={(f) => {
                 setImageFile(f);
                 setImagePreview(URL.createObjectURL(f));
+                setImageRemoved(false);
               }}
               onRemove={() => {
                 setImageFile(null);
                 setImagePreview(null);
                 setCurrentImage(null);
+                setImageRemoved(true);
               }}
               disabled={isView}
             />
