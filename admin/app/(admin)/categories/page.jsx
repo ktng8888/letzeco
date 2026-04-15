@@ -76,7 +76,7 @@ export default function CategoriesPage() {
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
-            style={{ backgroundColor: row.colour || '#dcfce7' }}
+            style={{ backgroundColor: row.colour || '#EDEDED' }}
           >
             {row.image ? (
               <img
@@ -85,7 +85,11 @@ export default function CategoriesPage() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-lg">🌿</span>
+              <img
+                src={'/default.png'}
+                alt={val}
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
           <span className="font-medium text-gray-800">{val}</span>

@@ -84,7 +84,7 @@ export default function ChallengesPage() {
         <div className="flex items-center gap-3">
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
-            style={{ backgroundColor: row.colour || '#dcfce7' }}
+            style={{ backgroundColor: row.colour || '#EDEDED' }}
           >
             {row.image ? (
               <img
@@ -93,10 +93,11 @@ export default function ChallengesPage() {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <div className="w-10 h-10 rounded-lg bg-green-100
-                flex items-center justify-center text-lg">
-                🏆
-              </div>
+              <img
+                src={'/default.png'}
+                alt={val}
+                className="w-full h-full object-cover"
+              />
             )}
           </div>
           <span className="font-medium text-gray-800">{val}</span>

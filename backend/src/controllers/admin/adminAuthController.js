@@ -37,6 +37,7 @@ const adminAuthController = {
           id: admin.id,
           username: admin.username,
           email: admin.email,
+          profile_image: admin.profile_image||null,
         }
       });
 

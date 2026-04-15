@@ -16,7 +16,8 @@ const badgeModel = {
     return result.rows[0];
   },
 
-  create: async (name, image) => {
+  create: async (data) => {
+    const { name, image } = data;
     const result = await pool.query(
       `INSERT INTO badge (name, image)
        VALUES ($1, $2) RETURNING *`,
@@ -25,11 +26,20 @@ const badgeModel = {
     return result.rows[0];
   },
 
-  update: async (id, name, image) => {
+  update: async (id, data) => {
+    const existing = await pool.query(
+      'SELECT * FROM badge WHERE id = $1', [id]
+    );
+    const current = existing.rows[0];
     const result = await pool.query(
-      `UPDATE badge SET name = $1, image = $2
+      `UPDATE badge SET
+        name = $1, image = $2
        WHERE id = $3 RETURNING *`,
-      [name, image, id]
+      [
+        data.name || current.name,
+        data.image !== undefined ? data.image : current.image,
+        id
+      ]
     );
     return result.rows[0];
   },
