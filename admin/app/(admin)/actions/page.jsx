@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
+import { getImageUrl } from '../../../utils/imageUrl';
 import toast from 'react-hot-toast';
 import actionService from '../../../services/actionService';
 import categoryService from '../../../services/categoryService';
@@ -94,11 +95,27 @@ export default function ActionsPage() {
     {
       key: 'name', label: 'Action',
       render: (val, row) => (
-        <div>
-          <p className="font-medium text-gray-800">{val}</p>
-          <p className="text-xs text-gray-400 mt-0.5">
-            {row.category_name}
-          </p>
+        <div className="flex items-center gap-3">
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
+            style={{ backgroundColor: row.colour || '#dcfce7' }}
+          >
+            {row.image ? (
+              <img
+                src={getImageUrl(row.image)}
+                alt={val}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-lg">🌿</span>
+            )}
+          </div>
+          <div>
+            <p className="font-medium text-gray-800">{val}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {row.category_name}
+            </p>
+          </div>
         </div>
       )
     },
