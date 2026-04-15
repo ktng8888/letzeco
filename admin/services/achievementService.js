@@ -1,10 +1,12 @@
 import api from './api';
-const achievementService = {
-  getAll: async () => (await api.get('/admin/achievements')).data,
 
+const achievementService = {
+
+  getAll: async () => (await api.get('/admin/achievements')).data,
   getById: async (id) => (await api.get(`/admin/achievements/${id}`)).data,
-  
-  create: async (formData) => {
+
+  // Create batch — sends FormData with rows JSON + image files
+  createBatch: async (formData) => {
     const res = await api.post('/admin/achievements', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
@@ -18,6 +20,9 @@ const achievementService = {
     return res.data;
   },
 
-  delete: async (id) => (await api.delete(`/admin/achievements/${id}`)).data,
+  delete: async (id) =>
+    (await api.delete(`/admin/achievements/${id}`)).data,
+
 };
+
 export default achievementService;

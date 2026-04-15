@@ -4,19 +4,23 @@ const achievementModel = {
 
   getAll: async () => {
     const result = await pool.query(
-      `SELECT a.*, b.name AS badge_name,
+      `SELECT a.*,
+              b.name AS badge_name,
+              b.image AS badge_image,
               ac.name AS category_name
        FROM achievement a
        LEFT JOIN badge b ON a.bagde_id = b.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
-       ORDER BY a.id ASC`
+       ORDER BY a.type, a.target_value ASC`
     );
     return result.rows;
   },
 
   getById: async (id) => {
     const result = await pool.query(
-      `SELECT a.*, b.name AS badge_name,
+      `SELECT a.*,
+              b.name AS badge_name,
+              b.image AS badge_image,
               ac.name AS category_name
        FROM achievement a
        LEFT JOIN badge b ON a.bagde_id = b.id
@@ -29,21 +33,18 @@ const achievementModel = {
 
   create: async (data) => {
     const {
-      name, bagde_id, bonus_xp, type,
-      action_category_id, action_id,
-      target_type, target_value
+      name, type, target_value, bonus_xp,
+      badge_name, bagde_id, action_category_id
     } = data;
     const result = await pool.query(
-      `INSERT INTO achievement (
-        name, bagde_id, bonus_xp, type,
-        action_category_id, action_id,
-        target_type, target_value
-       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      `INSERT INTO achievement
+        (name, type, target_value, bonus_xp,
+         bagde_id, action_category_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
-        name, bagde_id || null, bonus_xp || 0, type || null,
-        action_category_id || null, action_id || null,
-        target_type || null, target_value || null
+        name, type, target_value, bonus_xp,
+        bagde_id || null, action_category_id || null
       ]
     );
     return result.rows[0];
@@ -56,19 +57,16 @@ const achievementModel = {
     const current = existing.rows[0];
     const result = await pool.query(
       `UPDATE achievement SET
-        name = $1, bagde_id = $2, bonus_xp = $3,
-        type = $4, action_category_id = $5,
-        action_id = $6, target_type = $7, target_value = $8
-       WHERE id = $9 RETURNING *`,
+        name = $1, type = $2,
+        target_value = $3, bonus_xp = $4,
+        action_category_id = $5
+       WHERE id = $6 RETURNING *`,
       [
         data.name || current.name,
-        data.bagde_id || current.bagde_id,
-        data.bonus_xp || current.bonus_xp,
         data.type || current.type,
-        data.action_category_id || current.action_category_id,
-        data.action_id || current.action_id,
-        data.target_type || current.target_type,
         data.target_value || current.target_value,
+        data.bonus_xp || current.bonus_xp,
+        data.action_category_id || current.action_category_id,
         id
       ]
     );

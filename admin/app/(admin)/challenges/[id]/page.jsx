@@ -29,7 +29,6 @@ function ChallengeDetail() {
     name: '', type: 'solo', start_date: '', end_date: '',
     about: '', target_type: 'count', target_value: '',
     status: 'active',
-    tag_bg_colour_code: '', tag_text_colour_code: '',
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -53,8 +52,6 @@ function ChallengeDetail() {
         target_type: c.target_type || 'count',
         target_value: c.target_value || '',
         status: c.status || 'active',
-        tag_bg_colour_code: c.tag_bg_colour_code || '',
-        tag_text_colour_code: c.tag_text_colour_code || '',
       });
 
       setCurrentImage(c.image || null);
@@ -191,17 +188,6 @@ function ChallengeDetail() {
             disabled={isView} />
         </FormSection>
 
-        <FormSection title="Tag Colours">
-          <Input label="Tag Background Colour"
-            value={form.tag_bg_colour_code}
-            onChange={(e) => set('tag_bg_colour_code', e.target.value)}
-            disabled={isView} />
-          <Input label="Tag Text Colour"
-            value={form.tag_text_colour_code}
-            onChange={(e) => set('tag_text_colour_code', e.target.value)}
-            disabled={isView} />
-        </FormSection>
-
         {/* Eligible Actions */}
         <div className="p-6 border-t border-gray-100">
           <div className="flex items-center justify-between mb-4">
@@ -219,7 +205,7 @@ function ChallengeDetail() {
                 />
                 <Button onClick={handleAddEligibleAction}>
                   <Plus className="w-4 h-4" />
-                  + Add Eligible Actions
+                  Add Eligible Actions
                 </Button>
               </div>
             )}

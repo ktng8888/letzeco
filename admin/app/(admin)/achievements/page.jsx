@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
+import { getImageUrl } from '../../../utils/imageUrl';
 import toast from 'react-hot-toast';
 import achievementService from '../../../services/achievementService';
 import PageHeader from '../../../components/layout/PageHeader';
@@ -77,6 +78,28 @@ export default function AchievementsPage() {
       render: (val, row) => (
         <div>
           <p className="font-medium text-gray-800">{val}</p>
+        </div>
+      )
+    },
+    {
+      key: 'badge_image', label: 'Badge', width: '80px',
+      render: (val, row) => (
+        <div>
+          {
+            row.badge_image ? (
+              <img
+                src={getImageUrl(row.badge_image)}
+                alt={row.badge_name || 'Badge'}
+                className="w-10 h-10 rounded-lg object-cover"
+              />
+            ) : (
+              <img
+                src={'/default.png'}
+                alt={val}
+                className="w-full h-full object-cover"
+              />
+            )
+          }
           <p className="text-xs text-gray-400 mt-0.5">
             {row.badge_name}
           </p>

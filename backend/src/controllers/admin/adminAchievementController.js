@@ -1,5 +1,7 @@
 const achievementModel = require('../../models/achievementModel');
 const badgeModel = require('../../models/badgeModel');
+const { uploadBadge } = require('../../utils/uploadService');
+const multer = require('multer');
 
 const adminAchievementController = {
 
@@ -33,26 +35,89 @@ const adminAchievementController = {
     }
   },
 
-  create: async (req, res) => {
-    const image = req.file
-      ? req.file.path.replace(/\\/g, '/')
-      : null;
-
+  // CREATE MULTIPLE ACHIEVEMENTS AT ONCE
+  // Receives: type, action_category_id
+  // + rows[]: { target_value, bonus_xp, name, badge_name }
+  // + images[]: files named image_0, image_1, image_2...
+  createBatch: async (req, res) => {
     try {
-      const achievement = await achievementModel.create({
-        ...req.body,
-        image
-      });
+      const { type, action_category_id } = req.body;
+
+      if (!type) {
+        return res.status(400).json({
+          message: 'Achievement type is required.'
+        });
+      }
+
+      // Parse rows from JSON string
+      let rows = [];
+      try {
+        rows = JSON.parse(req.body.rows || '[]');
+      } catch {
+        return res.status(400).json({ message: 'Invalid rows data.' });
+      }
+
+      if (rows.length === 0) {
+        return res.status(400).json({
+          message: 'At least one achievement row is required.'
+        });
+      }
+
+      // Validate rows
+      for (const row of rows) {
+        if (!row.target_value || !row.bonus_xp || !row.name || !row.badge_name) {
+          return res.status(400).json({
+            message: 'Each row needs target value, bonus XP, achievement name and badge name.'
+          });
+        }
+      }
+
+      // Get uploaded files — keyed by image_0, image_1, etc.
+      const files = req.files || {};
+
+      const created = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        // Get badge image for this row
+        const imageFile = files[`image_${i}`]?.[0];
+        const imagePath = imageFile
+          ? imageFile.path.replace(/\\/g, '/')
+          : null;
+
+        // Create badge first
+        const badge = await badgeModel.create({
+          name: row.badge_name,
+          image: imagePath,
+        });
+
+        // Create achievement linked to badge
+        const achievement = await achievementModel.create({
+          name: row.name,
+          type,
+          target_value: parseInt(row.target_value),
+          bonus_xp: parseInt(row.bonus_xp),
+          badge_name: row.badge_name,
+          bagde_id: badge.id,
+          action_category_id: action_category_id || null,
+        });
+
+        created.push(achievement);
+      }
+
       res.status(201).json({
-        message: 'Achievement created successfully.',
-        data: achievement
+        message: `${created.length} achievement(s) created successfully.`,
+        data: created
       });
+
     } catch (err) {
-      console.error('Create achievement error:', err);
+      console.error('Create batch achievements error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },
 
+  // UPDATE SINGLE ACHIEVEMENT
   update: async (req, res) => {
     const { id } = req.params;
     try {
@@ -60,11 +125,31 @@ const adminAchievementController = {
       if (!existing) {
         return res.status(404).json({ message: 'Achievement not found.' });
       }
-      const updated = await achievementModel.update(id, req.body);
+
+      const imageFile = req.files?.['image']?.[0];
+      const imagePath = imageFile
+        ? imageFile.path.replace(/\\/g, '/')
+        : undefined;
+
+      //Update badge whenever bagde_id exists (name or image changed)
+      if (existing.bagde_id) {
+        await badgeModel.update(existing.bagde_id, {
+          name: req.body.badge_name || existing.badge_name,
+          ...(imagePath && { image: imagePath }),
+        });
+      }
+
+      const updated = await achievementModel.update(id, {
+        ...req.body,
+        target_value: parseInt(req.body.target_value),
+        bonus_xp: parseInt(req.body.bonus_xp),
+      });
+
       res.json({
         message: 'Achievement updated successfully.',
         data: updated
       });
+
     } catch (err) {
       console.error('Update achievement error:', err);
       res.status(500).json({ message: 'Server error.' });

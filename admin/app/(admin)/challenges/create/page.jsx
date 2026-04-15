@@ -26,7 +26,6 @@ export default function CreateChallengePage() {
     name: '', type: 'solo', start_date: '', end_date: '',
     about: '', target_type: 'count', target_value: '',
     status: 'active',
-    tag_bg_colour_code: '', tag_text_colour_code: '',
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -168,18 +167,6 @@ export default function CreateChallengePage() {
             placeholder="e.g. 10" />
         </FormSection>
 
-        {/* Tag Colours */}
-        <FormSection title="Tag Colours (Optional)">
-          <Input label="Tag Background Colour"
-            value={form.tag_bg_colour_code}
-            onChange={(e) => set('tag_bg_colour_code', e.target.value)}
-            placeholder="#E8F5E9" />
-          <Input label="Tag Text Colour"
-            value={form.tag_text_colour_code}
-            onChange={(e) => set('tag_text_colour_code', e.target.value)}
-            placeholder="#2E7D32" />
-        </FormSection>
-
         {/* Eligible Actions */}
         <div className="p-6 border-t border-gray-100">
           <div className="flex items-center justify-between mb-4">
@@ -200,7 +187,7 @@ export default function CreateChallengePage() {
             </div>
             <Button onClick={handleAddEligibleAction} variant="primary">
               <Plus className="w-4 h-4" />
-              + Add Eligible Actions
+              Add Eligible Actions
             </Button>
           </div>
 
