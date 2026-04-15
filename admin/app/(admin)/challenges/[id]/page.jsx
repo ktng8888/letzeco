@@ -107,7 +107,7 @@ function ChallengeDetail() {
     setIsSaving(true);
     try {
       const formData = buildFormData(form, imageFile);
-      await categoryService.update(id, formData);
+      await challengeService.update(id, formData);
       toast.success('Challenge updated!');
       router.push('/challenges');
     } catch (err) {

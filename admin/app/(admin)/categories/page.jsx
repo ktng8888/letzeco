@@ -78,9 +78,9 @@ export default function CategoriesPage() {
             className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
             style={{ backgroundColor: row.colour || '#dcfce7' }}
           >
-            {row.icon ? (
+            {row.image ? (
               <img
-                src={getImageUrl(row.icon)}
+                src={getImageUrl(row.image)}
                 alt={val}
                 className="w-full h-full object-cover"
               />
