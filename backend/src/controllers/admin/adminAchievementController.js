@@ -1,6 +1,7 @@
 const achievementModel = require('../../models/achievementModel');
 const badgeModel = require('../../models/badgeModel');
 const { uploadBadge } = require('../../utils/uploadService');
+const { deleteFile } = require('../../utils/uploadService'); 
 const multer = require('multer');
 
 const adminAchievementController = {
@@ -117,9 +118,9 @@ const adminAchievementController = {
     }
   },
 
-  // UPDATE SINGLE ACHIEVEMENT
   update: async (req, res) => {
     const { id } = req.params;
+
     try {
       const existing = await achievementModel.getById(id);
       if (!existing) {
@@ -131,11 +132,26 @@ const adminAchievementController = {
         ? imageFile.path.replace(/\\/g, '/')
         : undefined;
 
-      //Update badge whenever bagde_id exists (name or image changed)
+      // support remove image
+      const removeImage = req.body.remove_image === 'true';
+
       if (existing.bagde_id) {
+        // Get existing badge
+        const existingBadge = await badgeModel.getById(existing.bagde_id);
+
+        // DELETE old image (covers upload + remove)
+        if ((imagePath || removeImage) && existingBadge?.image) {
+          try {
+            deleteFile(existingBadge.image);
+          } catch (err) {
+            console.warn('Failed to delete old badge image:', err);
+          }
+        }
+
         await badgeModel.update(existing.bagde_id, {
           name: req.body.badge_name || existing.badge_name,
-          ...(imagePath && { image: imagePath }),
+          ...(imagePath !== undefined && { image: imagePath }),
+          ...(removeImage && { image: null }),
         });
       }
 

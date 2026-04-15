@@ -35,6 +35,7 @@ function ChallengeDetail() {
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
+  const [imageRemoved, setImageRemoved] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -89,21 +90,23 @@ function ChallengeDetail() {
     }
   };
 
-  const handleImageChange = (file) => {
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
-  };
-
   const handleImageRemove = () => {
     setImageFile(null);
     setImagePreview(null);
     setCurrentImage(null);
+    setImageRemoved(true);
+  };
+
+  const handleImageChange = (file) => {
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+    setImageRemoved(false);
   };
 
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      const formData = buildFormData(form, imageFile);
+      const formData = buildFormData(form, imageFile, imageRemoved);
       await challengeService.update(id, formData);
       toast.success('Challenge updated!');
       router.push('/challenges');

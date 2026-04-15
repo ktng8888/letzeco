@@ -43,6 +43,16 @@ const actionCategoryModel = {
       'SELECT * FROM action_category WHERE id = $1', [id]
     );
     const current = existing.rows[0];
+
+      let imageValue;
+      if (data.remove_image === 'true') {
+        imageValue = null;
+      } else if (data.image !== undefined) {
+        imageValue = data.image;
+      } else {
+        imageValue = current.image;
+      }
+
     const result = await pool.query(
       `UPDATE action_category SET
         name = $1,
@@ -55,7 +65,7 @@ const actionCategoryModel = {
       [
         data.name || current.name,
         data.description || current.description,
-        data.image !== undefined ? data.image : current.image,
+        imageValue,
         data.tag_bg_colour_code !== undefined
           ? data.tag_bg_colour_code
           : current.tag_bg_colour_code,

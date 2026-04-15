@@ -124,6 +124,15 @@ const actionModel = {
     );
     const current = existing.rows[0];
 
+    let imageValue;
+    if (data.remove_image === 'true') {
+      imageValue = null;
+    } else if (data.image !== undefined) {
+      imageValue = data.image;
+    } else {
+      imageValue = current.image;
+    }
+
     const result = await pool.query(
       `UPDATE action SET
         name = $1, action_category_id = $2,
@@ -137,7 +146,7 @@ const actionModel = {
       [
         data.name || current.name,
         data.action_category_id || current.action_category_id,
-        data.image || current.image,
+        imageValue,
         data.time_limit || current.time_limit,
         data.description || current.description,
         data.importance || current.importance,

@@ -42,6 +42,16 @@ const challengeModel = {
       'SELECT * FROM challenge WHERE id = $1', [id]
     );
     const current = existing.rows[0];
+
+    let imageValue;
+    if (data.remove_image === 'true') {
+      imageValue = null;
+    } else if (data.image !== undefined) {
+      imageValue = data.image;
+    } else {
+      imageValue = current.image;
+    }
+
     const result = await pool.query(
       `UPDATE challenge SET
         name = $1, image = $2, type = $3,
@@ -51,7 +61,7 @@ const challengeModel = {
        WHERE id = $10 RETURNING *`,
       [
         data.name || current.name,
-        data.image || current.image,
+        imageValue,
         data.type || current.type,
         data.start_date || current.start_date,
         data.end_date || current.end_date,
