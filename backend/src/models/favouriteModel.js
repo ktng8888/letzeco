@@ -8,7 +8,9 @@ const favouriteModel = {
       `SELECT f.*, a.name AS action_name,
               a.image AS action_image,
               a.xp_reward, a.time_limit,
-              ac.name AS category_name
+              ac.name AS category_name,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code
        FROM favourite f
        LEFT JOIN action a ON f.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id

@@ -29,7 +29,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expired — clear storage
       await storage.clear();
-      // Redirect to login handled by auth store
+      // Force logout via auth store
+      const { logout } = require('../store/authStore').default.getState();
+      await logout();
     }
     return Promise.reject(error);
   }
