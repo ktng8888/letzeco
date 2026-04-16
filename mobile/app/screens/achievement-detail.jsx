@@ -128,6 +128,14 @@ export default function AchievementDetailScreen() {
                 key={ach.id}
                 achievement={ach}
                 isActive={ach.id === current.id}
+                onPress={() => {
+                  if (ach.id !== current.id) {  // don't navigate if already on this one
+                    router.replace({
+                      pathname: '/screens/achievement-detail',
+                      params: { achievementId: ach.id }
+                    });
+                  }
+                }}
               />
             ))}
           </View>
@@ -138,14 +146,18 @@ export default function AchievementDetailScreen() {
   );
 }
 
-function ProgressionRow({ achievement, isActive }) {
+function ProgressionRow({ achievement, isActive, onPress }) {
   const tierEmoji = getTierEmoji(achievement.badge_name);
 
   return (
-    <View style={[
-      styles.progressionRow,
-      isActive && styles.progressionRowActive
-    ]}>
+    <TouchableOpacity
+      style={[
+        styles.progressionRow,
+        isActive && styles.progressionRowActive
+      ]}
+      onPress={onPress} 
+      activeOpacity={isActive ? 1 : 0.7}
+    >
       <Text style={styles.tierEmoji}>{tierEmoji}</Text>
       <View style={styles.progressionInfo}>
         <Text style={styles.progressionName}>
@@ -167,7 +179,7 @@ function ProgressionRow({ achievement, isActive }) {
           />
         )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

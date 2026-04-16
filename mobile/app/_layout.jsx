@@ -39,10 +39,12 @@ export default function RootLayout() {
     const init = async () => {
       await initialize();
 
-      try {
-        await streakService.checkAndResetStreak();
-      } catch (err) {
-        console.warn('Streak check failed:', err);
+      if (isAuthenticated) {
+        try {
+          await streakService.checkAndResetStreak();
+        } catch (err) {
+          console.warn('Streak check failed:', err);
+        }
       }
 
       setIsReady(true);
