@@ -10,7 +10,12 @@ const favouriteModel = {
               a.xp_reward, a.time_limit,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              (SELECT COUNT(*) FROM user_action ua 
+                WHERE ua.user_id = f.user_id 
+                  AND ua.action_id = f.action_id 
+                  AND ua.status = 'completed'
+              ) AS user_log_count
        FROM favourite f
        LEFT JOIN action a ON f.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
