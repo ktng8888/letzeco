@@ -125,31 +125,32 @@ export default function LogActionScreen() {
       )}
 
       {/* Tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{ maxHeight: 50 }}
-        contentContainerStyle={styles.tabs}
-      >
-        <TabButton
-          label="Categories"
-          count={categories.length > 0 ? categories.length : null}
-          active={activeTab === 'categories'}
-          onPress={() => handleTabChange('categories')}
-        />
-        <TabButton
-          label="Recommended"
-          count={recommended.length > 0 ? recommended.length : null}
-          active={activeTab === 'recommended'}
-          onPress={() => handleTabChange('recommended')}
-        />
-        <TabButton
-          label="My Favourites"
-          count={favourites.length > 0 ? favourites.length : null}
-          active={activeTab === 'favourites'}
-          onPress={() => handleTabChange('favourites')}
-        />
-      </ScrollView>
+      <View style={styles.tabsWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.tabs}
+        >
+          <TabButton
+            label="Categories"
+            count={categories.length > 0 ? categories.length : null}
+            active={activeTab === 'categories'}
+            onPress={() => handleTabChange('categories')}
+          />
+          <TabButton
+            label="Recommended"
+            count={recommended.length > 0 ? recommended.length : null}
+            active={activeTab === 'recommended'}
+            onPress={() => handleTabChange('recommended')}
+          />
+          <TabButton
+            label="My Favourites"
+            count={favourites.length > 0 ? favourites.length : null}
+            active={activeTab === 'favourites'}
+            onPress={() => handleTabChange('favourites')}
+          />
+        </ScrollView>
+      </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -267,14 +268,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgLight,
   },
+  tabsWrapper: {
+    backgroundColor: colors.bgWhite,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
   tabs: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.bgWhite,
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingVertical: 10,
     gap: 8,
-    flexDirection: 'row',
   },
   tab: {
     paddingHorizontal: 16,
