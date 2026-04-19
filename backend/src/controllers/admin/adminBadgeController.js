@@ -89,6 +89,11 @@ const adminBadgeController = {
         return res.status(404).json({ message: 'Badge not found.' });
       }
       await badgeModel.delete(id);
+
+      if (existing.image) {
+        deleteFile(existing.image);
+      }
+
       res.json({ message: 'Badge deleted successfully.' });
     } catch (err) {
       console.error('Delete badge error:', err);

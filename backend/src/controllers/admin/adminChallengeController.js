@@ -1,6 +1,9 @@
 const challengeModel = require('../../models/challengeModel');
 const eligibleActionModel = require('../../models/eligibleActionModel');
 const actionModel = require('../../models/actionModel');
+const userChallengeModel = require('../../models/userChallengeModel');
+const teamMemberModel = require('../../models/teamMemberModel');   
+const teamModel = require('../../models/teamModel');                
 const { deleteFile } = require('../../utils/uploadService');
 
 const adminChallengeController = {
@@ -101,7 +104,27 @@ const adminChallengeController = {
       if (!existing) {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
+
+      // Delete user_challenge
+      await userChallengeModel.deleteByChallengeId(id);
+
+      // Get teams → delete their members → delete teams
+      const teams = await teamModel.getByChallenge(id);
+      for (const team of teams) {
+        await teamMemberModel.deleteByTeamId(team.id);
+      }
+      await teamModel.deleteByChallengeId(id);
+
+      // Delete eligible actions
+      await eligibleActionModel.deleteByChallengeId(id);
+
+      // Delete challenge
       await challengeModel.delete(id);
+
+      if (existing.image) {
+        deleteFile(existing.image);
+      }
+
       res.json({ message: 'Challenge deleted successfully.' });
     } catch (err) {
       console.error('Delete challenge error:', err);

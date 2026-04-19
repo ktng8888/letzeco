@@ -1,12 +1,22 @@
-import { TouchableOpacity, Text, View, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { TouchableOpacity, Text, View, Image, StyleSheet } from 'react-native';
 import colors from '../../constants/colors';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function CategoryCard({ category, onPress }) {
+  const imageUrl = getImageUrl(category.image);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>{getCategoryIcon(category.name)}</Text>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        ) : (
+          <Text style={styles.fallbackIcon}>🌍</Text>
+        )}
       </View>
       <Text style={styles.name} numberOfLines={2}>
         {category.name}
@@ -16,22 +26,6 @@ export default function CategoryCard({ category, onPress }) {
       </Text>
     </TouchableOpacity>
   );
-}
-
-function getCategoryIcon(name) {
-  const icons = {
-    'Water Conservation': '💧',
-    'Energy Conservation': '⚡',
-    'Recycling & Waste': '♻️',
-    'Sustainable Mobility': '🚌',
-    'Sustainable Food': '🥗',
-    'Environment': '🌿',
-  };
-  // Match by partial name
-  for (const key of Object.keys(icons)) {
-    if (name?.includes(key.split(' ')[0])) return icons[key];
-  }
-  return '🌍';
 }
 
 const styles = StyleSheet.create({
@@ -56,8 +50,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 10,
+    overflow: 'hidden',
   },
-  icon: { fontSize: 26 },
+  image: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+  },
+  fallbackIcon: {
+    fontSize: 26,
+  },
   name: {
     fontSize: 13,
     fontWeight: '700',

@@ -24,6 +24,13 @@ const teamModel = {
     return result.rows[0];
   },
 
+  getByChallenge: async (challengeId) => {
+    const result = await pool.query(
+      'SELECT * FROM team WHERE challenge_id = $1', [challengeId]
+    );
+    return result.rows;
+  },
+
   // Get public teams for a challenge
   getPublicTeams: async (challengeId) => {
     const result = await pool.query(
@@ -65,6 +72,12 @@ const teamModel = {
   // Delete team
   delete: async (id) => {
     await pool.query('DELETE FROM team WHERE id = $1', [id]);
+  },
+
+  deleteByChallengeId: async (challengeId) => {
+    await pool.query(
+      'DELETE FROM team WHERE challenge_id = $1', [challengeId]
+    );
   },
 
   // Get member count

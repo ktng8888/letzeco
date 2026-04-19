@@ -33,6 +33,13 @@ const eligibleActionModel = {
     );
   },
 
+  deleteByChallengeId: async (challengeId) => {
+    await pool.query(
+      'DELETE FROM eligible_action WHERE challenge_id = $1',
+      [challengeId]
+    );
+  },
+
   // Check if action already eligible for challenge
   checkExists: async (action_id, challenge_id) => {
     const result = await pool.query(

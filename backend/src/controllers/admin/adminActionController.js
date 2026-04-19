@@ -129,6 +129,11 @@ const adminActionController = {
         return res.status(404).json({ message: 'Action not found.' });
       }
       await actionModel.delete(id);
+
+      if (existing.image) {
+        deleteFile(existing.image);
+      }
+
       res.json({ message: 'Action deleted successfully.' });
     } catch (err) {
       console.error('Delete action error:', err);
