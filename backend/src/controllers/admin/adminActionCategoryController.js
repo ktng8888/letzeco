@@ -105,6 +105,11 @@ const adminActionCategoryController = {
         return res.status(404).json({ message: 'Category not found.' });
       }
       await actionCategoryModel.delete(id);
+      
+      if (existing.image) {
+        deleteFile(existing.image);
+      }
+      
       res.json({ message: 'Category deleted successfully.' });
     } catch (err) {
       console.error('Delete category error:', err);

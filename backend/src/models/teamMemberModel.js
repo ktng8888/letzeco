@@ -50,6 +50,12 @@ const teamMemberModel = {
     );
   },
 
+  deleteByTeamId: async (teamId) => {
+    await pool.query(
+      'DELETE FROM team_member WHERE team_id = $1', [teamId]
+    );
+  },
+
 };
 
 module.exports = teamMemberModel;

@@ -179,7 +179,22 @@ const adminAchievementController = {
       if (!existing) {
         return res.status(404).json({ message: 'Achievement not found.' });
       }
+      
+      let badge = null;
+      if (existing.bagde_id) {
+        badge = await badgeModel.getById(existing.bagde_id);
+      }
+
       await achievementModel.delete(id);
+
+      if (badge) {
+        await badgeModel.delete(badge.id);
+
+        if (badge.image) {
+          deleteFile(badge.image);
+        }
+      }
+
       res.json({ message: 'Achievement deleted successfully.' });
     } catch (err) {
       console.error('Delete achievement error:', err);

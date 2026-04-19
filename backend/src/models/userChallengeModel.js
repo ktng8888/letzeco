@@ -50,6 +50,12 @@ const userChallengeModel = {
     );
   },
 
+  deleteByChallengeId: async (challengeId) => {
+    await pool.query(
+      'DELETE FROM user_challenge WHERE challenge_id = $1', [challengeId]
+    );
+  },
+
   // Update progress value
   updateProgress: async (userId, challengeId, progressValue) => {
     const result = await pool.query(

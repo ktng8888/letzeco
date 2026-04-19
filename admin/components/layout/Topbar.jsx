@@ -50,6 +50,10 @@ export default function Topbar() {
           <Bell className="w-5 h-5 text-gray-500" />
         </button>
 
+        <span className="hidden md:inline-flex text-sm text-gray-700">
+          {admin?.username || 'Unknown Admin'}
+        </span>
+
         {/* Admin Avatar + Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
