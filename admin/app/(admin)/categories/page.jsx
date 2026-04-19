@@ -98,8 +98,26 @@ export default function CategoriesPage() {
     },
     { key: 'action_count', label: 'Actions',
       render: (val) => `${val || 0} Actions` },
-    { key: 'created_at', label: 'Created at',
-      render: (val) => val ? formatDate(val) : '-' },
+    // { key: 'created_at', label: 'Created at',
+    //   render: (val) => val ? formatDate(val) : '-' },
+    { 
+      key: 'tag_preview', label: 'Tag Preview',
+      render: (val, row) => (
+        row.tag_bg_colour_code ? (
+          <span
+            className="inline-flex px-3 py-1 rounded-full text-xs font-semibold"
+            style={{
+              backgroundColor: row.tag_bg_colour_code,
+              color: row.tag_text_colour_code || '#000000'
+            }}
+          >
+            {row.name}
+          </span>
+        ) : (
+          <span className="text-xs text-gray-400">No tag set</span>
+        )
+      )
+    },
     {
       key: 'id', label: 'Actions', width: '120px',
       render: (_, row) => (
