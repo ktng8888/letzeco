@@ -1,9 +1,10 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View, Text, TouchableOpacity, StyleSheet, Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Badge from '../common/Badge';
 import colors from '../../constants/colors';
+import { getImageUrl } from '../../utils/imageUrl';
 
 export default function ActionCard({
   action,
@@ -12,45 +13,62 @@ export default function ActionCard({
   isLogging = false,
   timeLeft = null
 }) {
+  const imageUrl = getImageUrl(action.image);
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.top}>
-        {/* Category + Favourite */}
-        <View style={styles.topRow}>
-          <Badge
-            text={action.category_name}
-            bgColor={action.tag_bg_colour_code}
-            textColor={action.tag_text_colour_code}
+
+        {/* Favourite button - top right */}
+        <TouchableOpacity
+          onPress={(e) => {
+            e.stopPropagation();
+            onFavouriteToggle && onFavouriteToggle(action);
+          }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+          style={styles.favouriteBtn}
+        >
+          <Ionicons
+            name={action.is_favourite ? 'heart' : 'heart-outline'}
+            size={20}
+            color={action.is_favourite ? colors.error : colors.textLight}
           />
-          <TouchableOpacity
-            onPress={(e) => {
-              e.stopPropagation();
-              onFavouriteToggle && onFavouriteToggle(action);
-            }}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          >
-            <Ionicons
-              name={action.is_favourite ? 'heart' : 'heart-outline'}
-              size={20}
-              color={action.is_favourite ? colors.error : colors.textLight}
+        </TouchableOpacity>
+
+        {/* Body Row: Image + (Badge + Name) */}
+        <View style={styles.bodyRow}>
+          <View style={styles.imageContainer}>
+            {imageUrl ? (
+              <Image
+                source={{ uri: imageUrl }}
+                style={styles.actionImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Text style={styles.fallbackIcon}>🌿</Text>
+            )}
+          </View>
+
+          {/* Badge + Name stacked */}
+          <View style={styles.textCol}>
+            <Badge
+              text={action.category_name}
+              bgColor={action.tag_bg_colour_code}
+              textColor={action.tag_text_colour_code}
             />
-          </TouchableOpacity>
+            <Text style={styles.name} numberOfLines={2}>
+              {action.name}
+            </Text>
+          </View>
         </View>
 
-        {/* Action Name */}
-        <Text style={styles.name} numberOfLines={2}>
-          {action.name}
-        </Text>
-
-        {/* Bottom Row */}
+        {/* Bottom Row: XP + log count + Select */}
         <View style={styles.bottomRow}>
           <View style={styles.metaRow}>
-            {/* XP */}
             <View style={styles.metaItem}>
               <Ionicons name="star" size={12} color={colors.xpColor} />
               <Text style={styles.metaText}>{action.xp_reward} XP</Text>
             </View>
-            {/* User log count */}
             <View style={styles.metaItem}>
               <Ionicons name="time-outline" size={12} color={colors.textLight} />
               <Text style={styles.metaText}>
@@ -59,19 +77,17 @@ export default function ActionCard({
             </View>
           </View>
 
-          {/* Status button */}
           {isLogging ? (
             <View style={styles.loggingBadge}>
               <Text style={styles.loggingText}>
-                {timeLeft || 'Logging...'}
+                {timeLeft || 'In Progress'}
               </Text>
             </View>
           ) : (
-            <View style={styles.selectBtn}>
-              <Text style={styles.selectText}>Select</Text>
-            </View>
+            <Text style={styles.selectText}>Select</Text>
           )}
         </View>
+
       </View>
     </TouchableOpacity>
   );
@@ -89,25 +105,58 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  top: { gap: 8 },
-  topRow: {
+  top: {
+    gap: 10,
+    position: 'relative',
+  },
+  favouriteBtn: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    zIndex: 1,
+  },
+  bodyRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 12,
+  },
+  imageContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: colors.primaryBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    flexShrink: 0,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  actionImage: {
+    width: 56,
+    height: 56,
+  },
+  fallbackIcon: {
+    fontSize: 26,
+  },
+  textCol: {
+    flex: 1,
+    gap: 6,
   },
   name: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: colors.textPrimary,
   },
   bottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
   metaRow: {
     flexDirection: 'row',
-    gap: 12,
+    alignItems: 'center',
+    gap: 10,
   },
   metaItem: {
     flexDirection: 'row',
@@ -118,26 +167,20 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSecondary,
   },
-  selectBtn: {
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  selectText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
-  },
   loggingBadge: {
-    backgroundColor: colors.streakBg,
+    backgroundColor: colors.primaryBg,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   loggingText: {
-    fontSize: 11,
+    fontSize: 12,
+    color: colors.primary,
     fontWeight: '600',
-    color: colors.streakColor,
+  },
+  selectText: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '600',
   },
 });

@@ -230,6 +230,8 @@ export default function LogActionScreen() {
                     ...fav,
                     id: fav.action_id,
                     name: fav.action_name,
+                    image: fav.action_image,
+                    user_log_count: fav.user_log_count ?? 0,
                     is_favourite: true,
                   }}
                   onPress={() => router.push({
