@@ -43,7 +43,6 @@ export default function Sidebar() {
             width={40}
             height={40}
             className="rounded-xl"
-            style={{ width: '40px', height: '40px' }}
           />
           <div>
             <p className="text-white font-bold text-sm leading-tight">
