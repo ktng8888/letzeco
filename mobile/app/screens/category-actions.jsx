@@ -4,7 +4,7 @@ import {
   Alert
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import actionService from '../../services/actionService';
@@ -75,7 +75,11 @@ export default function CategoryActionsScreen() {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [categoryId])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
