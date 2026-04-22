@@ -22,10 +22,6 @@ import colors from '../../constants/colors';
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = SCREEN_W - 48;
 
-const XP_TABLE: Record<number, number> = {
-  1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-  6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-};
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const CHALLENGE_GRADIENTS = [
   '#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6',
@@ -117,7 +113,7 @@ export default function HomeScreen() {
 
   if (isLoading) return <LoadingScreen />;
 
-  const xpToNextLevel = XP_TABLE[user?.level] || 1000;
+  const xpToNextLevel = user?.xp_to_next_level || 1000;
   const xpPercent = Math.min(((user?.level_xp || 0) / xpToNextLevel) * 100, 100);
   const streak = user?.streak || 0;
   const avatarUri = user?.profile_image ? `${BASE_URL}/${user.profile_image}` : null;
@@ -376,8 +372,22 @@ export default function HomeScreen() {
           ) : (
             <>
               <Text style={styles.actionCount}>{todayLoggedCount} logged today</Text>
-              {todayActions.map((a: any) => (
-                <View key={a.id} style={styles.actionRow}>
+              {todayActions.map((a: any) => {
+                const canOpenLogDetail = a?.status === 'completed' && !!a?.id;
+                return (
+                <TouchableOpacity
+                  key={a.id}
+                  style={styles.actionRow}
+                  activeOpacity={canOpenLogDetail ? 0.75 : 1}
+                  disabled={!canOpenLogDetail}
+                  onPress={() => {
+                    if (!canOpenLogDetail) return;
+                    router.push({
+                      pathname: '/screens/log-history-detail',
+                      params: { logId: a.id }
+                    });
+                  }}
+                >
                   {a.action_image ? (
                     <Image
                       source={{ uri: getImageUrl(a.action_image) ?? undefined }}
@@ -395,6 +405,7 @@ export default function HomeScreen() {
                     <Text style={styles.actionName} numberOfLines={1}>
                       {a.action_name}
                     </Text>
+                    <Text style={styles.actionTime}>{formatActionTime(a)}</Text>
                     <View style={[styles.catTag, {
                       backgroundColor: a.tag_bg_colour_code || colors.primaryBg
                     }]}>
@@ -414,8 +425,8 @@ export default function HomeScreen() {
                       </Text>
                     )}
                   </View>
-                </View>
-              ))}
+                </TouchableOpacity>
+              )})}
             </>
           )}
         </View>
@@ -468,6 +479,24 @@ function getMotivation(streak: number) {
   if (streak < 7) return "You're on fire! 🔥";
   if (streak < 14) return 'Keep it up! Amazing!';
   return 'Eco legend! 🌍';
+}
+
+function formatActionTime(action: any) {
+  const raw =
+    action?.end_time ||
+    action?.completed_at ||
+    action?.logged_at ||
+    action?.start_time ||
+    action?.created_at;
+
+  if (!raw) return 'Time unavailable';
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return 'Time unavailable';
+
+  const hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  return `${hours % 12 || 12}:${minutes} ${ampm}`;
 }
 
 const styles = StyleSheet.create({
@@ -676,6 +705,7 @@ const styles = StyleSheet.create({
   actionImg: { width: 44, height: 44, borderRadius: 12 },
   actionInfo: { flex: 1, gap: 4 },
   actionName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  actionTime: { fontSize: 11, color: colors.textSecondary, marginTop: -1 },
   catTag: {
     alignSelf: 'flex-start', paddingHorizontal: 8,
     paddingVertical: 2, borderRadius: 6,

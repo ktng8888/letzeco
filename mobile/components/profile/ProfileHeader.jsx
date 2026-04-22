@@ -57,7 +57,7 @@ export default function ProfileHeader({
             ]} />
           </View>
           <Text style={styles.xpText}>
-            {user?.level_xp} / {getXpToNext(user?.level)} XP
+            {user?.level_xp} / {user?.xp_to_next_level || 1000} XP
           </Text>
         </View>
 
@@ -116,16 +116,8 @@ function StatItem({ value, label }) {
 
 function getXpPercent(user) {
   if (!user) return 0;
-  const max = getXpToNext(user.level);
+  const max = user.xp_to_next_level || 1000;
   return Math.min((user.level_xp / max) * 100, 100);
-}
-
-function getXpToNext(level) {
-  const table = {
-    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-  };
-  return table[level] || 1000;
 }
 
 function getFriendBtnText(status) {

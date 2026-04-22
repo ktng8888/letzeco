@@ -25,10 +25,9 @@ export default function ImpactCard({
 
 function formatValue(val) {
   if (!val && val !== 0) return '-';
-  const num = parseFloat(val);
-  if (isNaN(num)) return '-';
-  if (num >= 1000) return `${(num / 1000).toFixed(1)}k`;
-  return num % 1 === 0 ? num.toString() : num.toFixed(1);
+  const num = Number(val);
+  if (Number.isNaN(num)) return '-';
+  return num.toString();
 }
 
 const styles = StyleSheet.create({

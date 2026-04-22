@@ -63,7 +63,7 @@ export default function EcoImpactDetailScreen() {
           <View style={styles.mainValueCard}>
             <Text style={styles.mainIcon}>{config.icon}</Text>
             <Text style={styles.mainValue}>
-              {parseFloat(data[config.valueKey] || 0).toFixed(1)}
+              {formatImpactValue(data[config.valueKey])}
             </Text>
             <Text style={styles.mainUnit}>{config.unit}</Text>
             <Text style={styles.mainLabel}>Saved</Text>
@@ -164,10 +164,17 @@ function ComparisonBar({ label, value, unit, isYou }) {
         styles.comparisonValue,
         isYou && styles.comparisonValueYou
       ]}>
-        {parseFloat(value).toFixed(1)} {unit}
+        {formatImpactValue(value)} {unit}
       </Text>
     </View>
   );
+}
+
+function formatImpactValue(value) {
+  if (!value && value !== 0) return '0';
+  const num = Number(value);
+  if (Number.isNaN(num)) return '0';
+  return num.toString();
 }
 
 function getConfig(type) {

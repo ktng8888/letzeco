@@ -98,7 +98,9 @@ const userActionModel = {
               a.xp_reward, a.time_limit,
               a.co2_saved, a.litre_saved, a.kwh_saved,
               a.calc_info, a.source,
-              ac.name AS category_name
+              ac.name AS category_name,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
