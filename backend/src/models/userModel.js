@@ -29,9 +29,12 @@ const userModel = {
   // Get profile (safe - no password)
   getProfile: async (id) => {
     const result = await pool.query(
-      `SELECT id, username, email, level, level_xp,
-              total_xp, weekly_xp, streak, profile_image, created_at
-       FROM "user" WHERE id = $1`,
+      `SELECT u.id, u.username, u.email, u.level, u.level_xp,
+              u.total_xp, u.weekly_xp, u.streak, u.profile_image, u.created_at,
+              l.xp_to_next_level
+      FROM "user" u
+      LEFT JOIN level l ON l.level_value = u.level
+      WHERE u.id = $1`,
       [id]
     );
     return result.rows[0];

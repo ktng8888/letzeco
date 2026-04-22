@@ -34,7 +34,7 @@ export default function ImpactStats({ impact }) {
           <View key={i} style={styles.impactCard}>
             <Text style={styles.icon}>{item.icon}</Text>
             <Text style={styles.value}>
-              {parseFloat(item.value).toFixed(1)}
+              {formatImpactValue(item.value)}
             </Text>
             <Text style={styles.unit}>{item.unit}</Text>
             <Text style={styles.label}>{item.label}</Text>
@@ -54,6 +54,13 @@ export default function ImpactStats({ impact }) {
       </View>
     </View>
   );
+}
+
+function formatImpactValue(value) {
+  if (!value && value !== 0) return '0';
+  const num = Number(value);
+  if (Number.isNaN(num)) return '0';
+  return num.toString();
 }
 
 const styles = StyleSheet.create({

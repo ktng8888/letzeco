@@ -143,7 +143,7 @@ export default function EditProfileScreen() {
           {/* Level bar (display only) */}
           <Text style={styles.levelDisplay}>
             Lv. {user?.level} •{' '}
-            {user?.level_xp} / {getXpToNext(user?.level)} XP
+            {user?.level} • {user?.level_xp} / {user?.xp_to_next_level || 1000} XP
           </Text>
         </View>
 
@@ -174,14 +174,6 @@ export default function EditProfileScreen() {
       </ScrollView>
     </View>
   );
-}
-
-function getXpToNext(level) {
-  const table = {
-    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-  };
-  return table[level] || 1000;
 }
 
 const styles = StyleSheet.create({
