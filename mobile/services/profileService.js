@@ -72,6 +72,13 @@ const profileService = {
     return response.data;
   },
 
+  claimStreakReward: async (userStreakRewardId) => {
+    const response = await api.post(
+      `/achievements/streak-rewards/claim/${userStreakRewardId}`
+    );
+    return response.data;
+},
+
 };
 
 export default profileService;

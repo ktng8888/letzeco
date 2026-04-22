@@ -76,7 +76,7 @@ const xpService = {
       const achievementResult = await pool.query(
         `SELECT a.*, b.name AS badge_name, b.image AS badge_image
          FROM achievement a
-         LEFT JOIN badge b ON a.bagde_id = b.id
+         LEFT JOIN badge b ON a.badge_id = b.id
          WHERE a.type = 'reach_level'
          AND a.target_value = $1`,
         [newLevel]
@@ -147,7 +147,7 @@ const xpService = {
       const achievementResult = await pool.query(
         `SELECT a.*, b.name AS badge_name, b.image AS badge_image
          FROM achievement a
-         LEFT JOIN badge b ON a.bagde_id = b.id
+         LEFT JOIN badge b ON a.badge_id = b.id
          WHERE a.type = 'log'
          AND a.action_category_id = $1
          AND a.target_value = $2`,

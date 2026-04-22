@@ -34,15 +34,15 @@ const adminStreakRewardController = {
   },
 
   create: async (req, res) => {
-    const { bagde_id, day, xp_reward } = req.body;
+    const { badge_id, day, xp_reward } = req.body;
     try {
       if (!day) {
         return res.status(400).json({ message: 'Day is required.' });
       }
 
       // Check badge exists if provided
-      if (bagde_id) {
-        const badge = await badgeModel.getById(bagde_id);
+      if (badge_id) {
+        const badge = await badgeModel.getById(badge_id);
         if (!badge) {
           return res.status(404).json({ message: 'Badge not found.' });
         }
@@ -56,7 +56,7 @@ const adminStreakRewardController = {
         });
       }
 
-      const reward = await streakRewardModel.create(bagde_id, day, xp_reward);
+      const reward = await streakRewardModel.create(badge_id, day, xp_reward);
       res.status(201).json({
         message: 'Streak reward created successfully.',
         data: reward

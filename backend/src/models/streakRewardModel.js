@@ -30,11 +30,11 @@ const streakRewardModel = {
     return result.rows[0];
   },
 
-  create: async (bagde_id, day, xp_reward) => {
+  create: async (badge_id, day, xp_reward) => {
     const result = await pool.query(
-      `INSERT INTO streak_reward (bagde_id, day, xp_reward)
+      `INSERT INTO streak_reward (badge_id, day, xp_reward)
        VALUES ($1, $2, $3) RETURNING *`,
-      [bagde_id || null, day, xp_reward || 0]
+      [badge_id || null, day, xp_reward || 0]
     );
     return result.rows[0];
   },
@@ -46,10 +46,10 @@ const streakRewardModel = {
     const current = existing.rows[0];
     const result = await pool.query(
       `UPDATE streak_reward
-       SET bagde_id = $1, day = $2, xp_reward = $3
+       SET badge_id = $1, day = $2, xp_reward = $3
        WHERE id = $4 RETURNING *`,
       [
-        data.bagde_id || current.bagde_id,
+        data.badge_id || current.badge_id,
         data.day || current.day,
         data.xp_reward || current.xp_reward,
         id

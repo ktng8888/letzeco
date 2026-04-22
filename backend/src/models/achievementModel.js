@@ -9,7 +9,7 @@ const achievementModel = {
               b.image AS badge_image,
               ac.name AS category_name
        FROM achievement a
-       LEFT JOIN badge b ON a.bagde_id = b.id
+       LEFT JOIN badge b ON a.badge_id = b.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
        ORDER BY a.type, a.target_value ASC`
     );
@@ -23,7 +23,7 @@ const achievementModel = {
               b.image AS badge_image,
               ac.name AS category_name
        FROM achievement a
-       LEFT JOIN badge b ON a.bagde_id = b.id
+       LEFT JOIN badge b ON a.badge_id = b.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
        WHERE a.id = $1`,
       [id]
@@ -34,17 +34,17 @@ const achievementModel = {
   create: async (data) => {
     const {
       name, type, target_value, bonus_xp,
-      badge_name, bagde_id, action_category_id
+      badge_name, badge_id, action_category_id
     } = data;
     const result = await pool.query(
       `INSERT INTO achievement
         (name, type, target_value, bonus_xp,
-         bagde_id, action_category_id)
+         badge_id, action_category_id)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [
         name, type, target_value, bonus_xp,
-        bagde_id || null, action_category_id || null
+        badge_id || null, action_category_id || null
       ]
     );
     return result.rows[0];
