@@ -356,7 +356,7 @@ export default function HomeScreen() {
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>⚡ Today's Actions</Text>
             <TouchableOpacity onPress={() => router.push('/(tabs)/log-action')}>
-              <Text style={styles.seeAll}>View All</Text>
+              <Text style={styles.logMore}>Log More</Text>
             </TouchableOpacity>
           </View>
 
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', marginBottom: 12,
   },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
-  seeAll: { fontSize: 13, color: colors.primary, fontWeight: '600' },
+  logMore: { fontSize: 13, color: colors.primary, fontWeight: '600' },
 
   // ── Streak ──
   streakMotiv: { fontSize: 12, color: colors.textSecondary, marginBottom: 10, marginTop: 2 },

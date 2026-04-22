@@ -195,17 +195,17 @@ export default function ActionInProgressScreen() {
           <Text style={styles.impactTitle}>Environmental Impact</Text>
           <View style={styles.impactRow}>
             <ImpactBox
-              value={userAction.co2_saved || '-'}
+              value={formatImpactValue(userAction.co2_saved)}
               unit="Kg CO₂"
               icon="🌿"
             />
             <ImpactBox
-              value={userAction.litre_saved || '-'}
+              value={formatImpactValue(userAction.litre_saved)}
               unit="L Water"
               icon="💧"
             />
             <ImpactBox
-              value={userAction.kwh_saved || '-'}
+              value={formatImpactValue(userAction.kwh_saved)}
               unit="kWh"
               icon="⚡"
             />
@@ -330,6 +330,13 @@ function ImpactBox({ value, unit, icon }) {
       <Text style={styles.impactUnit}>{unit}</Text>
     </View>
   );
+}
+
+function formatImpactValue(value) {
+  if (value === null || value === undefined || value === '') return '-';
+  const num = Number(value);
+  if (Number.isNaN(num)) return '-';
+  return num.toString();
 }
 
 function formatTime(dateString) {

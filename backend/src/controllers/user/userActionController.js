@@ -153,8 +153,11 @@ const userActionController = {
         );
       }
 
-      // Get updated user data
-      const updatedUser = await userActionModel.getTotalCompleted(userId);
+      // Get updated totals
+      const [updatedUser, todayImpact] = await Promise.all([
+        userActionModel.getTotalCompleted(userId),
+        userActionModel.getTodayImpactSummary(userId),
+      ]);
 
       res.json({
         message: 'Action completed!',
@@ -185,7 +188,14 @@ const userActionController = {
           streak_reward: streakResult.streak_reward,
           badge_unlocked: logAchievement ? true : false,
           new_badge: logAchievement || null,
-          total_actions_completed: updatedUser
+          total_actions_completed: updatedUser,
+          today_impact: {
+            total_actions: parseInt(todayImpact.total_actions || 0),
+            total_xp_earned: parseInt(todayImpact.total_xp_earned || 0),
+            total_co2_saved: parseFloat(todayImpact.total_co2_saved || 0),
+            total_litre_saved: parseFloat(todayImpact.total_litre_saved || 0),
+            total_kwh_saved: parseFloat(todayImpact.total_kwh_saved || 0),
+          }
         }
       });
 
