@@ -1,8 +1,9 @@
 import {
   ScrollView, View, Text, StyleSheet,
-  RefreshControl, TouchableOpacity, Image, Modal, Alert
+  RefreshControl, TouchableOpacity, Image, Modal,
+  Alert, FlatList, Dimensions
 } from 'react-native';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -14,20 +15,21 @@ import notificationService from '../../services/notificationService';
 import profileService from '../../services/profileService';
 
 import LoadingScreen from '../../components/common/LoadingScreen';
-import SectionHeader from '../../components/common/SectionHeader';
-import EmptyState from '../../components/common/EmptyState';
-import ChallengeMiniCard from '../../components/home/ChallengeMiniCard';
-import TodayActionCard from '../../components/home/TodayActionCard';
 import { getImageUrl } from '../../utils/imageUrl';
 import { BASE_URL } from '../../constants/api';
 import colors from '../../constants/colors';
+
+const { width: SCREEN_W } = Dimensions.get('window');
+const CARD_W = SCREEN_W - 48;
 
 const XP_TABLE: Record<number, number> = {
   1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
   6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
 };
-
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const CHALLENGE_GRADIENTS = [
+  '#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6',
+];
 
 type StreakReward = {
   id: number;
@@ -36,7 +38,6 @@ type StreakReward = {
   badge_name: string | null;
   badge_image: string | null;
   user_streak_reward_id: number | null;
-  obtain_date: string | null;
   claim_status: string | null;
   is_earned: boolean;
 };
@@ -44,6 +45,7 @@ type StreakReward = {
 export default function HomeScreen() {
   const router = useRouter();
   const { user, updateUser } = useAuthStore();
+  const flatListRef = useRef<FlatList>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -52,10 +54,10 @@ export default function HomeScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [streakRewards, setStreakRewards] = useState<StreakReward[]>([]);
   const [todayLoggedCount, setTodayLoggedCount] = useState(0);
-
   const [claimModal, setClaimModal] = useState(false);
   const [claimingReward, setClaimingReward] = useState<StreakReward | null>(null);
   const [isClaiming, setIsClaiming] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
   const loadData = async () => {
     try {
@@ -71,13 +73,10 @@ export default function HomeScreen() {
       updateUser(profileData.data);
       const actions = todayData.data.actions || [];
       setTodayActions(actions);
-      setTodayLoggedCount(
-        actions.filter((a: any) => a.status === 'completed').length
-      );
-      setMyChallenges(challengeData.data.slice(0, 2) || []);
+      setTodayLoggedCount(actions.filter((a: any) => a.status === 'completed').length);
+      setMyChallenges(challengeData.data.slice(0, 5) || []);
       setUnreadCount(notifData.data.unread_count || 0);
       setStreakRewards(streakData.data.rewards || []);
-
     } catch (err) {
       console.error('Load home error:', err);
     } finally {
@@ -87,20 +86,15 @@ export default function HomeScreen() {
   };
 
   useFocusEffect(useCallback(() => { loadData(); }, []));
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    loadData();
-  }, []);
+  const onRefresh = useCallback(() => { setRefreshing(true); loadData(); }, []);
 
   const handleClaimPress = (reward: StreakReward) => {
-    if (!reward.is_earned) return;
-    if (reward.claim_status === 'claimed') return;
+    if (!reward.is_earned || reward.claim_status === 'claimed') return;
     if (todayLoggedCount === 0) {
       Alert.alert(
         'Log an action first! 🌿',
-        'You need to log at least one eco-action today before claiming your streak reward.',
-        [{ text: 'Got it', style: 'default' }]
+        'You need to log at least one eco-action today before claiming.',
+        [{ text: 'Got it' }]
       );
       return;
     }
@@ -118,9 +112,7 @@ export default function HomeScreen() {
       loadData();
     } catch (err: any) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to claim.');
-    } finally {
-      setIsClaiming(false);
-    }
+    } finally { setIsClaiming(false); }
   };
 
   if (isLoading) return <LoadingScreen />;
@@ -128,254 +120,335 @@ export default function HomeScreen() {
   const xpToNextLevel = XP_TABLE[user?.level] || 1000;
   const xpPercent = Math.min(((user?.level_xp || 0) / xpToNextLevel) * 100, 100);
   const streak = user?.streak || 0;
+  const avatarUri = user?.profile_image ? `${BASE_URL}/${user.profile_image}` : null;
 
-  const today = new Date();
-  const todayDayIndex = today.getDay();
-  const streakDays = Array.from({ length: 7 }, (_, i) => {
-    const dayIndex = (todayDayIndex + i) % 7;
-    const reward = streakRewards[i] || null;
-    return {
-      dayName: DAY_NAMES[dayIndex],
-      reward,
-      isToday: i === 0,
-    };
-  });
+  const todayDayIndex = new Date().getDay();
+  const streakDays = Array.from({ length: 7 }, (_, i) => ({
+    dayName: DAY_NAMES[(todayDayIndex + i) % 7],
+    reward: streakRewards[i] || null,
+    isToday: i === 0,
+  }));
 
   const hasUnclaimed = streakRewards.some(
     (r: StreakReward) => r.is_earned && r.claim_status === 'unclaimed'
   );
 
-  const avatarUri = user?.profile_image
-    ? `${BASE_URL}/${user.profile_image}`
-    : null;
+  const carouselItems: any[] = myChallenges.length > 0
+    ? [...myChallenges, { id: 'join', isJoin: true }]
+    : [{ id: 'join', isJoin: true }];
 
   return (
-    <ScrollView
-      style={styles.container}
-      showsVerticalScrollIndicator={false}
-      refreshControl={
-        <RefreshControl
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          tintColor={colors.primary}
-        />
-      }
-    >
-      {/* ── HERO CARD ── */}
-      <View style={styles.heroCard}>
-        <View style={styles.heroTop}>
-          <View style={styles.xpPills}>
-            <View style={styles.xpPill}>
-              <Text style={styles.xpPillValue}>{user?.weekly_xp || 0}</Text>
-              <Text style={styles.xpPillLabel}>Weekly XP</Text>
-            </View>
-            <View style={styles.xpPill}>
-              <Text style={styles.xpPillValue}>{user?.total_xp || 0}</Text>
-              <Text style={styles.xpPillLabel}>Total XP</Text>
-            </View>
-          </View>
+    <View style={styles.root}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        {/* ── TOP BAR ── */}
+        <View style={styles.topBar}>
+
+          {/* Left: Avatar (with Lv badge at bottom) + name + XP bar */}
           <TouchableOpacity
-            style={styles.bellBtn}
-            onPress={() => router.push('/screens/notifications')}
+            style={styles.topLeft}
+            onPress={() => router.push('/(tabs)/profile')}
           >
-            <Ionicons name="notifications-outline" size={22} color="#fff" />
-            {unreadCount > 0 && (
-              <View style={styles.notifBadge}>
-                <Text style={styles.notifBadgeText}>{unreadCount}</Text>
+            {/* Avatar wrapper: ring + absolute Lv badge */}
+            <View style={styles.avatarWrap}>
+              <View style={styles.avatarRing}>
+                {avatarUri ? (
+                  <Image source={{ uri: avatarUri }} style={styles.topAvatar} />
+                ) : (
+                  <View style={styles.topAvatarFallback}>
+                    <Text style={styles.topAvatarInitial}>
+                      {user?.username?.charAt(0).toUpperCase() || '?'}
+                    </Text>
+                  </View>
+                )}
               </View>
-            )}
+              {/* Lv badge sits at the bottom center of the avatar */}
+              <View style={styles.lvlChip}>
+                <Text style={styles.lvlChipText}>Lv.{user?.level}</Text>
+              </View>
+            </View>
+
+            <View style={styles.topNameBlock}>
+              <Text style={styles.topName}>{user?.username}</Text>
+              <View style={styles.topXpBarBg}>
+                <View style={[styles.topXpBarFill, { width: `${xpPercent}%` }]} />
+              </View>
+              <Text style={styles.topXpLabel}>
+                {user?.level_xp} / {xpToNextLevel} XP
+              </Text>
+            </View>
           </TouchableOpacity>
-        </View>
 
-        <TouchableOpacity
-          style={styles.avatarSection}
-          onPress={() => router.push('/(tabs)/profile')}
-        >
-          <View style={styles.avatarRing}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarInitial}>
-                  {user?.username?.charAt(0).toUpperCase() || '?'}
-                </Text>
+          {/* Right: Weekly XP + Total XP stacked, then Bell */}
+          <View style={styles.topRight}>
+            <View style={styles.xpStack}>
+              <View style={styles.xpStackChip}>
+                <Text style={styles.xpStackVal}>{user?.weekly_xp || 0}</Text>
+                <Text style={styles.xpStackLabel}> Weekly XP</Text>
               </View>
-            )}
-          </View>
-          <Text style={styles.heroUsername}>{user?.username}</Text>
-          <View style={styles.levelBadge}>
-            <Text style={styles.levelBadgeText}>Lv. {user?.level}</Text>
-          </View>
-        </TouchableOpacity>
+              <View style={styles.xpStackChip}>
+                <Text style={styles.xpStackVal}>{user?.total_xp || 0}</Text>
+                <Text style={styles.xpStackLabel}> Total XP</Text>
+              </View>
+            </View>
 
-        <View style={styles.xpBarWrap}>
-          <View style={styles.xpBarBg}>
-            <View style={[styles.xpBarFill, { width: `${xpPercent}%` }]} />
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => router.push('/screens/notifications')}
+            >
+              <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
+              {unreadCount > 0 && <View style={styles.bellDot} />}
+            </TouchableOpacity>
           </View>
-          <Text style={styles.xpBarLabel}>
-            {user?.level_xp} / {xpToNextLevel} XP
-          </Text>
-        </View>
-      </View>
-
-      {/* ── STREAK CARD ── */}
-      <View style={styles.streakCard}>
-        <View style={styles.streakHeader}>
-          <Text style={styles.streakTitle}>🔥 {streak} Day Streak!</Text>
-          <Text style={styles.streakMotivation}>{getMotivation(streak)}</Text>
         </View>
 
-        {hasUnclaimed && todayLoggedCount > 0 && (
-          <View style={styles.claimBanner}>
-            <Ionicons name="gift-outline" size={16} color="#f59e0b" />
-            <Text style={styles.claimBannerText}>
-              You have rewards to claim! Tap a day below.
-            </Text>
+        {/* ── CHALLENGE CAROUSEL ── */}
+        <View style={styles.carouselWrap}>
+          <FlatList
+            ref={flatListRef}
+            data={carouselItems}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={CARD_W + 12}
+            decelerationRate="fast"
+            contentContainerStyle={{ paddingHorizontal: 24, gap: 12 }}
+            onScroll={e => {
+              const idx = Math.round(e.nativeEvent.contentOffset.x / (CARD_W + 12));
+              setActiveSlide(idx);
+            }}
+            keyExtractor={item => String(item.id)}
+            renderItem={({ item, index }) => {
+              if (item.isJoin) {
+                return (
+                  <TouchableOpacity
+                    style={[styles.challengeCard, styles.joinCard]}
+                    onPress={() => router.push('/screens/challenges')}
+                  >
+                    <Text style={styles.joinIcon}>🌿</Text>
+                    <Text style={styles.joinTitle}>Join a Challenge!</Text>
+                    <Text style={styles.joinSub}>
+                      Start your eco-journey by joining a community challenge
+                    </Text>
+                    <View style={styles.joinBtn}>
+                      <Text style={styles.joinBtnText}>Browse Challenges</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }
+              const bgColor = CHALLENGE_GRADIENTS[index % CHALLENGE_GRADIENTS.length];
+              const isTeam = item.type === 'team';
+              const daysLeft = Math.max(0, Math.ceil(
+                (new Date(item.end_date).getTime() - Date.now()) / 86400000
+              ));
+              const prog = Math.min(
+                ((item.progress_value || 0) / (item.target_value || 1)) * 100, 100
+              );
+              return (
+                <TouchableOpacity
+                  style={[styles.challengeCard, { backgroundColor: bgColor }]}
+                  onPress={() => router.push({
+                    pathname: '/screens/challenge-detail',
+                    params: { id: item.challenge_id }
+                  })}
+                >
+                  <View style={styles.cTypeBadge}>
+                    <Text style={styles.cTypeText}>
+                      {isTeam ? '👥 Team' : '🎯 Solo'}
+                    </Text>
+                  </View>
+                  <Text style={styles.cName} numberOfLines={2}>
+                    {item.challenge_name}
+                  </Text>
+                  <Text style={styles.cDays}>
+                    {daysLeft > 0 ? `${daysLeft} days left` : 'Ends today'}
+                  </Text>
+                  <View style={styles.cProgressBg}>
+                    <View style={[styles.cProgressFill, { width: `${prog}%` }]} />
+                  </View>
+                  <Text style={styles.cProgressLabel}>
+                    {item.progress_value || 0} / {item.target_value || '?'}
+                  </Text>
+                  <View style={styles.cViewBtn}>
+                    <Text style={[styles.cViewBtnText, { color: bgColor }]}>View</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
+          />
+          <View style={styles.dots}>
+            {carouselItems.map((_, i) => (
+              <View key={i} style={[styles.dot, i === activeSlide && styles.dotActive]} />
+            ))}
           </View>
-        )}
+        </View>
 
-        {hasUnclaimed && todayLoggedCount === 0 && (
-          <View style={[styles.claimBanner, { backgroundColor: colors.primaryBg }]}>
-            <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
-            <Text style={[styles.claimBannerText, { color: colors.primary }]}>
-              Log an action today to unlock claimable rewards!
-            </Text>
+        {/* ── STREAK ── */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>🔥 {streak} Day Streak</Text>
+          <Text style={styles.streakMotiv}>{getMotivation(streak)}</Text>
+
+          {hasUnclaimed && todayLoggedCount === 0 && (
+            <View style={styles.banner}>
+              <Ionicons name="information-circle-outline" size={14} color={colors.primary} />
+              <Text style={styles.bannerText}>Log an action today to claim rewards!</Text>
+            </View>
+          )}
+          {hasUnclaimed && todayLoggedCount > 0 && (
+            <View style={[styles.banner, { backgroundColor: '#fef3c7' }]}>
+              <Ionicons name="gift-outline" size={14} color="#f59e0b" />
+              <Text style={[styles.bannerText, { color: '#92400e' }]}>
+                Rewards ready! Tap to claim.
+              </Text>
+            </View>
+          )}
+
+          <View style={styles.streakDays}>
+            {streakDays.map((item, i) => {
+              const r = item.reward;
+              const claimed = r?.claim_status === 'claimed';
+              const earned = r?.is_earned;
+              const canClaim = earned && !claimed && todayLoggedCount > 0;
+              return (
+                <TouchableOpacity
+                  key={i}
+                  style={styles.dayCol}
+                  onPress={() => r && handleClaimPress(r)}
+                  disabled={!r || !(earned && !claimed)}
+                >
+                  <Text style={[styles.dayLabel, item.isToday && styles.dayLabelToday]}>
+                    {item.dayName}
+                  </Text>
+                  <View style={[
+                    styles.dayBox,
+                    claimed && styles.dayBoxClaimed,
+                    canClaim && styles.dayBoxCanClaim,
+                    item.isToday && !earned && styles.dayBoxToday,
+                  ]}>
+                    {claimed
+                      ? <Ionicons name="checkmark" size={16} color="#fff" />
+                      : canClaim
+                        ? <Ionicons name="gift" size={16} color="#f59e0b" />
+                        : r?.badge_image
+                          ? <Image
+                              source={{ uri: getImageUrl(r.badge_image) ?? undefined }}
+                              style={styles.dayImg}
+                            />
+                          : <Text style={{ fontSize: 12 }}>{earned ? '⭐' : ''}</Text>
+                    }
+                  </View>
+                  <Text style={[styles.dayXp, claimed && { color: colors.primary }]}>
+                    {r ? `${r.xp_reward}XP` : '—'}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        )}
+        </View>
 
-        <View style={styles.streakDays}>
-          {streakDays.map((item, i) => {
-            const reward = item.reward;
-            const isClaimed = reward?.claim_status === 'claimed';
-            const isEarned = reward?.is_earned;
-            const isUnclaimed = isEarned && !isClaimed;
-            const canClaim = isUnclaimed && todayLoggedCount > 0;
+        {/* ── TODAY'S ACTIONS ── */}
+        <View style={styles.card}>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionTitle}>⚡ Today's Actions</Text>
+            <TouchableOpacity onPress={() => router.push('/(tabs)/log-action')}>
+              <Text style={styles.seeAll}>View All</Text>
+            </TouchableOpacity>
+          </View>
 
-            return (
-              <TouchableOpacity
-                key={i}
-                style={styles.dayCol}
-                onPress={() => reward && handleClaimPress(reward)}
-                disabled={!reward || !isUnclaimed}
-              >
-                <Text style={[
-                  styles.dayName,
-                  item.isToday && styles.dayNameToday
-                ]}>
-                  {item.dayName}
-                </Text>
-                <View style={[
-                  styles.dayBox,
-                  isClaimed && styles.dayBoxClaimed,
-                  canClaim && styles.dayBoxCanClaim,
-                  item.isToday && !isEarned && styles.dayBoxToday,
-                ]}>
-                  {isClaimed ? (
-                    <Ionicons name="checkmark" size={18} color="#fff" />
-                  ) : canClaim ? (
-                    <Ionicons name="gift" size={18} color="#f59e0b" />
-                  ) : reward?.badge_image ? (
+          {todayActions.length === 0 ? (
+            <TouchableOpacity
+              style={styles.emptyBox}
+              onPress={() => router.push('/(tabs)/log-action')}
+            >
+              <Text style={{ fontSize: 32 }}>🌱</Text>
+              <Text style={styles.emptyTitle}>Start logging today!</Text>
+              <Text style={styles.emptySub}>Tap to log your first eco-action</Text>
+            </TouchableOpacity>
+          ) : (
+            <>
+              <Text style={styles.actionCount}>{todayLoggedCount} logged today</Text>
+              {todayActions.map((a: any) => (
+                <View key={a.id} style={styles.actionRow}>
+                  {a.action_image ? (
                     <Image
-                      source={{ uri: getImageUrl(reward.badge_image) ?? undefined }}
-                      style={styles.dayBadgeImg}
+                      source={{ uri: getImageUrl(a.action_image) ?? undefined }}
+                      style={styles.actionImg}
                     />
                   ) : (
-                    <Text style={styles.dayEmoji}>
-                      {isEarned ? '⭐' : ''}
-                    </Text>
+                    <View style={[styles.actionImg, {
+                      backgroundColor: a.tag_bg_colour_code || colors.primaryBg,
+                      alignItems: 'center', justifyContent: 'center'
+                    }]}>
+                      <Text style={{ fontSize: 18 }}>🌿</Text>
+                    </View>
                   )}
+                  <View style={styles.actionInfo}>
+                    <Text style={styles.actionName} numberOfLines={1}>
+                      {a.action_name}
+                    </Text>
+                    <View style={[styles.catTag, {
+                      backgroundColor: a.tag_bg_colour_code || colors.primaryBg
+                    }]}>
+                      <Text style={[styles.catTagText, {
+                        color: a.tag_text_colour_code || colors.primary
+                      }]}>{a.category_name}</Text>
+                    </View>
+                  </View>
+                  <View>
+                    {a.status === 'in_progress' ? (
+                      <View style={styles.loggingPill}>
+                        <Text style={styles.loggingText}>Logging</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.actionXp}>
+                        +{a.xp_gained || a.xp_reward} XP
+                      </Text>
+                    )}
+                  </View>
                 </View>
-                <Text style={[
-                  styles.dayXp,
-                  isClaimed && { color: colors.primary }
-                ]}>
-                  {reward ? `${reward.xp_reward} XP` : '—'}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+              ))}
+            </>
+          )}
         </View>
-      </View>
 
-      {/* ── CHALLENGES ── */}
-      <View style={styles.section}>
-        <SectionHeader
-          title="Challenges"
-          linkText="View Challenges >"
-          onPress={() => router.push('/screens/challenges')}
-        />
-        {myChallenges.length === 0 ? (
-          <EmptyState
-            title="No challenges yet. Join one!"
-            subtitle="Start your eco-journey by joining a challenge."
-            buttonText="View Challenges"
-            onButtonPress={() => router.push('/screens/challenges')}
-          />
-        ) : (
-          myChallenges.map((c: any) => (
-            <ChallengeMiniCard
-              key={c.id}
-              challenge={c}
-              onPress={() => router.push({
-                pathname: '/screens/challenge-detail',
-                params: { id: c.challenge_id }
-              })}
-            />
-          ))
-        )}
-      </View>
+        <View style={{ height: 100 }} />
+      </ScrollView>
 
-      {/* ── TODAY'S ACTIONS ── */}
-      <View style={styles.section}>
-        <SectionHeader
-          title="Today's Actions"
-          linkText="View Actions >"
-          onPress={() => router.push('/(tabs)/log-action')}
-        />
-        {todayActions.length === 0 ? (
-          <EmptyState
-            title="A fresh start awaits!"
-            subtitle="Today is perfect to begin. What eco-action will you take?"
-            buttonText="Start Logging"
-            onButtonPress={() => router.push('/(tabs)/log-action')}
-          />
-        ) : (
-          <>
-            <Text style={styles.todayCount}>
-              Total action logged/logging today: {todayActions.length}
-            </Text>
-            {todayActions.map((a: any) => (
-              <TodayActionCard key={a.id} action={a} />
-            ))}
-          </>
-        )}
-      </View>
-
-      <View style={{ height: 30 }} />
+      {/* ── FAB ── */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push('/(tabs)/log-action')}
+      >
+        <Ionicons name="add" size={26} color="#fff" />
+        <Text style={styles.fabText}>Log</Text>
+      </TouchableOpacity>
 
       {/* ── CLAIM MODAL ── */}
       <Modal visible={claimModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modal}>
-            <Text style={styles.modalEmoji}>🎁</Text>
-            <Text style={styles.modalTitle}>Claim Streak Reward!</Text>
-            <Text style={styles.modalSubtitle}>
-              Day {claimingReward?.day} Streak
-            </Text>
-            <View style={styles.modalRewardRow}>
-              <Text style={styles.modalXp}>+{claimingReward?.xp_reward} XP</Text>
-              {claimingReward?.badge_name && (
-                <Text style={styles.modalBadge}>
-                  🏅 {claimingReward.badge_name}
-                </Text>
-              )}
-            </View>
+            <Text style={{ fontSize: 52 }}>🎁</Text>
+            <Text style={styles.modalTitle}>Claim Reward!</Text>
+            <Text style={styles.modalSub}>Day {claimingReward?.day} Streak</Text>
+            <Text style={styles.modalXp}>+{claimingReward?.xp_reward} XP</Text>
+            {claimingReward?.badge_name && (
+              <Text style={styles.modalBadge}>🏅 {claimingReward.badge_name}</Text>
+            )}
             <TouchableOpacity
-              style={styles.modalClaimBtn}
+              style={styles.modalBtn}
               onPress={handleConfirmClaim}
               disabled={isClaiming}
             >
-              <Text style={styles.modalClaimBtnText}>
+              <Text style={styles.modalBtnText}>
                 {isClaiming ? 'Claiming...' : 'Claim Now!'}
               </Text>
             </TouchableOpacity>
@@ -385,146 +458,249 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </ScrollView>
+    </View>
   );
 }
 
 function getMotivation(streak: number) {
-  if (!streak || streak === 0) return 'Start your streak today!';
+  if (!streak) return 'Start today!';
   if (streak < 3) return 'Great start! Keep going!';
-  if (streak < 7) return "You're on a roll! 🔥";
-  if (streak < 14) return "Keep going! You're amazing!";
-  return 'Unstoppable eco warrior! 💪';
+  if (streak < 7) return "You're on fire! 🔥";
+  if (streak < 14) return 'Keep it up! Amazing!';
+  return 'Eco legend! 🌍';
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bgLight },
+  root: { flex: 1, backgroundColor: '#f0f4f0' },
+  container: { flex: 1 },
 
-  // Hero
-  heroCard: {
-    backgroundColor: colors.primary,
-    paddingTop: 52,
-    paddingBottom: 24,
-    paddingHorizontal: 16,
-    borderBottomLeftRadius: 28,
-    borderBottomRightRadius: 28,
-  },
-  heroTop: {
+  // ── Top Bar ──
+  topBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16,
-  },
-  xpPills: { flexDirection: 'row', gap: 8 },
-  xpPill: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 52,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+    gap: 8,
   },
-  xpPillValue: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  xpPillLabel: { fontSize: 10, color: 'rgba(255,255,255,0.8)' },
-  bellBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    alignItems: 'center', justifyContent: 'center',
+  topLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 10,
   },
-  notifBadge: {
-    position: 'absolute', top: -2, right: -2,
-    backgroundColor: colors.error,
-    borderRadius: 8, minWidth: 16, height: 16,
-    alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 3,
-  },
-  notifBadgeText: { fontSize: 10, color: '#fff', fontWeight: '700' },
 
-  avatarSection: { alignItems: 'center', marginBottom: 16 },
-  avatarRing: {
-    width: 88, height: 88, borderRadius: 44,
-    borderWidth: 3, borderColor: 'rgba(255,255,255,0.8)',
-    marginBottom: 10, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  // Avatar wrap: holds ring + absolute Lv badge
+  avatarWrap: {
+    alignItems: 'center',
+    // extra bottom space so the badge (which overflows by ~8px) isn't clipped
+    marginBottom: 6,
   },
-  avatar: { width: '100%', height: '100%' },
-  avatarPlaceholder: {
+  avatarRing: {
+    width: 48, height: 48, borderRadius: 24,
+    borderWidth: 2.5, borderColor: colors.primary,
+    overflow: 'hidden',
+    backgroundColor: colors.primaryBg,
+  },
+  topAvatar: { width: '100%', height: '100%' },
+  topAvatarFallback: {
     width: '100%', height: '100%',
     alignItems: 'center', justifyContent: 'center',
+    backgroundColor: colors.primaryBg,
   },
-  avatarInitial: { fontSize: 34, fontWeight: '700', color: '#fff' },
-  heroUsername: {
-    fontSize: 20, fontWeight: '700', color: '#fff', marginBottom: 6,
+  topAvatarInitial: { fontSize: 18, fontWeight: '700', color: colors.primary },
+
+  // Lv badge: absolute, pinned to bottom-center of avatarWrap
+  lvlChip: {
+    position: 'absolute',
+    bottom: -8,
+    alignSelf: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1.5,
+    borderColor: '#fff',
   },
-  levelBadge: {
+  lvlChipText: { fontSize: 9, fontWeight: '700', color: '#fff' },
+
+  topNameBlock: { flex: 1 },
+  topName: {
+    fontSize: 14, fontWeight: '700',
+    color: colors.textPrimary, marginBottom: 3,
+  },
+  topXpBarBg: {
+    height: 5, backgroundColor: '#e5e7eb',
+    borderRadius: 3, overflow: 'hidden',
+  },
+  topXpBarFill: {
+    height: '100%', backgroundColor: colors.primary, borderRadius: 3,
+  },
+  topXpLabel: { fontSize: 10, color: colors.textSecondary, marginTop: 2 },
+
+  // Right side: xpStack + bell
+  topRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  xpStack: {
+    gap: 4,
+  },
+  xpStackChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  xpStackVal: {
+    fontSize: 12, fontWeight: '700', color: colors.textPrimary,
+  },
+  xpStackLabel: {
+    fontSize: 11, color: colors.textSecondary,
+  },
+  bellBtn: {
+    width: 38, height: 38, borderRadius: 19,
+    backgroundColor: '#f3f4f6',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  bellDot: {
+    position: 'absolute', top: 4, right: 4,
+    width: 8, height: 8, borderRadius: 4,
+    backgroundColor: colors.error,
+  },
+
+  // ── Carousel ──
+  carouselWrap: { paddingTop: 14, paddingBottom: 4 },
+  challengeCard: {
+    width: CARD_W, borderRadius: 20, padding: 20,
+    minHeight: 175, justifyContent: 'space-between',
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12, shadowRadius: 8, elevation: 5,
+  },
+  joinCard: {
+    backgroundColor: colors.primaryBg,
+    borderWidth: 2, borderColor: colors.primaryLight,
+    alignItems: 'center', justifyContent: 'center', gap: 8,
+  },
+  joinIcon: { fontSize: 32 },
+  joinTitle: { fontSize: 17, fontWeight: '700', color: colors.primary },
+  joinSub: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
+  joinBtn: {
+    backgroundColor: colors.primary, borderRadius: 12,
+    paddingHorizontal: 20, paddingVertical: 10, marginTop: 4,
+  },
+  joinBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
+  cTypeBadge: {
+    alignSelf: 'flex-start',
     backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 12, paddingHorizontal: 14, paddingVertical: 4,
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
   },
-  levelBadgeText: { fontSize: 13, fontWeight: '600', color: '#fff' },
+  cTypeText: { fontSize: 11, fontWeight: '600', color: '#fff' },
+  cName: { fontSize: 17, fontWeight: '700', color: '#fff', marginTop: 6 },
+  cDays: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginBottom: 6 },
+  cProgressBg: {
+    height: 5, backgroundColor: 'rgba(255,255,255,0.3)',
+    borderRadius: 3, overflow: 'hidden',
+  },
+  cProgressFill: { height: '100%', backgroundColor: '#fff', borderRadius: 3 },
+  cProgressLabel: { fontSize: 10, color: 'rgba(255,255,255,0.8)', marginTop: 3 },
+  cViewBtn: {
+    alignSelf: 'flex-end', backgroundColor: '#fff',
+    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 6, marginTop: 8,
+  },
+  cViewBtnText: { fontSize: 12, fontWeight: '700' },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: 10 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#d1d5db' },
+  dotActive: { backgroundColor: colors.primary, width: 16 },
 
-  xpBarWrap: { marginTop: 4 },
-  xpBarBg: {
-    height: 8, backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 4, overflow: 'hidden',
-  },
-  xpBarFill: {
-    height: '100%', backgroundColor: '#fff', borderRadius: 4,
-  },
-  xpBarLabel: {
-    fontSize: 11, color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center', marginTop: 5,
-  },
-
-  // Streak
-  streakCard: {
-    backgroundColor: colors.bgWhite,
-    marginHorizontal: 16, marginTop: 14,
-    borderRadius: 16, padding: 16,
+  // ── Cards ──
+  card: {
+    backgroundColor: '#fff', marginHorizontal: 16, marginTop: 12,
+    borderRadius: 18, padding: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
+    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
   },
-  streakHeader: { alignItems: 'center', marginBottom: 10 },
-  streakTitle: {
-    fontSize: 18, fontWeight: '700', color: colors.textPrimary,
+  sectionRow: {
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 12,
   },
-  streakMotivation: {
-    fontSize: 13, color: colors.textSecondary, marginTop: 2,
-  },
-  claimBanner: {
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
+  seeAll: { fontSize: 13, color: colors.primary, fontWeight: '600' },
+
+  // ── Streak ──
+  streakMotiv: { fontSize: 12, color: colors.textSecondary, marginBottom: 10, marginTop: 2 },
+  banner: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: '#fef3c7', borderRadius: 10,
-    paddingHorizontal: 12, paddingVertical: 8, marginBottom: 12,
+    backgroundColor: colors.primaryBg, borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 7, marginBottom: 10,
   },
-  claimBannerText: { fontSize: 12, color: '#92400e', flex: 1 },
-
-  streakDays: { flexDirection: 'row', justifyContent: 'space-between' },
+  bannerText: { fontSize: 12, color: colors.primary, flex: 1 },
+  streakDays: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
   dayCol: { alignItems: 'center', flex: 1 },
-  dayName: {
+  dayLabel: {
     fontSize: 10, color: colors.textSecondary,
-    marginBottom: 6, fontWeight: '500',
+    marginBottom: 5, fontWeight: '500',
   },
-  dayNameToday: { color: colors.primary, fontWeight: '700' },
+  dayLabelToday: { color: colors.primary, fontWeight: '700' },
   dayBox: {
-    width: 38, height: 38, borderRadius: 10,
-    backgroundColor: colors.bgGrey,
-    alignItems: 'center', justifyContent: 'center', marginBottom: 4,
-    borderWidth: 1, borderColor: colors.border,
+    width: 36, height: 36, borderRadius: 10,
+    backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center',
+    marginBottom: 3, borderWidth: 1, borderColor: '#e5e7eb',
   },
-  dayBoxClaimed: {
-    backgroundColor: colors.primary, borderColor: colors.primary,
-  },
-  dayBoxCanClaim: {
-    backgroundColor: '#fef3c7', borderColor: '#f59e0b', borderWidth: 2,
-  },
+  dayBoxClaimed: { backgroundColor: colors.primary, borderColor: colors.primary },
+  dayBoxCanClaim: { backgroundColor: '#fef3c7', borderColor: '#f59e0b', borderWidth: 2 },
   dayBoxToday: { borderColor: colors.primary, borderWidth: 2 },
-  dayBadgeImg: { width: 26, height: 26, borderRadius: 13 },
-  dayEmoji: { fontSize: 14 },
-  dayXp: { fontSize: 10, color: colors.textSecondary, fontWeight: '500' },
+  dayImg: { width: 24, height: 24, borderRadius: 12 },
+  dayXp: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
 
-  // Sections
-  section: { marginHorizontal: 16, marginTop: 16 },
-  todayCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 8 },
+  // ── Today Actions ──
+  actionCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 10 },
+  emptyBox: {
+    alignItems: 'center', paddingVertical: 20, gap: 6,
+    backgroundColor: colors.primaryBg, borderRadius: 14,
+  },
+  emptyTitle: { fontSize: 14, fontWeight: '700', color: colors.primary },
+  emptySub: { fontSize: 12, color: colors.textSecondary },
+  actionRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    marginBottom: 10, paddingBottom: 10,
+    borderBottomWidth: 1, borderBottomColor: '#f3f4f6',
+  },
+  actionImg: { width: 44, height: 44, borderRadius: 12 },
+  actionInfo: { flex: 1, gap: 4 },
+  actionName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
+  catTag: {
+    alignSelf: 'flex-start', paddingHorizontal: 8,
+    paddingVertical: 2, borderRadius: 6,
+  },
+  catTagText: { fontSize: 11, fontWeight: '600' },
+  actionXp: { fontSize: 14, fontWeight: '700', color: colors.xpColor },
+  loggingPill: {
+    backgroundColor: colors.streakBg, borderRadius: 8,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  loggingText: { fontSize: 12, fontWeight: '600', color: colors.streakColor },
 
-  // Modal
+  // ── FAB ──
+  fab: {
+    position: 'absolute', bottom: 24, right: 20,
+    backgroundColor: colors.primary,
+    width: 58, height: 58, borderRadius: 29,
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 8, elevation: 8,
+  },
+  fabText: { fontSize: 10, fontWeight: '700', color: '#fff', marginTop: -2 },
+
+  // ── Modal ──
   modalOverlay: {
     flex: 1, backgroundColor: 'rgba(0,0,0,0.55)',
     alignItems: 'center', justifyContent: 'center', padding: 24,
@@ -533,19 +709,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff', borderRadius: 24,
     padding: 28, alignItems: 'center', width: '100%', gap: 8,
   },
-  modalEmoji: { fontSize: 52 },
   modalTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-  modalSubtitle: { fontSize: 14, color: colors.textSecondary },
-  modalRewardRow: { alignItems: 'center', gap: 4, marginVertical: 8 },
-  modalXp: { fontSize: 24, fontWeight: '700', color: colors.xpColor },
+  modalSub: { fontSize: 14, color: colors.textSecondary },
+  modalXp: { fontSize: 26, fontWeight: '700', color: colors.xpColor },
   modalBadge: { fontSize: 14, color: colors.textSecondary },
-  modalClaimBtn: {
+  modalBtn: {
     backgroundColor: colors.primary, borderRadius: 14,
-    paddingVertical: 14, width: '100%',
-    alignItems: 'center', marginTop: 4,
+    paddingVertical: 14, width: '100%', alignItems: 'center', marginTop: 8,
   },
-  modalClaimBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
-  modalCancel: {
-    fontSize: 14, color: colors.textSecondary, marginTop: 4,
-  },
+  modalBtnText: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  modalCancel: { fontSize: 14, color: colors.textSecondary, marginTop: 4 },
 });
