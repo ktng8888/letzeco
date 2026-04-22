@@ -100,7 +100,7 @@ const adminAchievementController = {
           target_value: parseInt(row.target_value),
           bonus_xp: parseInt(row.bonus_xp),
           badge_name: row.badge_name,
-          bagde_id: badge.id,
+          badge_id: badge.id,
           action_category_id: action_category_id || null,
         });
 
@@ -135,9 +135,9 @@ const adminAchievementController = {
       // support remove image
       const removeImage = req.body.remove_image === 'true';
 
-      if (existing.bagde_id) {
+      if (existing.badge_id) {
         // Get existing badge
-        const existingBadge = await badgeModel.getById(existing.bagde_id);
+        const existingBadge = await badgeModel.getById(existing.badge_id);
 
         // DELETE old image (covers upload + remove)
         if ((imagePath || removeImage) && existingBadge?.image) {
@@ -148,7 +148,7 @@ const adminAchievementController = {
           }
         }
 
-        await badgeModel.update(existing.bagde_id, {
+        await badgeModel.update(existing.badge_id, {
           name: req.body.badge_name || existing.badge_name,
           ...(imagePath !== undefined && { image: imagePath }),
           ...(removeImage && { image: null }),
@@ -181,8 +181,8 @@ const adminAchievementController = {
       }
       
       let badge = null;
-      if (existing.bagde_id) {
-        badge = await badgeModel.getById(existing.bagde_id);
+      if (existing.badge_id) {
+        badge = await badgeModel.getById(existing.badge_id);
       }
 
       await achievementModel.delete(id);

@@ -16,7 +16,7 @@ const userStreakRewardModel = {
           THEN true ELSE false
         END AS is_earned
        FROM streak_reward sr
-       LEFT JOIN badge b ON sr.bagde_id = b.id
+       LEFT JOIN badge b ON sr.badge_id = b.id
        LEFT JOIN user_streak_reward usr
          ON sr.id = usr.streak_reward_id
          AND usr.user_id = $1
@@ -36,7 +36,7 @@ const userStreakRewardModel = {
         b.image AS badge_image
        FROM user_streak_reward usr
        LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
-       LEFT JOIN badge b ON sr.bagde_id = b.id
+       LEFT JOIN badge b ON sr.badge_id = b.id
        WHERE usr.user_id = $1
        AND usr.status = 'unclaimed'`,
       [userId]
@@ -53,7 +53,7 @@ const userStreakRewardModel = {
               b.image AS badge_image
        FROM user_streak_reward usr
        LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
-       LEFT JOIN badge b ON sr.bagde_id = b.id
+       LEFT JOIN badge b ON sr.badge_id = b.id
        WHERE usr.id = $1`,
       [id]
     );

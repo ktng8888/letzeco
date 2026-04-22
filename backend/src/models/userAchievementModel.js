@@ -16,7 +16,7 @@ const userAchievementModel = {
           THEN true ELSE false
         END AS is_unlocked
        FROM achievement a
-       LEFT JOIN badge b ON a.bagde_id = b.id
+       LEFT JOIN badge b ON a.badge_id = b.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
        LEFT JOIN user_achievement ua
          ON a.id = ua.achievement_id
@@ -39,7 +39,7 @@ const userAchievementModel = {
         b.image AS badge_image
        FROM user_achievement ua
        LEFT JOIN achievement a ON ua.achievement_id = a.id
-       LEFT JOIN badge b ON a.bagde_id = b.id
+       LEFT JOIN badge b ON a.badge_id = b.id
        WHERE ua.user_id = $1
        ORDER BY ua.achieve_date DESC`,
       [userId]
