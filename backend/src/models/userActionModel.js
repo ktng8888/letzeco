@@ -38,9 +38,24 @@ const userActionModel = {
   getAnyInProgress: async (userId) => {
     const result = await pool.query(
       `SELECT ua.*, a.name AS action_name,
-              a.time_limit, a.xp_reward
+              a.time_limit, a.xp_reward,
+              a.description,
+              a.co2_saved, a.litre_saved, a.kwh_saved,
+              ac.name AS category_name,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code,
+              CASE
+                WHEN p.id IS NOT NULL THEN json_build_object(
+                  'id', p.id,
+                  'requirement', p.requirement,
+                  'bonus_xp', p.bonus_xp
+                )
+                ELSE NULL
+              END AS proof
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
+       LEFT JOIN action_category ac ON a.action_category_id = ac.id
+       LEFT JOIN proof p ON p.action_id = a.id
        WHERE ua.user_id = $1
        AND ua.status = 'in_progress'`,
       [userId]
@@ -61,9 +76,9 @@ const userActionModel = {
        LEFT JOIN action a ON ua.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
        WHERE ua.user_id = $1
-       AND DATE(ua.start_time) = CURRENT_DATE
+       AND DATE(ua.end_time) = CURRENT_DATE
        AND ua.status = 'completed'
-       ORDER BY ua.start_time DESC`,
+       ORDER BY ua.end_time DESC`,
       [userId]
     );
     return result.rows;
@@ -170,6 +185,24 @@ const userActionModel = {
       [userId]
     );
     return parseInt(result.rows[0].count);
+  },
+
+  // Get today's completed impact summary for user
+  getTodayImpactSummary: async (userId) => {
+    const result = await pool.query(
+      `SELECT
+        COUNT(*) AS total_actions,
+        COALESCE(SUM(xp_gained), 0) AS total_xp_earned,
+        COALESCE(SUM(co2_saved), 0) AS total_co2_saved,
+        COALESCE(SUM(litre_saved), 0) AS total_litre_saved,
+        COALESCE(SUM(kwh_saved), 0) AS total_kwh_saved
+       FROM user_action
+       WHERE user_id = $1
+       AND status = 'completed'
+       AND DATE(end_time) = CURRENT_DATE`,
+      [userId]
+    );
+    return result.rows[0];
   },
 
 };

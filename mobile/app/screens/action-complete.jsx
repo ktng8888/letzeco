@@ -66,6 +66,12 @@ export default function ActionCompleteScreen() {
 
   const { user_action, xp, streak, streak_reward, new_badge } = data;
   const totalXpGained = (xp?.xp_added || 0);
+  const todayImpact = data?.today_impact || {};
+  const todayActions = todayImpact.total_actions ?? data.total_actions_completed ?? 0;
+  const todayXp = todayImpact.total_xp_earned ?? xp?.new_total_xp ?? 0;
+  const todayCo2 = todayImpact.total_co2_saved ?? user_action?.co2_saved ?? 0;
+  const todayLitre = todayImpact.total_litre_saved ?? user_action?.litre_saved ?? 0;
+  const todayKwh = todayImpact.total_kwh_saved ?? user_action?.kwh_saved ?? 0;
 
   return (
     <View style={styles.container}>
@@ -99,32 +105,32 @@ export default function ActionCompleteScreen() {
           <View style={styles.impactGrid}>
             <ImpactRow
               label="Actions Logged"
-              value={`${data.total_actions_completed} Actions`}
+              value={`${todayActions} Actions`}
               icon="✅"
             />
             <ImpactRow
               label="Total XP Earned"
-              value={`${xp?.new_total_xp} XP`}
+              value={`${todayXp} XP`}
               icon="⭐"
             />
-            {parseFloat(user_action?.co2_saved) > 0 && (
+            {parseFloat(todayCo2) > 0 && (
               <ImpactRow
                 label="CO₂ Saved"
-                value={`${user_action.co2_saved} Kg`}
+                value={`${todayCo2} Kg`}
                 icon="🌿"
               />
             )}
-            {parseFloat(user_action?.litre_saved) > 0 && (
+            {parseFloat(todayLitre) > 0 && (
               <ImpactRow
                 label="Water Saved"
-                value={`${user_action.litre_saved} L`}
+                value={`${todayLitre} L`}
                 icon="💧"
               />
             )}
-            {parseFloat(user_action?.kwh_saved) > 0 && (
+            {parseFloat(todayKwh) > 0 && (
               <ImpactRow
                 label="Energy Saved"
-                value={`${user_action.kwh_saved} kWh`}
+                value={`${todayKwh} kWh`}
                 icon="⚡"
               />
             )}
