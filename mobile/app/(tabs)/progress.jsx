@@ -5,6 +5,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 import progressService from '../../services/progressService';
 import useAuthStore from '../../store/authStore';
@@ -175,11 +176,18 @@ export default function ProgressScreen() {
 
         {/* Weekly Activity */}
         <View style={styles.section}>
-          <SectionHeader title="Weekly Activity" />
+          <View style={styles.activityHeader}>
+            <Text style={styles.activityTitle}>Weekly Activity</Text>
+            <TouchableOpacity
+              style={styles.historyBtn}
+              onPress={() => router.push('/screens/log-history')}
+            >
+              <Ionicons name="time-outline" size={15} color={colors.primary} />
+              <Text style={styles.historyBtnText}>History</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.card}>
-            <WeeklyActivityChart
-              data={progress?.weekly_activity || []}
-            />
+            <WeeklyActivityChart data={progress?.weekly_activity || []} />
           </View>
         </View>
 
@@ -312,5 +320,31 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
+  },
+  activityHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  activityTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  historyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  historyBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
   },
 });
