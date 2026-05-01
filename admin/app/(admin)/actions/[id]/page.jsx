@@ -2,6 +2,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { buildFormData } from '../../../../utils/buildFormData';
+import { minutesToTimeLimit } from '../../../../utils/timeLimit';
 import toast from 'react-hot-toast';
 import actionService from '../../../../services/actionService';
 import categoryService from '../../../../services/categoryService';
@@ -68,8 +69,7 @@ function ActionDetail() {
     try {
       const payload = { ...form };
       if (payload.time_limit) {
-        payload.time_limit =
-          `00:${String(payload.time_limit).padStart(2, '0')}:00`;
+        payload.time_limit = minutesToTimeLimit(payload.time_limit);
       }
       const formData = buildFormData(payload, imageFile, imageRemoved);
       await actionService.update(id, formData);
