@@ -1,6 +1,7 @@
 const actionModel = require('../../models/actionModel');
 const actionCategoryModel = require('../../models/actionCategoryModel');
 const { deleteFile } = require('../../utils/uploadService');
+const { normalizeTimeLimit } = require('../../utils/timeLimit');
 
 const adminActionController = {
 
@@ -73,9 +74,10 @@ const adminActionController = {
       if (!category) {
         return res.status(404).json({ message: 'Category not found.' });
       }
+      const normalizedTimeLimit = normalizeTimeLimit(time_limit);
       const action = await actionModel.create({
         name, action_category_id, image,
-        time_limit, description, importance,
+        time_limit: normalizedTimeLimit, description, importance,
         xp_reward, co2_saved, litre_saved,
         kwh_saved, calc_info, source
       });
@@ -85,6 +87,9 @@ const adminActionController = {
       });
     } catch (err) {
       console.error('Create action error:', err);
+      if (err.statusCode === 400) {
+        return res.status(400).json({ message: err.message });
+      }
       res.status(500).json({ message: 'Server error.' });
     }
   },
@@ -106,16 +111,25 @@ const adminActionController = {
         deleteFile(existing.image);
       }
 
-      const updated = await actionModel.update(id, {
+      const payload = {
         ...req.body,
         ...(image !== undefined && { image })
-      });
+      };
+
+      if (Object.prototype.hasOwnProperty.call(payload, 'time_limit')) {
+        payload.time_limit = normalizeTimeLimit(payload.time_limit);
+      }
+
+      const updated = await actionModel.update(id, payload);
       res.json({
         message: 'Action updated successfully.',
         data: updated
       });
     } catch (err) {
       console.error('Update action error:', err);
+      if (err.statusCode === 400) {
+        return res.status(400).json({ message: err.message });
+      }
       res.status(500).json({ message: 'Server error.' });
     }
   },

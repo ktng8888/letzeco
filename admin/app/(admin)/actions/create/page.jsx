@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { buildFormData } from '../../../../utils/buildFormData';
+import { minutesToTimeLimit } from '../../../../utils/timeLimit';
 import toast from 'react-hot-toast';
 import actionService from '../../../../services/actionService';
 import categoryService from '../../../../services/categoryService';
@@ -58,8 +59,7 @@ export default function CreateActionPage() {
   const payload = { ...form };
       // Convert time
       if (payload.time_limit) {
-        payload.time_limit =
-          `00:${String(payload.time_limit).padStart(2, '0')}:00`;
+        payload.time_limit = minutesToTimeLimit(payload.time_limit);
       }
       const formData = buildFormData(payload, imageFile);
       await actionService.create(formData);
