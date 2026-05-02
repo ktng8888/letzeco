@@ -65,7 +65,11 @@ export default function ActionCompleteScreen() {
   if (!data) return null;
 
   const { user_action, xp, streak, streak_reward, new_badge } = data;
-  const totalXpGained = (xp?.xp_added || 0);
+  
+  const baseXp = xp?.xp_added ?? user_action?.xp_gained ?? 0;
+  const bonusXp = user_action?.bonus_xp_gained ?? 0;
+  const totalXpGained = baseXp + bonusXp;
+  
   const todayImpact = data?.today_impact || {};
   const todayActions = todayImpact.total_actions ?? data.total_actions_completed ?? 0;
   const todayXp = todayImpact.total_xp_earned ?? xp?.new_total_xp ?? 0;
@@ -91,11 +95,16 @@ export default function ActionCompleteScreen() {
             { transform: [{ scale: scaleAnim }] }
           ]}>
             <Text style={styles.xpGained}>+{totalXpGained} XP</Text>
+            {bonusXp > 0 && (
+              <Text style={styles.xpBreakdown}>
+                ({baseXp} XP + {bonusXp} bonus XP)
+              </Text>
+            )}
           </Animated.View>
 
           {/* Level progress */}
           <Text style={styles.levelProgress}>
-            Lv. {xp?.new_level_xp} / {getLevelMax(data.new_level)} XP
+            Lv. {data.new_level}  {xp?.new_level_xp} / {getLevelMax(data.new_level)} XP
           </Text>
         </View>
 
@@ -297,6 +306,14 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: '700',
     color: colors.xpColor,
+  },
+  xpBreakdown: {
+    fontSize: 13,
+    color: colors.xpColor,
+    fontWeight: '500',
+    textAlign: 'center',
+    marginTop: 4,
+    opacity: 0.8,
   },
   levelProgress: {
     fontSize: 14,

@@ -35,7 +35,13 @@ function ActionDetail() {
   const [imagePreview, setImagePreview] = useState(null);
   const [currentImage, setCurrentImage] = useState(null);
   const [imageRemoved, setImageRemoved] = useState(false);
-  
+  const [proof, setProof] = useState({
+    required: false,
+    type: 'photo',
+    bonus_xp: '',
+    requirement: '',
+  });
+
   useEffect(() => {
     Promise.all([
       actionService.getById(id),
@@ -56,6 +62,16 @@ function ActionDetail() {
         calc_info: a.calc_info || '',
         source: a.source || '',
       });
+
+      if (a.proof) {
+        setProof({
+          required: true,
+          type: a.proof.type || 'photo',
+          bonus_xp: a.proof.bonus_xp || '',
+          requirement: a.proof.requirement || '',
+        });
+      }
+
       setCurrentImage(a.image || null);
     }).catch(() => toast.error('Failed to load.'))
       .finally(() => setIsLoading(false));
@@ -71,6 +87,17 @@ function ActionDetail() {
       if (payload.time_limit) {
         payload.time_limit = minutesToTimeLimit(payload.time_limit);
       }
+      
+      // In handleSubmit, add these fields to payload before buildFormData:
+      if (proof.required) {
+        payload.proof_required = 'true';
+        payload.proof_type = proof.type;
+        payload.proof_bonus_xp = proof.bonus_xp;
+        payload.proof_requirement = proof.requirement;
+      } else {
+        payload.proof_required = 'false';
+      }
+
       const formData = buildFormData(payload, imageFile, imageRemoved);
       await actionService.update(id, formData);
       toast.success('Action updated!');
@@ -171,6 +198,59 @@ function ActionDetail() {
             <Input label="Source URL" value={form.source}
               onChange={(e) => set('source', e.target.value)}
               disabled={isView} />
+          </div>
+        </FormSection>
+
+        {/* Provide Proof */}
+        <FormSection title="Provide Proof">
+          <div className="md:col-span-2 flex flex-col gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={proof.required}
+                disabled={isView}
+                onChange={(e) => setProof(p => ({ ...p, required: e.target.checked }))}
+                className="w-4 h-4 accent-green-500"
+              />
+              <span className="text-sm font-medium text-gray-700">
+                Require proof for this action
+              </span>
+            </label>
+
+            {proof.required && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Proof Type — photo only */}
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1">
+                    Proof Type
+                  </label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <input type="checkbox" checked readOnly className="w-4 h-4 accent-green-500" />
+                    <span className="text-sm text-gray-600">Photo (camera only)</span>
+                  </div>
+                </div>
+
+                <Input
+                  label="Bonus XP Points"
+                  type="number"
+                  value={proof.bonus_xp}
+                  disabled={isView}
+                  onChange={(e) => setProof(p => ({ ...p, bonus_xp: e.target.value }))}
+                  placeholder="e.g. 60"
+                />
+
+                <div className="md:col-span-2">
+                  <Textarea
+                    label="Proof Instructions"
+                    value={proof.requirement}
+                    disabled={isView}
+                    onChange={(e) => setProof(p => ({ ...p, requirement: e.target.value }))}
+                    placeholder="e.g. Photo inside the public transport"
+                    rows={2}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </FormSection>
 
