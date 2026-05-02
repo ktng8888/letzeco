@@ -44,6 +44,13 @@ const userProofModel = {
     return result.rows[0];
   },
 
+  deleteByUserActionId: async (userActionId) => {
+    await pool.query(
+      'DELETE FROM user_proof WHERE user_action_id = $1',
+      [userActionId]
+    );
+  },
+
 };
 
 module.exports = userProofModel;

@@ -99,6 +99,11 @@ const actionService = {
     return response.data;
   },
 
+  deleteProof: async (userActionId) => {
+    const response = await api.delete(`/proofs/delete/${userActionId}`);
+    return response.data;
+  },
+
 };
 
 export default actionService;

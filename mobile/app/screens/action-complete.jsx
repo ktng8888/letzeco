@@ -66,7 +66,7 @@ export default function ActionCompleteScreen() {
 
   const { user_action, xp, streak, streak_reward, new_badge } = data;
   
-  const baseXp = xp?.xp_added ?? user_action?.xp_gained ?? 0;
+  const baseXp = user_action?.base_xp ?? 0;  
   const bonusXp = user_action?.bonus_xp_gained ?? 0;
   const totalXpGained = baseXp + bonusXp;
   

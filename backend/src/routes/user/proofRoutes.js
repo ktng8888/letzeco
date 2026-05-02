@@ -11,5 +11,10 @@ router.post(
   uploadProof.single('image'),
   proofController.uploadProofPhoto
 );
+router.delete(
+  '/delete/:userActionId',
+  verifyToken,
+  proofController.deleteProof
+);
 
 module.exports = router;
