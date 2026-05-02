@@ -1,7 +1,7 @@
 const proofModel = require('../../models/proofModel');
 const userProofModel = require('../../models/userProofModel');
 const userActionModel = require('../../models/userActionModel');
-const { uploadProof } = require('../../utils/uploadService');
+const { uploadProof, deleteFile } = require('../../utils/uploadService');
 const xpService = require('../../utils/xpService');
 
 const proofController = {
@@ -92,22 +92,12 @@ const proofController = {
         // Update proof status to approved
         await userProofModel.updateStatus(userProof.id, 'approved');
 
-        // Give bonus XP to user
-        const xpResult = await xpService.addXP(userId, proof.bonus_xp);
-
         res.json({
           message: 'Proof uploaded and validated successfully!',
           data: {
             proof_image: imagePath,
             validation: 'passed',
             bonus_xp: proof.bonus_xp,
-            xp: {
-              xp_added: xpResult.xp_added,
-              new_level_xp: xpResult.new_level_xp,
-              new_total_xp: xpResult.new_total_xp,
-            },
-            level_up: xpResult.level_up,
-            new_level: xpResult.new_level,
           }
         });
 
@@ -127,6 +117,43 @@ const proofController = {
 
     } catch (err) {
       console.error('Upload proof error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+  // DELETE / RETAKE PROOF
+  deleteProof: async (req, res) => {
+    const userId = req.user.id;
+    const { userActionId } = req.params;
+
+    try {
+      const userAction = await userActionModel.getById(userActionId);
+      if (!userAction) {
+        return res.status(404).json({ message: 'Action log not found.' });
+      }
+      if (userAction.user_id !== userId) {
+        return res.status(403).json({ message: 'Not authorized.' });
+      }
+      if (userAction.status !== 'in_progress') {
+        return res.status(400).json({ message: 'Action is not in progress.' });
+      }
+
+      const existingProof = await userProofModel.getByUserActionId(userActionId);
+      if (!existingProof) {
+        return res.status(404).json({ message: 'No proof found.' });
+      }
+
+      // Delete the physical file from uploads/proofs/
+      if (existingProof.image) {
+        deleteFile(existingProof.image);
+      }
+
+      // Delete the proof record
+      await userProofModel.deleteByUserActionId(userActionId);
+
+      res.json({ message: 'Proof deleted. You can retake the photo.' });
+    } catch (err) {
+      console.error('Delete proof error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },

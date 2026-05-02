@@ -125,6 +125,28 @@ export default function ActionInProgressScreen() {
     }
   };
 
+  const handleDeleteProof = async () => {
+    Alert.alert(
+      'Retake Photo?',
+      'Your current proof photo will be removed. You can take a new one.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Retake',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await actionService.deleteProof(userActionId);
+              setProofUploaded(false);
+            } catch (err) {
+              Alert.alert('Error', err.response?.data?.message || 'Failed to remove proof.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
   if (isLoading || !userAction) return <LoadingScreen />;
 
   const hasTimeLimit = timeLimitSeconds > 0;
@@ -224,9 +246,18 @@ export default function ActionInProgressScreen() {
             </Text>
 
             {proofUploaded ? (
-              <View style={styles.proofUploaded}>
-                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                <Text style={styles.proofUploadedText}>Proof Uploaded!</Text>
+              <View style={styles.proofUploadedRow}>
+                <View style={styles.proofUploaded}>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                  <Text style={styles.proofUploadedText}>Proof Uploaded!</Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.retakeBtn}
+                  onPress={handleDeleteProof}
+                >
+                  <Ionicons name="camera-outline" size={14} color={colors.error} />
+                  <Text style={styles.retakeBtnText}>Retake</Text>
+                </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity
@@ -439,6 +470,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSecondary,
   },
+  
   proofSection: {
     backgroundColor: colors.bgGrey,
     borderRadius: 14,
@@ -488,6 +520,28 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '500',
   },
+  proofUploadedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 4,
+  },
+  retakeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderWidth: 1,
+    borderColor: colors.error,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  retakeBtnText: {
+    fontSize: 12,
+    color: colors.error,
+    fontWeight: '600',
+  },
+
   footer: {
     position: 'absolute',
     bottom: 0,
