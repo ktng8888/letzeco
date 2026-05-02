@@ -117,6 +117,11 @@ export default function LogHistoryDetailScreen() {
               <View style={styles.rewardBox}>
                 <Text style={styles.rewardValue}>{log.xp_gained} XP</Text>
                 <Text style={styles.rewardLabel}>Earned</Text>
+                  {log.proof && log.proof.status === 'approved' && (
+                    <Text style={styles.rewardBreakdown}>
+                      {log.xp_gained - log.proof.bonus_xp} XP + {log.proof.bonus_xp} bonus XP
+                    </Text>
+                  )}
               </View>
             </View>
           </View>
@@ -186,6 +191,54 @@ export default function LogHistoryDetailScreen() {
               <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
               <Text style={styles.calcBtnText}>How is this calculated?</Text>
             </TouchableOpacity>
+          </View>
+        )}
+
+        {/* ── Proof Section ── */}
+        {log.proof && (
+          <View style={styles.card}>
+            <View style={styles.cardSection}>
+              <View style={styles.cardSectionHeader}>
+                <Ionicons name="camera" size={14} color={colors.primary} />
+                <Text style={styles.cardSectionTitle}>Proof Submitted</Text>
+              </View>
+
+              <Text style={styles.proofRequirement}>
+                📋 {log.proof.requirement}
+              </Text>
+
+              {/* Status badge */}
+              <View style={[
+                styles.proofStatusBadge,
+                log.proof.status === 'approved'
+                  ? styles.proofStatusApproved
+                  : styles.proofStatusRejected
+              ]}>
+                <Ionicons
+                  name={log.proof.status === 'approved' ? 'checkmark-circle' : 'close-circle'}
+                  size={14}
+                  color={log.proof.status === 'approved' ? colors.success : colors.error}
+                />
+                <Text style={[
+                  styles.proofStatusText,
+                  { color: log.proof.status === 'approved' ? colors.success : colors.error }
+                ]}>
+                  {log.proof.status === 'approved' ? 'Proof Accepted' : 'Proof Rejected'}
+                </Text>
+                {log.proof.status === 'approved' && (
+                  <Text style={styles.proofBonusText}>+{log.proof.bonus_xp} XP</Text>
+                )}
+              </View>
+
+              {/* Proof photo */}
+              {log.proof.image && (
+                <Image
+                  source={{ uri: getImageUrl(log.proof.image) }}
+                  style={styles.proofImage}
+                  resizeMode="cover"
+                />
+              )}
+            </View>
           </View>
         )}
 
@@ -474,6 +527,50 @@ const styles = StyleSheet.create({
   },
   calcBtnText: {
     fontSize: 13, color: colors.primary, fontWeight: '600',
+  },
+
+  // ── Proof ──
+  rewardBreakdown: {
+    fontSize: 11,
+    color: colors.xpColor,
+    marginTop: 4,
+    opacity: 0.8,
+  },
+  proofRequirement: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  proofStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  proofStatusApproved: {
+    backgroundColor: '#dcfce7',
+  },
+  proofStatusRejected: {
+    backgroundColor: '#fee2e2',
+  },
+  proofStatusText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  proofBonusText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.success,
+    marginLeft: 2,
+  },
+  proofImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginTop: 10,
   },
 
   // ── Modal ──
