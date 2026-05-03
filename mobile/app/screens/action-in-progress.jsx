@@ -1,11 +1,12 @@
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal
+  StyleSheet, Alert, ActivityIndicator, Modal, Image
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import actionService from '../../services/actionService';
 import useActionStore from '../../store/actionStore';
@@ -17,6 +18,7 @@ import colors from '../../constants/colors';
 
 export default function ActionInProgressScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { userActionId } = useLocalSearchParams();
   const { clearCurrentAction } = useActionStore();
   const { updateUser } = useAuthStore();
@@ -27,6 +29,8 @@ export default function ActionInProgressScreen() {
   const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [userAction, setUserAction] = useState(null);
   const [proofUploaded, setProofUploaded] = useState(false);
+  const [proofImageUri, setProofImageUri] = useState(null);
+  const [showProofPreview, setShowProofPreview] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => { loadAction(); }, []);
@@ -117,6 +121,7 @@ export default function ActionInProgressScreen() {
       const imageUri = result.assets[0].uri;
       await actionService.uploadProof(userActionId, imageUri);
       setProofUploaded(true);
+      setProofImageUri(imageUri);
       Alert.alert('Success!', 'Proof uploaded! Bonus XP will be added on completion.');
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Upload failed.');
@@ -138,6 +143,7 @@ export default function ActionInProgressScreen() {
             try {
               await actionService.deleteProof(userActionId);
               setProofUploaded(false);
+              setProofImageUri(null);
             } catch (err) {
               Alert.alert('Error', err.response?.data?.message || 'Failed to remove proof.');
             }
@@ -160,6 +166,7 @@ export default function ActionInProgressScreen() {
       {/* Header */}
       <View style={[
         styles.header,
+        { paddingTop: insets.top + 26 },
         isExpired && styles.headerExpired
       ]}>
         <Text style={styles.headerLabel}>
@@ -198,7 +205,10 @@ export default function ActionInProgressScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[
+          styles.content,
+          { paddingBottom: insets.bottom + 168 }
+        ]}
       >
         {/* Action Info */}
         <Badge
@@ -246,18 +256,38 @@ export default function ActionInProgressScreen() {
             </Text>
 
             {proofUploaded ? (
-              <View style={styles.proofUploadedRow}>
-                <View style={styles.proofUploaded}>
-                  <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                  <Text style={styles.proofUploadedText}>Proof Uploaded!</Text>
+              <View style={styles.proofUploadedWrap}>
+                {proofImageUri && (
+                  <TouchableOpacity
+                    style={styles.proofPreviewCard}
+                    activeOpacity={0.9}
+                    onPress={() => setShowProofPreview(true)}
+                  >
+                    <Image
+                      source={{ uri: proofImageUri }}
+                      style={styles.proofPreviewImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.proofPreviewOverlay}>
+                      <Ionicons name="expand-outline" size={16} color={colors.textWhite} />
+                      <Text style={styles.proofPreviewText}>Preview</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
+                <View style={styles.proofUploadedRow}>
+                  <View style={styles.proofUploaded}>
+                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                    <Text style={styles.proofUploadedText}>Proof Uploaded!</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.retakeBtn}
+                    onPress={handleDeleteProof}
+                  >
+                    <Ionicons name="camera-outline" size={14} color={colors.error} />
+                    <Text style={styles.retakeBtnText}>Retake</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={styles.retakeBtn}
-                  onPress={handleDeleteProof}
-                >
-                  <Ionicons name="camera-outline" size={14} color={colors.error} />
-                  <Text style={styles.retakeBtnText}>Retake</Text>
-                </TouchableOpacity>
               </View>
             ) : (
               <TouchableOpacity
@@ -277,12 +307,13 @@ export default function ActionInProgressScreen() {
             )}
           </View>
         )}
-
-        <View style={{ height: 120 }} />
       </ScrollView>
 
       {/* Bottom Buttons */}
-      <View style={styles.footer}>
+      <View style={[
+        styles.footer,
+        { paddingBottom: Math.max(insets.bottom, 18) + 12 }
+      ]}>
         {isExpired ? (
           // Time is over — show Try Again
           <TouchableOpacity
@@ -349,6 +380,31 @@ export default function ActionInProgressScreen() {
         </View>
       </Modal>
 
+      {/* Proof Preview Modal */}
+      <Modal
+        visible={showProofPreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowProofPreview(false)}
+      >
+        <View style={styles.previewOverlay}>
+          <TouchableOpacity
+            style={[styles.previewCloseBtn, { top: insets.top + 14 }]}
+            onPress={() => setShowProofPreview(false)}
+          >
+            <Ionicons name="close" size={24} color={colors.textWhite} />
+          </TouchableOpacity>
+
+          {proofImageUri && (
+            <Image
+              source={{ uri: proofImageUri }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
+
     </View>
   );
 }
@@ -407,6 +463,7 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: '700',
     color: colors.textWhite,
+    textAlign: 'center',
   },
   timerExpired: { color: colors.xpColor },
   timerLabel: {
@@ -429,13 +486,17 @@ const styles = StyleSheet.create({
   progressFillDanger: {
     backgroundColor: colors.xpColor,
   },
-  content: { padding: 20 },
+  content: {
+    paddingHorizontal: 24,
+    paddingTop: 18,
+  },
   actionName: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginTop: 10,
+    marginTop: 14,
     marginBottom: 8,
+    lineHeight: 28,
   },
   description: {
     fontSize: 14,
@@ -446,7 +507,7 @@ const styles = StyleSheet.create({
   impactCard: {
     backgroundColor: colors.bgGrey,
     borderRadius: 14,
-    padding: 16,
+    padding: 18,
     marginBottom: 20,
   },
   impactTitle: {
@@ -457,9 +518,15 @@ const styles = StyleSheet.create({
   },
   impactRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    gap: 8,
   },
-  impactBox: { alignItems: 'center', gap: 4 },
+  impactBox: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+    minWidth: 0,
+  },
   impactIcon: { fontSize: 22 },
   impactValue: {
     fontSize: 18,
@@ -469,12 +536,13 @@ const styles = StyleSheet.create({
   impactUnit: {
     fontSize: 11,
     color: colors.textSecondary,
+    textAlign: 'center',
   },
   
   proofSection: {
     backgroundColor: colors.bgGrey,
     borderRadius: 14,
-    padding: 16,
+    padding: 18,
     gap: 8,
   },
   proofTitle: {
@@ -495,7 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 4,
+    flexShrink: 1,
   },
   proofUploadedText: {
     fontSize: 14,
@@ -524,7 +592,38 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 12,
+  },
+  proofUploadedWrap: {
+    gap: 10,
     marginTop: 4,
+  },
+  proofPreviewCard: {
+    height: 150,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: colors.bgWhite,
+  },
+  proofPreviewImage: {
+    width: '100%',
+    height: '100%',
+  },
+  proofPreviewOverlay: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  proofPreviewText: {
+    fontSize: 12,
+    color: colors.textWhite,
+    fontWeight: '600',
   },
   retakeBtn: {
     flexDirection: 'row',
@@ -637,5 +736,27 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 15,
     fontWeight: '600',
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  previewCloseBtn: {
+    position: 'absolute',
+    right: 18,
+    zIndex: 2,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewImage: {
+    width: '100%',
+    height: '82%',
   },
 });

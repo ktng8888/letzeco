@@ -150,7 +150,7 @@ export default function LogHistoryDetailScreen() {
 
         {/* ── Environmental Impact ── */}
         {hasImpact && (
-          <View style={styles.section}>
+          <View style={[styles.section, styles.impactSection]}>
             <View style={styles.sectionHeader}>
               <Text style={{ fontSize: 16 }}>🌿</Text>
               <Text style={styles.sectionTitle}>Environmental Impact</Text>
@@ -183,7 +183,7 @@ export default function LogHistoryDetailScreen() {
 
         {/* ── How is this calculated button ── */}
         {(log.calc_info || log.source) && (
-          <View style={styles.section}>
+          <View style={[styles.section, styles.calcSection]}>
             <TouchableOpacity
               style={styles.calcBtn}
               onPress={() => setShowCalcModal(true)}
@@ -196,11 +196,11 @@ export default function LogHistoryDetailScreen() {
 
         {/* ── Proof Section ── */}
         {log.proof && (
-          <View style={styles.card}>
+          <View style={[styles.card, styles.proofCard]}>
             <View style={styles.cardSection}>
-              <View style={styles.cardSectionHeader}>
-                <Ionicons name="camera" size={14} color={colors.primary} />
-                <Text style={styles.cardSectionTitle}>Proof Submitted</Text>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="camera" size={16} color={colors.primary} />
+                <Text style={styles.sectionTitle}>Proof Submitted</Text>
               </View>
 
               <Text style={styles.proofRequirement}>
@@ -483,6 +483,16 @@ const styles = StyleSheet.create({
   section: {
     marginHorizontal: 16, marginTop: 12,
   },
+  impactSection: {
+    marginTop: 22,
+  },
+  calcSection: {
+    marginTop: 18,
+    marginBottom: 8,
+  },
+  proofCard: {
+    marginTop: 18,
+  },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -540,12 +550,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 20,
+    textAlign: 'center',
+    alignSelf: 'center',
   },
   proofStatusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
