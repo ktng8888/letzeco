@@ -9,8 +9,9 @@ const progressModel = {
     if (period === 'today') {
       dateFilter = `AND DATE(ua.end_time) = CURRENT_DATE`;
     } else if (period === 'this_week') {
-      dateFilter = `AND DATE_TRUNC('week', ua.end_time) =
-                    DATE_TRUNC('week', CURRENT_DATE)`;
+      dateFilter = `AND ua.end_time::date BETWEEN
+                    CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int
+                    AND CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int + 6`;
     } else if (period === 'this_month') {
       dateFilter = `AND DATE_TRUNC('month', ua.end_time) =
                     DATE_TRUNC('month', CURRENT_DATE)`;
@@ -50,6 +51,97 @@ const progressModel = {
     return result.rows;
   },
 
+  // Get period-aware activity buckets for the progress chart
+  getActivity: async (userId, period) => {
+    if (period === 'today') {
+      const result = await pool.query(
+        `WITH hours AS (
+          SELECT generate_series(
+            DATE_TRUNC('day', CURRENT_TIMESTAMP),
+            DATE_TRUNC('day', CURRENT_TIMESTAMP) + INTERVAL '23 hours',
+            INTERVAL '1 hour'
+          ) AS bucket_start
+        )
+        SELECT
+          TO_CHAR(hours.bucket_start, 'HH24:00') AS label,
+          COUNT(ua.id)::int AS action_count
+        FROM hours
+        LEFT JOIN user_action ua
+          ON ua.user_id = $1
+          AND ua.status = 'completed'
+          AND ua.end_time >= hours.bucket_start
+          AND ua.end_time < hours.bucket_start + INTERVAL '1 hour'
+        GROUP BY hours.bucket_start
+        ORDER BY hours.bucket_start ASC`,
+        [userId]
+      );
+      return result.rows;
+    }
+
+    if (period === 'this_month') {
+      const result = await pool.query(
+        `WITH weeks AS (
+          SELECT generate_series(1, 4) AS week_number
+        )
+        SELECT
+          'Week ' || weeks.week_number AS label,
+          COUNT(ua.id)::int AS action_count
+        FROM weeks
+        LEFT JOIN user_action ua
+          ON ua.user_id = $1
+          AND ua.status = 'completed'
+          AND DATE_TRUNC('month', ua.end_time) = DATE_TRUNC('month', CURRENT_DATE)
+          AND LEAST(4, CEIL(EXTRACT(DAY FROM ua.end_time)::numeric / 7)) = weeks.week_number
+        GROUP BY weeks.week_number
+        ORDER BY weeks.week_number ASC`,
+        [userId]
+      );
+      return result.rows;
+    }
+
+    if (period === 'all_time') {
+      const result = await pool.query(
+        `WITH months AS (
+          SELECT generate_series(1, 12) AS month_number
+        )
+        SELECT
+          TO_CHAR(TO_DATE(months.month_number::text, 'MM'), 'Mon') AS label,
+          COUNT(ua.id)::int AS action_count
+        FROM months
+        LEFT JOIN user_action ua
+          ON ua.user_id = $1
+          AND ua.status = 'completed'
+          AND EXTRACT(MONTH FROM ua.end_time)::int = months.month_number
+        GROUP BY months.month_number
+        ORDER BY months.month_number ASC`,
+        [userId]
+      );
+      return result.rows;
+    }
+
+    const result = await pool.query(
+      `WITH days AS (
+        SELECT generate_series(
+          CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int,
+          CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int + 6,
+          INTERVAL '1 day'
+        )::date AS bucket_date
+      )
+      SELECT
+        TO_CHAR(days.bucket_date, 'Dy') AS label,
+        COUNT(ua.id)::int AS action_count
+      FROM days
+      LEFT JOIN user_action ua
+        ON ua.user_id = $1
+        AND ua.status = 'completed'
+        AND ua.end_time::date = days.bucket_date
+      GROUP BY days.bucket_date
+      ORDER BY days.bucket_date ASC`,
+      [userId]
+    );
+    return result.rows;
+  },
+
   // Get category breakdown
   getCategoryBreakdown: async (userId, period) => {
     let dateFilter = '';
@@ -57,8 +149,9 @@ const progressModel = {
     if (period === 'today') {
       dateFilter = `AND DATE(ua.end_time) = CURRENT_DATE`;
     } else if (period === 'this_week') {
-      dateFilter = `AND DATE_TRUNC('week', ua.end_time) =
-                    DATE_TRUNC('week', CURRENT_DATE)`;
+      dateFilter = `AND ua.end_time::date BETWEEN
+                    CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int
+                    AND CURRENT_DATE - EXTRACT(DOW FROM CURRENT_DATE)::int + 6`;
     } else if (period === 'this_month') {
       dateFilter = `AND DATE_TRUNC('month', ua.end_time) =
                     DATE_TRUNC('month', CURRENT_DATE)`;

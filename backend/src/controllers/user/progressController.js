@@ -16,7 +16,9 @@ const progressController = {
       const impact = await progressModel.getEnvironmentalImpact(
         userId, selectedPeriod
       );
-      const weeklyActivity = await progressModel.getWeeklyActivity(userId);
+      const activity = await progressModel.getActivity(
+        userId, selectedPeriod
+      );
       const categoryBreakdown = await progressModel.getCategoryBreakdown(
         userId, selectedPeriod
       );
@@ -39,7 +41,8 @@ const progressController = {
             xp_earned: parseInt(impact.total_xp_earned),
             total_actions: parseInt(impact.total_actions)
           },
-          weekly_activity: weeklyActivity,
+          activity,
+          weekly_activity: activity,
           category_breakdown: categoryBreakdown
         }
       });
