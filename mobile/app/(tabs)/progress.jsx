@@ -15,7 +15,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 import SectionHeader from '../../components/common/SectionHeader';
 import ImpactCard from '../../components/progress/ImpactCard';
 import CategoryBreakdown from '../../components/progress/CategoryBreakdown';
-import WeeklyActivityChart from '../../components/progress/WeeklyActivityChart';
+import ActivityChart from '../../components/progress/ActivityChart';
 import ComparisonCard from '../../components/progress/ComparisonCard';
 import TrendChart from '../../components/progress/TrendChart';
 import MonthlyGoals from '../../components/progress/MonthlyGoals';
@@ -27,6 +27,29 @@ const PERIODS = [
   { key: 'this_month', label: 'This Month' },
   { key: 'all_time', label: 'All Time' },
 ];
+
+const ACTIVITY_CONFIG = {
+  today: {
+    title: 'Today Activity',
+    subtitle: '00:00 - 23:59',
+    summaryLabel: 'today',
+  },
+  this_week: {
+    title: 'Weekly Activity',
+    subtitle: 'Sun to Sat',
+    summaryLabel: 'this week',
+  },
+  this_month: {
+    title: 'Monthly Activity',
+    subtitle: 'Week 1 to Week 4',
+    summaryLabel: 'this month',
+  },
+  all_time: {
+    title: 'All Time Activity',
+    subtitle: 'Jan to Dec',
+    summaryLabel: 'all time',
+  },
+};
 
 export default function ProgressScreen() {
   const router = useRouter();
@@ -78,6 +101,7 @@ export default function ProgressScreen() {
   if (isLoading) return <LoadingScreen />;
 
   const impact = progress?.environmental_impact;
+  const activityConfig = ACTIVITY_CONFIG[period] || ACTIVITY_CONFIG.this_week;
 
   return (
     <View style={styles.container}>
@@ -174,10 +198,13 @@ export default function ProgressScreen() {
           </View>
         </View>
 
-        {/* Weekly Activity */}
+        {/* Activity */}
         <View style={styles.section}>
           <View style={styles.activityHeader}>
-            <Text style={styles.activityTitle}>Weekly Activity</Text>
+            <View>
+              <Text style={styles.activityTitle}>{activityConfig.title}</Text>
+              <Text style={styles.activitySubtitle}>{activityConfig.subtitle}</Text>
+            </View>
             <TouchableOpacity
               style={styles.historyBtn}
               onPress={() => router.push('/screens/log-history')}
@@ -187,7 +214,11 @@ export default function ProgressScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.card}>
-            <WeeklyActivityChart data={progress?.weekly_activity || []} />
+            <ActivityChart
+              data={progress?.activity || progress?.weekly_activity || []}
+              period={period}
+              summaryLabel={activityConfig.summaryLabel}
+            />
           </View>
         </View>
 
@@ -331,6 +362,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  activitySubtitle: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   historyBtn: {
     flexDirection: 'row',
