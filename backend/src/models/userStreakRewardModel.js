@@ -60,6 +60,33 @@ const userStreakRewardModel = {
     return result.rows[0];
   },
 
+  getByUserAndReward: async (userId, rewardId) => {
+    const result = await pool.query(
+      `SELECT * FROM user_streak_reward
+      WHERE user_id = $1 AND streak_reward_id = $2`,
+      [userId, rewardId]
+    );
+    return result.rows[0] || null;
+  },
+
+  create: async (userId, rewardId) => {
+    const result = await pool.query(
+      `INSERT INTO user_streak_reward
+        (user_id, streak_reward_id, obtain_date, status)
+      VALUES ($1, $2, NOW(), 'unclaimed')
+      RETURNING *`,
+      [userId, rewardId]
+    );
+    return result.rows[0];
+  },
+
+  deleteByUserId: async (userId) => {
+    await pool.query(
+      `DELETE FROM user_streak_reward WHERE user_id = $1`,
+      [userId]
+    );
+  },
+
   // Claim streak reward
   claim: async (id) => {
     const result = await pool.query(

@@ -1,5 +1,7 @@
-const pool = require('../config/db');
 const userModel = require('../models/userModel');
+const userActionModel = require('../models/userActionModel');
+const streakRewardModel = require('../models/streakRewardModel');
+const userStreakRewardModel = require('../models/userStreakRewardModel');
 
 const streakService = {
 
@@ -7,15 +9,7 @@ const streakService = {
     try {
       const user = await userModel.findById(userId);
 
-      const lastActionResult = await pool.query(
-        `SELECT DATE(end_time) AS last_date
-         FROM user_action
-         WHERE user_id = $1
-         AND status = 'completed'
-         ORDER BY end_time DESC
-         LIMIT 2`,
-        [userId]
-      );
+      const lastActions = await userActionModel.getLastCompletedDates(userId, 2);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -23,15 +17,11 @@ const streakService = {
       let newStreak = user.streak;
       let streakContinued = false;
 
-      if (lastActionResult.rows.length === 0) {
-        newStreak = 1;
-        streakContinued = true;
-      } else if (lastActionResult.rows.length === 1) {
-        // First ever completed action
+      if (lastActions.length <= 1) {
         newStreak = 1;
         streakContinued = true;
       } else {
-        const previousDate = new Date(lastActionResult.rows[1].last_date);
+        const previousDate = new Date(lastActions[1].last_date);
         previousDate.setHours(0, 0, 0, 0);
 
         const diffDays = Math.floor(
@@ -49,17 +39,13 @@ const streakService = {
         }
       }
 
-      // Update streak in DB only if changed
       if (streakContinued) {
         await userModel.updateStreak(userId, newStreak);
       }
 
-      // Check for streak reward
       let streakReward = null;
       if (streakContinued) {
-        streakReward = await streakService.checkStreakReward(
-          userId, newStreak
-        );
+        streakReward = await streakService.checkStreakReward(userId, newStreak);
       }
 
       return {
@@ -76,36 +62,16 @@ const streakService = {
 
   checkStreakReward: async (userId, currentStreak) => {
     try {
-      const rewardResult = await pool.query(
-        `SELECT sr.*, b.name AS badge_name, b.image AS badge_image
-         FROM streak_reward sr
-         LEFT JOIN badge b ON sr.badge_id = b.id
-         WHERE sr.day = $1`,
-        [currentStreak]
+      const reward = await streakRewardModel.getByDay(currentStreak);
+      if (!reward) return null;
+
+      const existing = await userStreakRewardModel.getByUserAndReward(
+        userId, reward.id
       );
+      if (existing) return null;
 
-      if (rewardResult.rows.length === 0) return null;
+      await userStreakRewardModel.create(userId, reward.id);
 
-      const reward = rewardResult.rows[0];
-
-      // Check if user already has this reward
-      const existing = await pool.query(
-        `SELECT * FROM user_streak_reward
-         WHERE user_id = $1 AND streak_reward_id = $2`,
-        [userId, reward.id]
-      );
-
-      if (existing.rows.length > 0) return null;
-
-      // Give reward to user — save as unclaimed
-      await pool.query(
-        `INSERT INTO user_streak_reward
-          (user_id, streak_reward_id, obtain_date, status)
-         VALUES ($1, $2, NOW(), 'unclaimed')`,
-        [userId, reward.id]
-      );
-
-      // Add XP to user immediately
       if (reward.xp_reward > 0) {
         await userModel.addXpDirect(userId, reward.xp_reward);
       }
@@ -126,20 +92,15 @@ const streakService = {
   checkAndResetStreak: async (userId) => {
     try {
       const user = await userModel.findById(userId);
+      const lastActions = await userActionModel.getLastCompletedDates(userId, 1);
 
-      const lastActionResult = await pool.query(
-        `SELECT DATE(end_time) AS last_date
-        FROM user_action
-        WHERE user_id = $1
-        AND status = 'completed'
-        ORDER BY end_time DESC
-        LIMIT 1`,
-        [userId]
-      );
+      if (lastActions.length === 0) {
+        if (user.streak > 0) await userModel.updateStreak(userId, 0);
+        await userStreakRewardModel.deleteByUserId(userId);
+        return;
+      }
 
-      if (lastActionResult.rows.length === 0) return;
-
-      const lastDate = new Date(lastActionResult.rows[0].last_date);
+      const lastDate = new Date(lastActions[0].last_date);
       lastDate.setHours(0, 0, 0, 0);
 
       const today = new Date();
@@ -149,9 +110,9 @@ const streakService = {
         (today - lastDate) / (1000 * 60 * 60 * 24)
       );
 
-      // If more than 1 day gap → reset streak
-      if (diffDays > 1 && user.streak > 0) {
-        await userModel.updateStreak(userId, 0);
+      if (diffDays > 1) {
+        if (user.streak > 0) await userModel.updateStreak(userId, 0);
+        await userStreakRewardModel.deleteByUserId(userId);
         console.log(`Streak reset for user ${userId}`);
       }
 

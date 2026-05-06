@@ -13,7 +13,15 @@ export default function ActionCard({
   isLogging = false,
   timeLeft = null
 }) {
-  const imageUrl = getImageUrl(action.image);
+  const isFavourited =
+    action.is_favourite === true ||
+    action.is_favourite === 1 ||
+    action.is_favourite === '1' ||
+    action.is_favourite === 'true';
+
+  const imageSourcePath =
+    action.image || action.action_image || action.category_image || null;
+  const imageUrl = getImageUrl(imageSourcePath);
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress}>
@@ -29,9 +37,9 @@ export default function ActionCard({
           style={styles.favouriteBtn}
         >
           <Ionicons
-            name={action.is_favourite ? 'heart' : 'heart-outline'}
+            name={isFavourited ? 'heart' : 'heart-outline'}
             size={20}
-            color={action.is_favourite ? colors.error : colors.textLight}
+            color={isFavourited ? colors.error : colors.textLight}
           />
         </TouchableOpacity>
 

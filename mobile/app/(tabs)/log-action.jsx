@@ -32,6 +32,8 @@ export default function LogActionScreen() {
   const [categories, setCategories] = useState([]);
   const [recommended, setRecommended] = useState([]);
   const [favourites, setFavourites] = useState([]);
+  const isFavourited = (value) =>
+    value === true || value === 1 || value === '1' || value === 'true';
 
   const loadData = async () => {
     try {
@@ -59,7 +61,7 @@ export default function LogActionScreen() {
 
   const loadTabData = async (tab) => {
     try {
-      if (tab === 'recommended' && recommended.length === 0) {
+      if (tab === 'recommended') {
         const data = await actionService.getRecommended();
         setRecommended(data.data || []);
       }
@@ -91,7 +93,8 @@ export default function LogActionScreen() {
 
   const handleFavouriteToggle = async (action) => {
     try {
-      if (action.is_favourite) {
+      const currentlyFavourited = isFavourited(action.is_favourite);
+      if (currentlyFavourited) {
         await actionService.removeFavourite(action.id);
       } else {
         await actionService.addFavourite(action.id);
@@ -102,7 +105,7 @@ export default function LogActionScreen() {
       // Update recommended list too
       setRecommended(prev =>
         prev.map(a => a.id === action.id
-          ? { ...a, is_favourite: !a.is_favourite }
+          ? { ...a, is_favourite: !currentlyFavourited }
           : a
         )
       );
