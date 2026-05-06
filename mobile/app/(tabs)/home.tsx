@@ -128,6 +128,7 @@ export default function HomeScreen() {
   const hasUnclaimed = streakRewards.some(
     (r: StreakReward) => r.is_earned && r.claim_status === 'unclaimed'
   );
+  const isZeroStreakNotStarted = streak === 0 && todayLoggedCount === 0;
 
   const carouselItems: any[] = myChallenges.length > 0
     ? [...myChallenges, { id: 'join', isJoin: true }]
@@ -314,12 +315,19 @@ export default function HomeScreen() {
               const claimed = r?.claim_status === 'claimed';
               const earned = r?.is_earned;
               const canClaim = earned && !claimed && todayLoggedCount > 0;
+              const isTodayTarget = item.isToday && isZeroStreakNotStarted && !earned;
               return (
                 <TouchableOpacity
                   key={i}
                   style={styles.dayCol}
-                  onPress={() => r && handleClaimPress(r)}
-                  disabled={!r || !(earned && !claimed)}
+                  onPress={() => {
+                    if (isTodayTarget) {
+                      router.push('/(tabs)/log-action');
+                      return;
+                    }
+                    if (r) handleClaimPress(r);
+                  }}
+                  disabled={isTodayTarget ? false : (!r || !(earned && !claimed))}
                 >
                   <Text style={[styles.dayLabel, item.isToday && styles.dayLabelToday]}>
                     {item.dayName}
@@ -329,8 +337,11 @@ export default function HomeScreen() {
                     claimed && styles.dayBoxClaimed,
                     canClaim && styles.dayBoxCanClaim,
                     item.isToday && !earned && styles.dayBoxToday,
+                    isTodayTarget && styles.dayBoxTodayTarget,
                   ]}>
-                    {claimed
+                    {isTodayTarget
+                      ? <Text style={styles.dayTargetText}>Start</Text>
+                      : claimed
                       ? <Ionicons name="checkmark" size={16} color="#fff" />
                       : canClaim
                         ? <Ionicons name="gift" size={16} color="#f59e0b" />
@@ -342,7 +353,11 @@ export default function HomeScreen() {
                           : <Text style={{ fontSize: 12 }}>{earned ? '⭐' : ''}</Text>
                     }
                   </View>
-                  <Text style={[styles.dayXp, claimed && { color: colors.primary }]}>
+                  <Text style={[
+                    styles.dayXp,
+                    claimed && { color: colors.primary },
+                    isTodayTarget && styles.dayXpLocked
+                  ]}>
                     {r ? `${r.xp_reward}XP` : '—'}
                   </Text>
                 </TouchableOpacity>
@@ -686,8 +701,19 @@ const styles = StyleSheet.create({
   dayBoxClaimed: { backgroundColor: colors.primary, borderColor: colors.primary },
   dayBoxCanClaim: { backgroundColor: '#fef3c7', borderColor: '#f59e0b', borderWidth: 2 },
   dayBoxToday: { borderColor: colors.primary, borderWidth: 2 },
+  dayBoxTodayTarget: {
+    backgroundColor: '#eefaf2',
+    borderColor: colors.primary,
+    borderWidth: 2,
+  },
+  dayTargetText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: colors.primary,
+  },
   dayImg: { width: 24, height: 24, borderRadius: 12 },
   dayXp: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
+  dayXpLocked: { opacity: 0.65 },
 
   // ── Today Actions ──
   actionCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 10 },

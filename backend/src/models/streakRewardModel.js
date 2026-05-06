@@ -23,11 +23,23 @@ const streakRewardModel = {
     return result.rows[0];
   },
 
+  /*
   getByDay: async (day) => {
     const result = await pool.query(
       'SELECT * FROM streak_reward WHERE day = $1', [day]
     );
     return result.rows[0];
+  },
+  */
+  getByDay: async (day) => {
+    const result = await pool.query(
+      `SELECT sr.*, b.name AS badge_name, b.image AS badge_image
+      FROM streak_reward sr
+      LEFT JOIN badge b ON sr.badge_id = b.id
+      WHERE sr.day = $1`,
+      [day]
+    );
+    return result.rows[0] || null;
   },
 
   create: async (badge_id, day, xp_reward) => {

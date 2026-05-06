@@ -84,6 +84,18 @@ const userActionModel = {
     return result.rows;
   },
 
+  getLastCompletedDates: async (userId, limit) => {
+    const result = await pool.query(
+      `SELECT DATE(end_time) AS last_date
+      FROM user_action
+      WHERE user_id = $1 AND status = 'completed'
+      ORDER BY end_time DESC
+      LIMIT $2`,
+      [userId, limit]
+    );
+    return result.rows;
+  },
+
   // Get log history for user
   getHistory: async (userId) => {
     const result = await pool.query(
