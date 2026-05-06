@@ -86,12 +86,14 @@ const actionController = {
           const inProgress = await userActionModel.getInProgress(
             userId, action.id
           );
+          const proof = await proofModel.getByActionId(action.id);
 
           return {
             ...action,
             is_favourite: fav ? true : false,
             user_log_count: userLogCount,
-            is_logging: inProgress ? true : false
+            is_logging: inProgress ? true : false,
+            proof: proof || null
           };
         })
       );

@@ -253,6 +253,13 @@ export default function ActionDetailScreen() {
               <Text style={styles.proofBonus}>
                 (bonus +{action.proof.bonus_xp} XP)
               </Text>
+
+              {/* Disabled camera placeholder */}
+              <View style={styles.proofPhotoDisabled}>
+                <Ionicons name="camera-outline" size={32} color={colors.textLight} />
+                <Text style={styles.proofPhotoDisabledText}>Take Photo</Text>
+              </View>
+
               <Text style={styles.proofNote}>
                 You can upload proof after starting the action
               </Text>
@@ -441,6 +448,8 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 12,
     backgroundColor: colors.bgGrey,
+    borderWidth: 1.5,
+    borderColor: colors.border,
   },
   actionName: {
     fontSize: 22,
@@ -460,6 +469,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgWhite,
     marginHorizontal: 16,
     marginTop: 12,
+    marginBottom: 20,
     borderRadius: 16,
     padding: 16,
     gap: 14,
@@ -497,6 +507,7 @@ const styles = StyleSheet.create({
   section: {
     marginHorizontal: 16,
     marginTop: 12,
+    marginBottom: 20,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -605,24 +616,46 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgWhite,
     borderRadius: 14,
     padding: 16,
-    gap: 4,
+    gap: 10,
     borderWidth: 1,
     borderColor: colors.border,
+    alignItems: 'center',
   },
   proofRequirement: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.textPrimary,
+    textAlign: 'center',
   },
   proofBonus: {
     fontSize: 13,
     color: colors.primary,
     fontWeight: '500',
+    textAlign: 'center',
+  },
+  proofPhotoDisabled: {
+    width: '100%',
+    height: 120,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    borderStyle: 'dashed',
+    backgroundColor: colors.bgGrey,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 4,
+    opacity: 0.5,
+  },
+  proofPhotoDisabledText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
   },
   proofNote: {
     fontSize: 12,
     color: colors.textSecondary,
-    marginTop: 4,
+    textAlign: 'center',
   },
 
   // Footer
