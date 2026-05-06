@@ -78,7 +78,8 @@ export default function LogActionScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+      loadTabData(activeTab);
+    }, [activeTab])
   );
 
   const onRefresh = useCallback(() => {

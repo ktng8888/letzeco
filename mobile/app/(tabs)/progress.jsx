@@ -243,7 +243,7 @@ export default function ProgressScreen() {
         {/* Comparison */}
         <View style={styles.section}>
           <SectionHeader title="Comparison" />
-          <ComparisonCard data={comparison} />
+          <ComparisonCard data={comparison} period={period} />
         </View>
 
         {/* 6 Month Trend */}

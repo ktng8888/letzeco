@@ -179,6 +179,34 @@ const progressModel = {
   },
 
   // Get comparison (this week vs last week)
+  getTodayComparison: async (userId) => {
+    const today = await pool.query(
+      `SELECT COUNT(*) AS action_count,
+              COALESCE(SUM(xp_gained), 0) AS xp_earned
+       FROM user_action
+       WHERE user_id = $1
+       AND status = 'completed'
+       AND DATE(end_time) = CURRENT_DATE`,
+      [userId]
+    );
+
+    const yesterday = await pool.query(
+      `SELECT COUNT(*) AS action_count,
+              COALESCE(SUM(xp_gained), 0) AS xp_earned
+       FROM user_action
+       WHERE user_id = $1
+       AND status = 'completed'
+       AND DATE(end_time) = CURRENT_DATE - INTERVAL '1 day'`,
+      [userId]
+    );
+
+    return {
+      today: today.rows[0],
+      yesterday: yesterday.rows[0]
+    };
+  },
+
+  // Get comparison (this week vs last week)
   getWeekComparison: async (userId) => {
     const thisWeek = await pool.query(
       `SELECT COUNT(*) AS action_count,
