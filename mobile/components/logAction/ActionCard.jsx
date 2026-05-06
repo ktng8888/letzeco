@@ -67,7 +67,10 @@ export default function ActionCard({
           <View style={styles.metaRow}>
             <View style={styles.metaItem}>
               <Ionicons name="star" size={12} color={colors.xpColor} />
-              <Text style={styles.metaText}>{action.xp_reward} XP</Text>
+                <Text style={styles.metaText}>
+                  {action.xp_reward} XP
+                  {action.proof?.bonus_xp ? ` + (${action.proof.bonus_xp} bonus XP)` : ''}
+                </Text>
             </View>
             <View style={styles.metaItem}>
               <Ionicons name="time-outline" size={12} color={colors.textLight} />

@@ -7,7 +7,8 @@ const actionModel = {
       `SELECT a.*,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              ac.image AS category_image
       FROM action a
       LEFT JOIN action_category ac ON a.action_category_id = ac.id
       ORDER BY a.id ASC`
@@ -20,7 +21,8 @@ const actionModel = {
       `SELECT a.*,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              ac.image AS category_image
       FROM action a
       LEFT JOIN action_category ac ON a.action_category_id = ac.id
       WHERE a.id = $1`,
@@ -34,7 +36,8 @@ const actionModel = {
       `SELECT a.*,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              ac.image AS category_image
       FROM action a
       LEFT JOIN action_category ac ON a.action_category_id = ac.id
       WHERE a.action_category_id = $1
@@ -50,13 +53,14 @@ const actionModel = {
               ac.name AS category_name,
               ac.tag_bg_colour_code,
               ac.tag_text_colour_code,
+              ac.image AS category_image,
               COUNT(ua.id) AS global_log_count
       FROM action a
       LEFT JOIN action_category ac ON a.action_category_id = ac.id
       LEFT JOIN user_action ua ON a.id = ua.action_id
         AND ua.status = 'completed'
       GROUP BY a.id, ac.name,
-                ac.tag_bg_colour_code, ac.tag_text_colour_code
+                ac.tag_bg_colour_code, ac.tag_text_colour_code, ac.image
       ORDER BY global_log_count DESC
       LIMIT 5`
     );
@@ -68,7 +72,8 @@ const actionModel = {
       `SELECT a.*,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              ac.image AS category_image
       FROM action a
       LEFT JOIN action_category ac ON a.action_category_id = ac.id
       WHERE a.id NOT IN (
