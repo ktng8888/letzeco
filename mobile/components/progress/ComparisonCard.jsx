@@ -2,30 +2,57 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 
-export default function ComparisonCard({ data }) {
+export default function ComparisonCard({ data, period = 'this_week' }) {
   if (!data) return null;
 
-  const { week, month } = data;
-  const weekChange = week?.percent_change || 0;
-  const monthChange = month?.percent_change || 0;
+  const rows = [];
+
+  if (period === 'today' || period === 'all_time') {
+    rows.push({
+      label: 'Today vs Yesterday',
+      current: data.today?.today || 0,
+      previous: data.today?.yesterday || 0,
+      change: data.today?.percent_change || 0,
+      unit: 'actions',
+    });
+  }
+
+  if (period === 'this_week' || period === 'all_time') {
+    rows.push({
+      label: 'This Week vs Last Week',
+      current: data.week?.this_week || 0,
+      previous: data.week?.last_week || 0,
+      change: data.week?.percent_change || 0,
+      unit: 'actions',
+    });
+  }
+
+  if (period === 'this_month' || period === 'all_time') {
+    rows.push({
+      label: 'This Month vs Last Month',
+      current: data.month?.this_month || 0,
+      previous: data.month?.last_month || 0,
+      change: data.month?.percent_change || 0,
+      unit: 'actions',
+    });
+  }
+
+  if (rows.length === 0) return null;
 
   return (
     <View style={styles.container}>
-      <ComparisonRow
-        label="This Week vs Last Week"
-        current={week?.this_week || 0}
-        previous={week?.last_week || 0}
-        change={weekChange}
-        unit="actions"
-      />
-      <View style={styles.divider} />
-      <ComparisonRow
-        label="This Month vs Last Month"
-        current={month?.this_month || 0}
-        previous={month?.last_month || 0}
-        change={monthChange}
-        unit="actions"
-      />
+      {rows.map((row, idx) => (
+        <View key={row.label}>
+          <ComparisonRow
+            label={row.label}
+            current={row.current}
+            previous={row.previous}
+            change={row.change}
+            unit={row.unit}
+          />
+          {idx < rows.length - 1 && <View style={styles.divider} />}
+        </View>
+      ))}
     </View>
   );
 }

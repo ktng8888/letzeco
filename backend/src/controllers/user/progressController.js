@@ -182,8 +182,18 @@ const progressController = {
   getComparison: async (req, res) => {
     const userId = req.user.id;
     try {
+      const todayComparison = await progressModel.getTodayComparison(userId);
       const weekComparison = await progressModel.getWeekComparison(userId);
       const monthComparison = await progressModel.getMonthComparison(userId);
+
+      // Calculate percentage change for today
+      const todayActions = parseInt(todayComparison.today.action_count);
+      const yesterdayActions = parseInt(todayComparison.yesterday.action_count);
+      const todayChange = yesterdayActions > 0
+        ? Math.round(
+            ((todayActions - yesterdayActions) / yesterdayActions) * 100
+          )
+        : 0;
 
       // Calculate percentage change for week
       const thisWeekActions = parseInt(
@@ -214,6 +224,11 @@ const progressController = {
       res.json({
         message: 'Comparison retrieved successfully.',
         data: {
+          today: {
+            today: todayActions,
+            yesterday: yesterdayActions,
+            percent_change: todayChange
+          },
           week: {
             this_week: thisWeekActions,
             last_week: lastWeekActions,

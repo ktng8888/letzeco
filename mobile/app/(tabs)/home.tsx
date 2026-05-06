@@ -118,17 +118,18 @@ export default function HomeScreen() {
   const streak = user?.streak || 0;
   const avatarUri = user?.profile_image ? `${BASE_URL}/${user.profile_image}` : null;
 
-  const todayDayIndex = new Date().getDay();
-  const streakDays = Array.from({ length: 7 }, (_, i) => ({
-    dayName: DAY_NAMES[(todayDayIndex + i) % 7],
-    reward: streakRewards[i] || null,
-    isToday: i === 0,
-  }));
-
   const hasUnclaimed = streakRewards.some(
     (r: StreakReward) => r.is_earned && r.claim_status === 'unclaimed'
   );
-  const isZeroStreakNotStarted = streak === 0 && todayLoggedCount === 0;
+  const hasLoggedToday = todayLoggedCount > 0;
+  const todaySlotIndex = Math.min(hasLoggedToday ? Math.max(streak - 1, 0) : streak, 6);
+  const todayDayIndex = new Date().getDay();
+  const firstDayIndex = (todayDayIndex - todaySlotIndex + 7) % 7;
+  const streakDays = Array.from({ length: 7 }, (_, i) => ({
+    dayName: DAY_NAMES[(firstDayIndex + i) % 7],
+    reward: streakRewards[i] || null,
+    isToday: i === todaySlotIndex,
+  }));
 
   const carouselItems: any[] = myChallenges.length > 0
     ? [...myChallenges, { id: 'join', isJoin: true }]
@@ -315,7 +316,7 @@ export default function HomeScreen() {
               const claimed = r?.claim_status === 'claimed';
               const earned = r?.is_earned;
               const canClaim = earned && !claimed && todayLoggedCount > 0;
-              const isTodayTarget = item.isToday && isZeroStreakNotStarted && !earned;
+              const isTodayTarget = item.isToday && !hasLoggedToday && !earned;
               return (
                 <TouchableOpacity
                   key={i}
