@@ -60,10 +60,19 @@ export default function ComparisonCard({ data, period = 'this_week' }) {
 function ComparisonRow({ label, current, previous, change, unit }) {
   const isUp = change >= 0;
   const isZero = change === 0;
+  const [leftLabel = label, rightLabel = ''] = label.split(' vs ');
 
   return (
     <View style={styles.row}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelRow}>
+        <Text style={[styles.label, styles.labelLeft]} numberOfLines={1}>
+          {leftLabel}
+        </Text>
+        <Text style={styles.labelVs}>vs</Text>
+        <Text style={[styles.label, styles.labelRight]} numberOfLines={1}>
+          {rightLabel}
+        </Text>
+      </View>
       <View style={styles.valuesRow}>
         <View style={styles.valueBox}>
           <Text style={styles.valueMain}>{current}</Text>
@@ -117,10 +126,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   row: { gap: 8 },
+  labelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   label: {
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  labelLeft: {
+    flex: 1,
+    textAlign: 'left',
+  },
+  labelVs: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+    marginHorizontal: 8,
+  },
+  labelRight: {
+    flex: 1,
+    textAlign: 'right',
   },
   valuesRow: {
     flexDirection: 'row',
