@@ -1,4 +1,5 @@
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
 import colors from '../../constants/colors';
 
 export default function ActivityChart({
@@ -6,6 +7,9 @@ export default function ActivityChart({
   period = 'this_week',
   summaryLabel = 'this week',
 }) {
+  const scrollRef = useRef(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
   const buckets = getBuckets(data, period);
   const activeLabel = getActiveLabel(period);
   const counts = buckets.map(item => item.count);
@@ -13,9 +17,24 @@ export default function ActivityChart({
   const isDense = buckets.length > 12;
   const totalActions = counts.reduce((a, b) => a + b, 0);
 
+  useEffect(() => {
+    if (period === 'today' && isDense && scrollRef.current && containerWidth > 0) {
+      const currentHour = new Date().getHours();
+      const itemWidth = 28 + 4;
+      const scrollTo = Math.max(0, (currentHour * itemWidth) - (containerWidth / 2) + (itemWidth / 2));
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({ x: scrollTo, animated: true });
+      }, 300);
+    }
+  }, [period, data, containerWidth]);
+
   return (
-    <View style={styles.container}>
+    <View
+      style={styles.container}
+      onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+    >
       <ScrollView
+        ref={scrollRef}
         horizontal={isDense}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={[
@@ -62,7 +81,7 @@ export default function ActivityChart({
                 {shouldShowLabel ? bucket.label : ''}
               </Text>
 
-              {/* Date — this_week only */}
+              {/* Date — this_week / this_month only */}
               {bucket.date && (
                 <Text style={[styles.dateLabel, isActive && styles.dayLabelToday]}>
                   {shouldShowLabel ? bucket.date : ''}
@@ -83,44 +102,6 @@ export default function ActivityChart({
   );
 }
 
-/*
-function getBuckets(data, period) {
-  const items = data || [];
-  const mapped = items.map(item => ({
-    label: item.label || item.day,
-    count: parseInt(item.action_count, 10) || 0,
-  }));
-
-  if (mapped.length > 0) return mapped;
-
-  if (period === 'today') {
-    return Array.from({ length: 24 }, (_, hour) => ({
-      label: `${hour.toString().padStart(2, '0')}:00`,
-      count: 0,
-    }));
-  }
-
-  if (period === 'this_month') {
-    return [1, 2, 3, 4].map(week => ({
-      label: `Week ${week}`,
-      count: 0,
-    }));
-  }
-
-  if (period === 'all_time') {
-    return ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(month => ({
-        label: month,
-        count: 0,
-      }));
-  }
-
-  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => ({
-    label: day,
-    count: 0,
-  }));
-}
-  */
 function getBuckets(data, period) {
   const items = data || [];
 
@@ -169,6 +150,7 @@ function getBuckets(data, period) {
 
   if (period === 'this_month') {
     const now = new Date();
+    const m = now.getMonth() + 1;
     const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const weeks = [
       { start: 1,  end: 7 },
@@ -178,7 +160,7 @@ function getBuckets(data, period) {
     ];
     return weeks.map((w, i) => ({
       label: `Week ${i + 1}`,
-      date: `${w.start}-${w.end}`,
+      date: `${w.start}/${m}-${w.end}/${m}`,
       count: 0,
     }));
   }

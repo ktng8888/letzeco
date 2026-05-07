@@ -154,7 +154,7 @@ export default function ProgressScreen() {
           <SectionHeader title="Environmental Impact" />
           <View style={styles.impactRow}>
             <ImpactCard
-              icon="🌿"
+              icon="co2"
               value={impact?.co2_saved}
               unit="Kg"
               label="CO₂ Saved"
@@ -164,7 +164,7 @@ export default function ProgressScreen() {
               })}
             />
             <ImpactCard
-              icon="💧"
+              icon="water"
               value={impact?.litre_saved}
               unit="L"
               label="Water Saved"
@@ -174,7 +174,7 @@ export default function ProgressScreen() {
               })}
             />
             <ImpactCard
-              icon="⚡"
+              icon="flash"
               value={impact?.kwh_saved}
               unit="kWh"
               label="Energy Saved"
@@ -314,6 +314,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 8,
+  },
+  impactIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
   summaryRow: {
     flexDirection: 'row',
