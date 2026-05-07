@@ -1,24 +1,31 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 
 export default function ImpactStats({ impact }) {
   const items = [
     {
-      icon: '🌿',
+      icon: 'cloud-outline',
+      equivIcon: 'leaf-outline',
+      color: colors.primary,
       value: impact?.co2_saved || 0,
       unit: 'Kg',
-      label: 'CO₂ Saved',
+      label: 'CO\u2082 Saved',
       equiv: `${Math.round((impact?.co2_saved || 0) / 1.0)} young trees`,
     },
     {
-      icon: '💧',
+      icon: 'water-outline',
+      equivIcon: 'water-outline',
+      color: '#3b82f6',
       value: impact?.litre_saved || 0,
       unit: 'L',
       label: 'Water Saved',
       equiv: `${Math.round((impact?.litre_saved || 0) / 9.5)} showers`,
     },
     {
-      icon: '⚡',
+      icon: 'flash-outline',
+      equivIcon: 'battery-charging-outline',
+      color: '#f59e0b',
       value: impact?.kwh_saved || 0,
       unit: 'kWh',
       label: 'Energy Saved',
@@ -32,7 +39,9 @@ export default function ImpactStats({ impact }) {
       <View style={styles.impactRow}>
         {items.map((item, i) => (
           <View key={i} style={styles.impactCard}>
-            <Text style={styles.icon}>{item.icon}</Text>
+            <View style={[styles.impactIconWrap, { borderColor: item.color }]}>
+              <Ionicons name={item.icon} size={28} color={item.color} />
+            </View>
             <Text style={styles.value}>
               {formatImpactValue(item.value)}
             </Text>
@@ -44,10 +53,12 @@ export default function ImpactStats({ impact }) {
 
       {/* Eco Equivalents */}
       <View style={styles.equivSection}>
-        <Text style={styles.equivTitle}>Your Eco Equivalents 🌍</Text>
+        <Text style={styles.equivTitle}>
+          Your Eco Equivalents {'\uD83C\uDF0D'}
+        </Text>
         {items.map((item, i) => (
           <View key={i} style={styles.equivRow}>
-            <Text style={styles.equivIcon}>{item.icon}</Text>
+            <Ionicons name={item.equivIcon} size={18} color={item.color} />
             <Text style={styles.equivText}>{item.equiv}</Text>
           </View>
         ))}
@@ -72,17 +83,30 @@ const styles = StyleSheet.create({
   },
   impactCard: {
     flex: 1,
-    backgroundColor: colors.primaryBg,
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 14,
+    padding: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
     gap: 2,
   },
-  icon: { fontSize: 22 },
+  impactIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
   value: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.primary,
+    color: colors.textPrimary,
   },
   unit: {
     fontSize: 11,
@@ -90,6 +114,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 11,
+    fontWeight: '600',
     color: colors.textSecondary,
     textAlign: 'center',
   },
@@ -110,7 +135,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  equivIcon: { fontSize: 18 },
   equivText: {
     fontSize: 14,
     color: colors.textSecondary,

@@ -17,6 +17,7 @@ import ImpactStats from '../../components/profile/ImpactStats';
 import StatsSummary from '../../components/profile/StatsSummary';
 import colors from '../../constants/colors';
 import progressService from '../../services/progressService';
+import leaderboardService from '../../services/leaderboardService';
 
 const TABS = ['Badge', 'Impact', 'Stat'];
 
@@ -30,18 +31,21 @@ export default function ProfileScreen() {
   const [profile, setProfile] = useState(null);
   const [badges, setBadges] = useState(null);
   const [impact, setImpact] = useState(null);
+  const [globalRank, setGlobalRank] = useState(null);
 
   const loadData = async () => {
     try {
-      const [profileData, badgesData, impactData] = await Promise.all([
+      const [profileData, badgesData, impactData, leaderboardData] = await Promise.all([
         profileService.getProfile(),
         profileService.getBadges(),
         progressService.getProgress('all_time'),
+        leaderboardService.getGlobal(),
       ]);
       setProfile(profileData.data);
       updateUser(profileData.data);
       setBadges(badgesData.data);
       setImpact(impactData.data?.environmental_impact);
+      setGlobalRank(leaderboardData.data?.your_rank ?? null);
     } catch (err) {
       console.error('Load profile error:', err);
     } finally {
@@ -150,6 +154,7 @@ export default function ProfileScreen() {
           <StatsSummary
             user={profile}
             totalBadges={badges?.total_unlocked || 0}
+            globalRank={globalRank}
           />
         )}
 

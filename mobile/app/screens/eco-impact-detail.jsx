@@ -60,13 +60,26 @@ export default function EcoImpactDetailScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Main Value */}
-          <View style={styles.mainValueCard}>
-            <Text style={styles.mainIcon}>{config.icon}</Text>
-            <Text style={styles.mainValue}>
+          <View style={[styles.mainValueCard, { borderColor: config.color }]}>
+            <View style={[
+              styles.mainIconWrap,
+              { backgroundColor: config.bgColor, borderColor: config.color }
+            ]}>
+              <Ionicons name={config.icon} size={44} color={config.color} />
+            </View>
+            <Text style={[styles.mainValue, { color: config.color }]}>
               {formatImpactValue(data[config.valueKey])}
             </Text>
-            <Text style={styles.mainUnit}>{config.unit}</Text>
+            <Text style={[styles.mainUnit, { color: config.color }]}>
+              {config.unit}
+            </Text>
             <Text style={styles.mainLabel}>Saved</Text>
+            <View style={[styles.periodPill, { backgroundColor: config.bgColor }]}>
+              <Ionicons name="calendar-outline" size={13} color={config.color} />
+              <Text style={[styles.periodText, { color: config.color }]}>
+                {formatPeriodLabel(period)}
+              </Text>
+            </View>
           </View>
 
           {/* Eco Equivalents */}
@@ -181,24 +194,40 @@ function getConfig(type) {
   const configs = {
     co2: {
       title: 'CO₂ Saved',
-      icon: '🌿',
+      icon: 'cloud-outline',
+      color: colors.primary,
+      bgColor: colors.primaryBg,
       unit: 'kg',
       valueKey: 'co2_saved',
     },
     litre: {
       title: 'Water Saved',
-      icon: '💧',
+      icon: 'water-outline',
+      color: '#3b82f6',
+      bgColor: '#eff6ff',
       unit: 'L',
       valueKey: 'litre_saved',
     },
     kwh: {
       title: 'Energy Saved',
-      icon: '⚡',
+      icon: 'flash-outline',
+      color: '#f59e0b',
+      bgColor: '#fffbeb',
       unit: 'kWh',
       valueKey: 'kwh_saved',
     },
   };
   return configs[type] || configs.co2;
+}
+
+function formatPeriodLabel(period) {
+  const labels = {
+    today: 'Today',
+    this_week: 'This Week',
+    this_month: 'This Month',
+    all_time: 'All Time',
+  };
+  return labels[period] || 'All Time';
 }
 
 function formatEquivalentLabel(key) {
@@ -258,26 +287,54 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   mainValueCard: {
     alignItems: 'center',
-    backgroundColor: colors.primaryBg,
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    paddingVertical: 26,
+    paddingHorizontal: 20,
     marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  mainIcon: { fontSize: 48, marginBottom: 8 },
+  mainIconWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
   mainValue: {
-    fontSize: 48,
-    fontWeight: '700',
-    color: colors.primary,
+    fontSize: 50,
+    fontWeight: '800',
+    lineHeight: 58,
   },
   mainUnit: {
     fontSize: 18,
-    color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '700',
+    marginTop: 2,
   },
   mainLabel: {
     fontSize: 14,
     color: colors.textSecondary,
     marginTop: 4,
+  },
+  periodPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginTop: 14,
+  },
+  periodText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   section: { marginBottom: 24 },
   sectionTitle: {

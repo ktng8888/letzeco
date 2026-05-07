@@ -1,26 +1,45 @@
 import {
   View, Text, TouchableOpacity, StyleSheet
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; 
 import colors from '../../constants/colors';
 
-export default function ImpactCard({
-  icon, value, unit, label, onPress
-}) {
-  return (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      <Text style={styles.icon}>{icon}</Text>
-      <Text style={styles.value}>{formatValue(value)}</Text>
-      <Text style={styles.unit}>{unit}</Text>
-      <Text style={styles.label}>{label}</Text>
-      {onPress && (
-        <Text style={styles.tapHint}>Tap for details</Text>
-      )}
-    </TouchableOpacity>
-  );
+export default function ImpactCard({ icon, value, unit, label, onPress }) { 
+  const getIcon = () => {
+    if (icon === 'co2') return (
+      <Ionicons name="cloud-outline" size={28} color={colors.primary} />
+    );
+    if (icon === 'water') return (
+      <Ionicons name="water-outline" size={28} color="#3b82f6" />
+    );
+    if (icon === 'flash') return (
+      <Ionicons name="flash-outline" size={28} color="#f59e0b" />
+    );
+  };
+
+  const getColor = () => {
+    if (icon === 'co2') return colors.primary;
+    if (icon === 'water') return '#3b82f6';
+    if (icon === 'flash') return '#f59e0b';
+    return colors.primary;
+  };
+
+  const color = getColor();
+
+return (
+  <TouchableOpacity
+    style={styles.impactCard}
+    onPress={onPress}
+  >
+    <View style={[styles.impactIconWrap, { borderColor: color }]}>
+      {getIcon()}
+    </View>
+    <Text style={styles.value}>{formatValue(value)}</Text>
+    <Text style={styles.impactUnit}>{unit}</Text>
+    <Text style={styles.impactLabel}>{label}</Text>
+    <Text style={styles.tapHint}>Tap for details</Text>
+  </TouchableOpacity>
+);
 }
 
 function formatValue(val) {
@@ -31,7 +50,7 @@ function formatValue(val) {
 }
 
 const styles = StyleSheet.create({
-  card: {
+  impactCard: {
     flex: 1,
     backgroundColor: colors.bgWhite,
     borderRadius: 14,
@@ -44,17 +63,25 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 2,
   },
-  icon: { fontSize: 26, marginBottom: 4 },
+  impactIconWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
   value: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  unit: {
+  impactUnit: {
     fontSize: 11,
     color: colors.textSecondary,
   },
-  label: {
+  impactLabel: {
     fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,

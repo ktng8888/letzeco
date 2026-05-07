@@ -2,7 +2,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 
-export default function StatsSummary({ user, totalBadges }) {
+export default function StatsSummary({ user, totalBadges, globalRank }) {
   const stats = [
     {
       icon: 'star',
@@ -18,7 +18,7 @@ export default function StatsSummary({ user, totalBadges }) {
     {
       icon: 'trophy',
       label: 'Global Ranking',
-      value: user?.global_rank ? `Rank ${user.global_rank}` : '-',
+      value: globalRank ? `Rank ${globalRank}` : '-',
       sub: user?.best_rank ? `Best: Rank ${user.best_rank}` : null,
     },
     {

@@ -353,13 +353,23 @@ function ImpactCard({ icon, value, unit, label, active }) {
     return colors.primary;
   };
 
+  const activeColor = getActiveColor();
+
   return (
     <View style={[
       styles.impactCard,
-      active && { borderColor: getActiveColor(), borderWidth: 1.5 }
+      active && { borderColor: activeColor, borderWidth: 1.5 }
     ]}>
-      <View style={styles.impactIconWrap}>{getIcon()}</View>
-      <Text style={[styles.impactValue, active && { color: getActiveColor() }]}>
+      <View style={[
+        styles.impactIconWrap,
+        active && {
+          backgroundColor: `${activeColor}18`,
+          borderColor: activeColor,
+        }
+      ]}>
+        {getIcon()}
+      </View>
+      <Text style={[styles.impactValue, active && { color: activeColor }]}>
         {active ? value : '--'}
       </Text>
       <Text style={styles.impactUnit}>{unit}</Text>
