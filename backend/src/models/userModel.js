@@ -30,7 +30,8 @@ const userModel = {
   getProfile: async (id) => {
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, u.level, u.level_xp,
-              u.total_xp, u.weekly_xp, u.streak, u.profile_image, u.created_at,
+              u.total_xp, u.weekly_xp, u.streak, u.best_streak,
+              u.profile_image, u.created_at,
               l.xp_to_next_level
       FROM "user" u
       LEFT JOIN level l ON l.level_value = u.level
@@ -44,7 +45,7 @@ const userModel = {
   getPublicProfile: async (id) => {
     const result = await pool.query(
       `SELECT id, username, level, level_xp,
-              total_xp, weekly_xp, streak, profile_image
+              total_xp, weekly_xp, streak, best_streak, profile_image
        FROM "user" WHERE id = $1`,
       [id]
     );
@@ -123,7 +124,7 @@ const userModel = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT id, username, email, level, level_xp,
-              total_xp, weekly_xp, streak, profile_image
+              total_xp, weekly_xp, streak, best_streak, profile_image
        FROM "user" ORDER BY id ASC`
     );
     return result.rows;
@@ -174,7 +175,10 @@ const userModel = {
   // Update streak value
   updateStreak: async (userId, newStreak) => {
     await pool.query(
-      'UPDATE "user" SET streak = $1 WHERE id = $2',
+      `UPDATE "user"
+       SET streak = $1,
+           best_streak = GREATEST(COALESCE(best_streak, 0), COALESCE(streak, 0), $1)
+       WHERE id = $2`,
       [newStreak, userId]
     );
   },
@@ -218,11 +222,11 @@ const userModel = {
     const result = await pool.query(
       `INSERT INTO "user"
         (username, email, password, level,
-         level_xp, total_xp, weekly_xp, streak)
-       VALUES ($1, $2, $3, 1, 0, 0, 0, 0)
+         level_xp, total_xp, weekly_xp, streak, best_streak)
+       VALUES ($1, $2, $3, 1, 0, 0, 0, 0, 0)
        RETURNING id, username, email,
                  level, level_xp, total_xp,
-                 weekly_xp, streak`,
+                 weekly_xp, streak, best_streak`,
       [username, email, hashedPassword]
     );
     return result.rows[0];
