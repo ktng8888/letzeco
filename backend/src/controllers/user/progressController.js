@@ -32,7 +32,8 @@ const progressController = {
             level_xp: user.level_xp,
             total_xp: user.total_xp,
             weekly_xp: user.weekly_xp,
-            streak: user.streak
+            streak: user.streak,
+            best_streak: user.best_streak
           },
           environmental_impact: {
             co2_saved: parseFloat(impact.total_co2_saved),
