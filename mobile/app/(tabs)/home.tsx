@@ -49,6 +49,7 @@ export default function HomeScreen() {
   const [myChallenges, setMyChallenges] = useState<any[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [streakRewards, setStreakRewards] = useState<StreakReward[]>([]);
+  const [giftCount, setGiftCount] = useState(0);
   const [todayLoggedCount, setTodayLoggedCount] = useState(0);
   const [claimModal, setClaimModal] = useState(false);
   const [claimingReward, setClaimingReward] = useState<StreakReward | null>(null);
@@ -73,6 +74,10 @@ export default function HomeScreen() {
       setMyChallenges(challengeData.data.slice(0, 5) || []);
       setUnreadCount(notifData.data.unread_count || 0);
       setStreakRewards(streakData.data.rewards || []);
+      
+      const giftData = await challengeService.getGifts();
+      setGiftCount(giftData.data.count || 0);
+    
     } catch (err) {
       console.error('Load home error:', err);
     } finally {
@@ -198,6 +203,17 @@ export default function HomeScreen() {
                 <Text style={styles.xpStackLabel}> Total XP</Text>
               </View>
             </View>
+
+            {/* Gift Button */}
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => router.push('/screens/gifts')}
+              >
+              <Ionicons name="gift-outline" size={22} color={colors.textPrimary} />
+              {giftCount > 0 && (
+              <View style={styles.bellDot} />
+              )}
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.bellBtn}

@@ -9,5 +9,7 @@ router.get('/', verifyToken, challengeController.getAll);
 router.get('/:id', verifyToken, challengeController.getById);
 router.post('/:id/join', verifyToken, challengeController.joinSolo);
 router.delete('/:id/leave', verifyToken, challengeController.leave);
+router.get('/:id/ranking',  verifyToken, challengeController.getRanking);
+router.get('/:id/activity', verifyToken, challengeController.getActivity);
 
 module.exports = router;

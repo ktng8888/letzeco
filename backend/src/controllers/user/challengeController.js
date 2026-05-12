@@ -1,4 +1,5 @@
 const challengeModel = require('../../models/challengeModel');
+const userActionModel = require('../../models/userActionModel');
 const userChallengeModel = require('../../models/userChallengeModel');
 const eligibleActionModel = require('../../models/eligibleActionModel');
 const challengeRewardModel = require('../../models/challengeRewardModel');
@@ -228,6 +229,136 @@ const challengeController = {
 
     } catch (err) {
       console.error('Leave challenge error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+   
+  // GET /api/challenges/:id/ranking
+  getRanking: async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+    try {
+      const challenge = await challengeModel.getById(id);
+      if (!challenge) {
+        return res.status(404).json({ message: 'Challenge not found.' });
+      }
+ 
+      if (challenge.type === 'solo') {
+        const top5 = await userChallengeModel.getSoloRankings(id, 5);
+        const userRank = await userChallengeModel.getUserRank(userId, id);
+        const totalCount = await userChallengeModel.getParticipantsCount(id);
+ 
+        return res.json({
+          message: 'Ranking retrieved.',
+          data: {
+            type: 'solo',
+            top: top5,
+            your_rank: userRank,
+            total_participants: totalCount,
+          }
+        });
+      } else {
+        // Team challenge
+        const participating = await userChallengeModel
+          .getByUserAndChallenge(userId, id);
+        const teamId = participating?.team_id || null;
+ 
+        const top5 = await userChallengeModel.getTeamRankings(id, 5);
+        const teamRank = teamId
+          ? await userChallengeModel.getTeamRank(teamId, id)
+          : null;
+        const totalTeams = top5.length; // approximate
+ 
+        return res.json({
+          message: 'Ranking retrieved.',
+          data: {
+            type: 'team',
+            top: top5,
+            your_team_rank: teamRank,
+            your_team_id: teamId,
+            total_teams: totalTeams,
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Get ranking error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+ 
+  // GET /api/challenges/:id/activity
+  /*
+  getActivity: async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+    try {
+      const challenge = await challengeModel.getById(id);
+      if (!challenge) {
+        return res.status(404).json({ message: 'Challenge not found.' });
+      }
+ 
+      const activity = await userActionModel.getChallengeActivity(userId, id);
+ 
+      return res.json({
+        message: 'Activity retrieved.',
+        data: {
+          activity,        // array of { day, day_date, action_count }
+          challenge_start: challenge.start_date,
+          challenge_end:   challenge.end_date,
+        }
+      });
+    } catch (err) {
+      console.error('Get activity error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+  */
+
+  getActivity: async (req, res) => {
+    const { id } = req.params;
+    const userId = req.user.id;
+    try {
+      const challenge = await challengeModel.getById(id);
+      if (!challenge) {
+        return res.status(404).json({ message: 'Challenge not found.' });
+      }
+
+      if (challenge.type === 'team') {
+        // Get user's team for this challenge
+        const participating = await userChallengeModel
+          .getByUserAndChallenge(userId, id);
+        const teamId = participating?.team_id;
+
+        if (!teamId) {
+          return res.json({
+            message: 'Activity retrieved.',
+            data: { type: 'team', feed: [] }
+          });
+        }
+
+        const feed = await userActionModel.getTeamChallengeActivity(teamId, id);
+        return res.json({
+          message: 'Activity retrieved.',
+          data: { type: 'team', feed }
+        });
+
+      } else {
+        // Solo — existing behaviour
+        const activity = await userActionModel
+          .getChallengeActivity(userId, id);
+        return res.json({
+          message: 'Activity retrieved.',
+          data: {
+            type: 'solo',
+            activity,
+            challenge_start: challenge.start_date,
+            challenge_end:   challenge.end_date,
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Get activity error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },

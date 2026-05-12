@@ -1,9 +1,13 @@
-const userActionModel = require('../../models/userActionModel');
-const actionModel = require('../../models/actionModel');
-const userProofModel = require('../../models/userProofModel');
-const xpService = require('../../utils/xpService');
-const streakService = require('../../utils/streakService');
-const notificationService = require('../../utils/notificationService');
+// backend/src/controllers/user/userActionController.js
+const userActionModel          = require('../../models/userActionModel');
+const actionModel              = require('../../models/actionModel');
+const userProofModel           = require('../../models/userProofModel');
+const userChallengeModel       = require('../../models/userChallengeModel');
+const challengeRewardModel     = require('../../models/challengeRewardModel');
+const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
+const xpService                = require('../../utils/xpService');
+const streakService            = require('../../utils/streakService');
+const notificationService      = require('../../utils/notificationService');
 
 const userActionController = {
 
@@ -13,13 +17,11 @@ const userActionController = {
     const { actionId } = req.params;
 
     try {
-      // Check action exists
       const action = await actionModel.getById(actionId);
       if (!action) {
         return res.status(404).json({ message: 'Action not found.' });
       }
 
-      // Check if user already has an action in progress
       const inProgress = await userActionModel.getAnyInProgress(userId);
       if (inProgress) {
         return res.status(400).json({
@@ -28,7 +30,6 @@ const userActionController = {
         });
       }
 
-      // Start the action
       const userAction = await userActionModel.create(userId, actionId);
 
       res.status(201).json({
@@ -54,49 +55,38 @@ const userActionController = {
     const { id } = req.params; // user_action id
 
     try {
-      // Get the user action
       const userAction = await userActionModel.getById(id);
       if (!userAction) {
         return res.status(404).json({ message: 'Action log not found.' });
       }
 
-      // Make sure it belongs to this user
       if (userAction.user_id !== userId) {
         return res.status(403).json({ message: 'Not authorized.' });
       }
 
-      // Make sure it is in progress
       if (userAction.status !== 'in_progress') {
         return res.status(400).json({
           message: 'This action is not in progress.'
         });
       }
 
-      // Get action details for XP and impact values
       const action = await actionModel.getById(userAction.action_id);
 
-      // Check if action is expired
+      // Check if action time expired
       if (action.time_limit) {
         const startTime = new Date(userAction.start_time);
         const now = new Date();
-
         let timeLimitMs = 0;
 
         if (typeof action.time_limit === 'string') {
-          const [hours, minutes, seconds] = action.time_limit
-            .split(':').map(Number);
+          const [hours, minutes, seconds] = action.time_limit.split(':').map(Number);
           timeLimitMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
         } else {
           const interval = action.time_limit;
-          const hours = interval.hours || 0;
-          const minutes = interval.minutes || 0;
-          const seconds = interval.seconds || 0;
-          timeLimitMs = (hours * 3600 + minutes * 60 + seconds) * 1000;
+          timeLimitMs = ((interval.hours || 0) * 3600 + (interval.minutes || 0) * 60 + (interval.seconds || 0)) * 1000;
         }
 
-        const elapsed = now - startTime;
-
-        if (elapsed > timeLimitMs) {
+        if (now - startTime > timeLimitMs) {
           await userActionModel.cancel(id);
           return res.status(400).json({
             message: 'Time is over! Action has been cancelled.',
@@ -105,28 +95,27 @@ const userActionController = {
         }
       }
 
-      // Check if proof was uploaded and approved for this action
+      // Check proof bonus XP
       const userProof = await userProofModel.getByUserActionId(id);
       const bonusXp = (userProof && userProof.status === 'approved')
         ? (userProof.bonus_xp || 0)
         : 0;
 
-      // Store base + bonus XP in user_action record
       const totalXpForRecord = action.xp_reward + bonusXp;
 
-      // Complete the action in DB
+      // Complete the action
       const completed = await userActionModel.complete(
         id,
-        totalXpForRecord,  // ← fix: includes bonus XP
+        totalXpForRecord,
         action.co2_saved,
         action.litre_saved,
         action.kwh_saved
       );
 
-      // Add XP to user (base only — bonus was already added during proof upload)
+      // Add XP
       const xpResult = await xpService.addXP(userId, totalXpForRecord);
 
-      // Update streak → check streak reward
+      // Update streak
       const streakResult = await streakService.updateStreak(userId);
 
       // Check log-based achievement
@@ -135,14 +124,58 @@ const userActionController = {
         action.action_category_id
       );
 
+      // ── UPDATE CHALLENGE PROGRESS & CHECK COMPLETION REWARD ──
+      let completionGiftEarned = false;
+      try {
+        const activeChallenges = await userChallengeModel
+          .getActiveForUserAndAction(userId, action.id);
+
+        for (const uc of activeChallenges) {
+          // Calculate how much this action adds to the challenge
+          let increment = 0;
+          if (uc.target_type === 'count')  increment = 1;
+          if (uc.target_type === 'co2_kg') increment = parseFloat(action.co2_saved || 0);
+          if (uc.target_type === 'litre')  increment = parseFloat(action.litre_saved || 0);
+          if (uc.target_type === 'kwh')    increment = parseFloat(action.kwh_saved || 0);
+
+          const prevProgress  = parseFloat(uc.progress_value || 0);
+          const newProgress   = prevProgress + increment;
+          const targetValue   = parseFloat(uc.target_value);
+
+          await userChallengeModel.updateProgress(
+            userId, uc.challenge_id, newProgress
+          );
+
+          // If target just crossed for the first time → award completion reward
+          if (newProgress >= targetValue && prevProgress < targetValue) {
+            const completionReward = await challengeRewardModel
+              .getCompletionReward(uc.challenge_id);
+
+            if (completionReward) {
+              const alreadyAwarded = await userChallengeRewardModel
+                .checkExists(userId, completionReward.id);
+
+              if (!alreadyAwarded) {
+                await userChallengeRewardModel.create(userId, completionReward.id);
+                completionGiftEarned = true;
+                await notificationService.challengeCompleted(
+                  userId, uc.challenge_name || 'Challenge'
+                );
+              }
+            }
+          }
+        }
+      } catch (challengeErr) {
+        // Non-fatal — log but don't block the action completion response
+        console.error('Challenge progress update error:', challengeErr);
+      }
+
       // Send notifications
       if (xpResult.level_up) {
         await notificationService.levelUp(userId, xpResult.new_level);
       }
       if (logAchievement) {
-        await notificationService.badgeUnlocked(
-          userId, logAchievement.badge_name
-        );
+        await notificationService.badgeUnlocked(userId, logAchievement.badge_name);
       }
       if (streakResult.streak_reward) {
         await notificationService.streakReward(
@@ -188,13 +221,14 @@ const userActionController = {
           streak_reward: streakResult.streak_reward,
           badge_unlocked: logAchievement ? true : false,
           new_badge: logAchievement || null,
+          completion_gift_earned: completionGiftEarned,
           total_actions_completed: updatedUser,
           today_impact: {
-            total_actions: parseInt(todayImpact.total_actions || 0),
-            total_xp_earned: parseInt(todayImpact.total_xp_earned || 0),
-            total_co2_saved: parseFloat(todayImpact.total_co2_saved || 0),
+            total_actions:    parseInt(todayImpact.total_actions || 0),
+            total_xp_earned:  parseInt(todayImpact.total_xp_earned || 0),
+            total_co2_saved:  parseFloat(todayImpact.total_co2_saved || 0),
             total_litre_saved: parseFloat(todayImpact.total_litre_saved || 0),
-            total_kwh_saved: parseFloat(todayImpact.total_kwh_saved || 0),
+            total_kwh_saved:  parseFloat(todayImpact.total_kwh_saved || 0),
           }
         }
       });
@@ -204,7 +238,6 @@ const userActionController = {
       res.status(500).json({ message: 'Server error.' });
     }
   },
-
 
   // CANCEL AN ACTION
   cancel: async (req, res) => {
@@ -216,22 +249,15 @@ const userActionController = {
       if (!userAction) {
         return res.status(404).json({ message: 'Action log not found.' });
       }
-
-      // Make sure it belongs to this user
       if (userAction.user_id !== userId) {
         return res.status(403).json({ message: 'Not authorized.' });
       }
-
-      // Make sure it is in progress
       if (userAction.status !== 'in_progress') {
-        return res.status(400).json({
-          message: 'This action is not in progress.'
-        });
+        return res.status(400).json({ message: 'This action is not in progress.' });
       }
 
       await userActionModel.cancel(id);
-
-      res.json({ message: 'Action cancelled.' });
+      res.json({ message: 'Action has been cancelled.' });
 
     } catch (err) {
       console.error('Cancel action error:', err);
@@ -244,8 +270,6 @@ const userActionController = {
     const userId = req.user.id;
     try {
       const actions = await userActionModel.getTodayActions(userId);
-
-      // Check if any action is currently in progress
       const inProgress = await userActionModel.getAnyInProgress(userId);
 
       res.json({
@@ -285,41 +309,19 @@ const userActionController = {
     }
   },
 
-  // GET SINGLE LOG DETAIL
+  // GET SINGLE LOG HISTORY
   getHistoryById: async (req, res) => {
-    const { id } = req.params;
     const userId = req.user.id;
+    const { id } = req.params;
     try {
-      const log = await userActionModel.getById(id);
-      if (!log) {
-        return res.status(404).json({ message: 'Log not found.' });
+      const record = await userActionModel.getById(id);
+      if (!record) {
+        return res.status(404).json({ message: 'Record not found.' });
       }
-
-      // Make sure it belongs to this user
-      if (log.user_id !== userId) {
-        return res.status(403).json({ message: 'Not authorized.' });
-      }
-
-      // Get how many times user logged this action
-      const logCount = await userActionModel.getUserLogCount(
-        userId, log.action_id
-      );
-
-      // Get total actions completed by user
-      const totalCompleted = await userActionModel.getTotalCompleted(userId);
-      
-      const userProof = await userProofModel.getByUserActionId(id);
-      
       res.json({
-        message: 'Log detail retrieved successfully.',
-        data: {
-          ...log,
-          times_logged_this_action: logCount,
-          total_actions_completed: totalCompleted,
-          proof: userProof || null
-        }
+        message: 'Record retrieved successfully.',
+        data: record
       });
-
     } catch (err) {
       console.error('Get history by id error:', err);
       res.status(500).json({ message: 'Server error.' });

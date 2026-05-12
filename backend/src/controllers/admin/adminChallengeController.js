@@ -1,20 +1,20 @@
-const challengeModel = require('../../models/challengeModel');
-const eligibleActionModel = require('../../models/eligibleActionModel');
-const actionModel = require('../../models/actionModel');
-const userChallengeModel = require('../../models/userChallengeModel');
-const teamMemberModel = require('../../models/teamMemberModel');   
-const teamModel = require('../../models/teamModel');                
-const { deleteFile } = require('../../utils/uploadService');
+// backend/src/controllers/admin/adminChallengeController.js
+const challengeModel       = require('../../models/challengeModel');
+const eligibleActionModel  = require('../../models/eligibleActionModel');
+const actionModel          = require('../../models/actionModel');
+const userChallengeModel   = require('../../models/userChallengeModel');
+const teamMemberModel      = require('../../models/teamMemberModel');
+const teamModel            = require('../../models/teamModel');
+const challengeRewardModel = require('../../models/challengeRewardModel');
+const badgeModel           = require('../../models/badgeModel');
+const { deleteFile }       = require('../../utils/uploadService');
 
 const adminChallengeController = {
 
   getAll: async (req, res) => {
     try {
       const challenges = await challengeModel.getAll();
-      res.json({
-        message: 'Challenges retrieved successfully.',
-        data: challenges
-      });
+      res.json({ message: 'Challenges retrieved successfully.', data: challenges });
     } catch (err) {
       console.error('Get all challenges error:', err);
       res.status(500).json({ message: 'Server error.' });
@@ -28,11 +28,11 @@ const adminChallengeController = {
       if (!challenge) {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
-      // Also get eligible actions
       const eligibleActions = await eligibleActionModel.getByChallengeId(id);
+      const rewards         = await challengeRewardModel.getByChallengeId(id);
       res.json({
         message: 'Challenge retrieved successfully.',
-        data: { ...challenge, eligible_actions: eligibleActions }
+        data: { ...challenge, eligible_actions: eligibleActions, rewards }
       });
     } catch (err) {
       console.error('Get challenge error:', err);
@@ -41,20 +41,14 @@ const adminChallengeController = {
   },
 
   create: async (req, res) => {
-    const image = req.file
-      ? req.file.path.replace(/\\/g, '/')
-      : null;
-
+    const image = req.file ? req.file.path.replace(/\\/g, '/') : null;
     try {
       if (!req.body.name || !req.body.start_date || !req.body.end_date) {
         return res.status(400).json({
           message: 'Name, start date and end date are required.'
         });
       }
-      const challenge = await challengeModel.create({
-        ...req.body,
-        image
-      });
+      const challenge = await challengeModel.create({ ...req.body, image });
       res.status(201).json({
         message: 'Challenge created successfully.',
         data: challenge
@@ -73,11 +67,9 @@ const adminChallengeController = {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
 
-      const image = req.file
-        ? req.file.path.replace(/\\/g, '/')
-        : undefined;
-
+      const image       = req.file ? req.file.path.replace(/\\/g, '/') : undefined;
       const removeImage = req.body.remove_image === 'true';
+
       if ((image || removeImage) && existing.image) {
         deleteFile(existing.image);
       }
@@ -87,10 +79,7 @@ const adminChallengeController = {
         ...(image !== undefined && { image }),
         ...(removeImage && { remove_image: 'true' })
       });
-      res.json({
-        message: 'Challenge updated successfully.',
-        data: updated
-      });
+      res.json({ message: 'Challenge updated successfully.', data: updated });
     } catch (err) {
       console.error('Update challenge error:', err);
       res.status(500).json({ message: 'Server error.' });
@@ -105,25 +94,18 @@ const adminChallengeController = {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
 
-      // Delete user_challenge
       await userChallengeModel.deleteByChallengeId(id);
 
-      // Get teams → delete their members → delete teams
       const teams = await teamModel.getByChallenge(id);
       for (const team of teams) {
         await teamMemberModel.deleteByTeamId(team.id);
       }
       await teamModel.deleteByChallengeId(id);
-
-      // Delete eligible actions
       await eligibleActionModel.deleteByChallengeId(id);
-
-      // Delete challenge
+      await challengeRewardModel.deleteByChallengeId(id);
       await challengeModel.delete(id);
 
-      if (existing.image) {
-        deleteFile(existing.image);
-      }
+      if (existing.image) deleteFile(existing.image);
 
       res.json({ message: 'Challenge deleted successfully.' });
     } catch (err) {
@@ -132,43 +114,83 @@ const adminChallengeController = {
     }
   },
 
-  // ADD ELIGIBLE ACTION TO CHALLENGE
-  addEligibleAction: async (req, res) => {
-    const { id } = req.params; // challenge id
-    const { action_id } = req.body;
+  // ── NEW: Save one reward row for a challenge
+  // POST /api/admin/challenges/:id/rewards
+  saveReward: async (req, res) => {
+    const { id } = req.params; // challenge_id
+    const { type, top_value, xp_reward, badge_name } = req.body;
+
     try {
-      // Check challenge exists
       const challenge = await challengeModel.getById(id);
       if (!challenge) {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
 
-      // Check action exists
+      // Create badge if badge_name is provided (with or without image)
+      let badgeId = null;
+      if (badge_name) {
+        const badgeImage = req.file
+          ? req.file.path.replace(/\\/g, '/')
+          : null;
+        const badge = await badgeModel.create({
+          name:  badge_name,
+          image: badgeImage,
+        });
+        badgeId = badge.id;
+      }
+
+      const reward = await challengeRewardModel.create({
+        challengeId: id,
+        badgeId,
+        type,
+        topValue:  top_value  || null,
+        xpReward:  xp_reward  || 0,
+      });
+
+      res.status(201).json({ message: 'Reward saved.', data: reward });
+    } catch (err) {
+      console.error('Save reward error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+  // ── NEW: Delete all rewards for a challenge (called before re-saving on update)
+  // DELETE /api/admin/challenges/:id/rewards
+  deleteRewards: async (req, res) => {
+    const { id } = req.params;
+    try {
+      await challengeRewardModel.deleteByChallengeId(id);
+      res.json({ message: 'Rewards deleted.' });
+    } catch (err) {
+      console.error('Delete rewards error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+  addEligibleAction: async (req, res) => {
+    const { id } = req.params;
+    const { action_id } = req.body;
+    try {
+      const challenge = await challengeModel.getById(id);
+      if (!challenge) {
+        return res.status(404).json({ message: 'Challenge not found.' });
+      }
       const action = await actionModel.getById(action_id);
       if (!action) {
         return res.status(404).json({ message: 'Action not found.' });
       }
-
-      // Check if already added
       const alreadyExists = await eligibleActionModel.checkExists(action_id, id);
       if (alreadyExists) {
-        return res.status(400).json({
-          message: 'Action already added to this challenge.'
-        });
+        return res.status(400).json({ message: 'Action already added to this challenge.' });
       }
-
       const eligible = await eligibleActionModel.create(action_id, id);
-      res.status(201).json({
-        message: 'Eligible action added successfully.',
-        data: eligible
-      });
+      res.status(201).json({ message: 'Eligible action added successfully.', data: eligible });
     } catch (err) {
       console.error('Add eligible action error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },
 
-  // REMOVE ELIGIBLE ACTION FROM CHALLENGE
   removeEligibleAction: async (req, res) => {
     const { eligibleActionId } = req.params;
     try {
@@ -180,15 +202,11 @@ const adminChallengeController = {
     }
   },
 
-  // GET ELIGIBLE ACTIONS FOR CHALLENGE
   getEligibleActions: async (req, res) => {
     const { id } = req.params;
     try {
       const actions = await eligibleActionModel.getByChallengeId(id);
-      res.json({
-        message: 'Eligible actions retrieved successfully.',
-        data: actions
-      });
+      res.json({ message: 'Eligible actions retrieved successfully.', data: actions });
     } catch (err) {
       console.error('Get eligible actions error:', err);
       res.status(500).json({ message: 'Server error.' });

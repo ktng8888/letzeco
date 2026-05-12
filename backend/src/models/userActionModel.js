@@ -217,6 +217,60 @@ const userActionModel = {
     return result.rows[0];
   },
 
+  // Get user's eligible actions logged within a challenge's date range
+  // Used for the Activity tab bar chart
+  getChallengeActivity: async (userId, challengeId) => {
+    const result = await pool.query(
+      `SELECT
+         TO_CHAR(DATE_TRUNC('day', ua.end_time), 'Dy') AS day,
+         DATE_TRUNC('day', ua.end_time)                AS day_date,
+         COUNT(ua.id)                                  AS action_count
+       FROM user_action ua
+       JOIN eligible_action ea
+         ON ea.action_id = ua.action_id
+         AND ea.challenge_id = $2
+       JOIN challenge c ON c.id = $2
+       WHERE ua.user_id = $1
+         AND ua.status = 'completed'
+         AND ua.end_time BETWEEN c.start_date AND c.end_date + INTERVAL '1 day'
+       GROUP BY DATE_TRUNC('day', ua.end_time)
+       ORDER BY DATE_TRUNC('day', ua.end_time) ASC`,
+      [userId, challengeId]
+    );
+    return result.rows;
+  },
+
+  // Get all eligible actions logged by all members of a team for a challenge
+  getTeamChallengeActivity: async (teamId, challengeId) => {
+    const result = await pool.query(
+      `SELECT
+        ua.id,
+        ua.end_time,
+        ua.co2_saved,
+        ua.litre_saved,
+        ua.kwh_saved,
+        ua.xp_gained,
+        a.name        AS action_name,
+        a.image       AS action_image,
+        ac.name       AS category_name,
+        u.id          AS user_id,
+        u.username,
+        u.profile_image
+      FROM user_action ua
+      JOIN action a           ON ua.action_id = a.id
+      JOIN action_category ac ON a.action_category_id = ac.id
+      JOIN "user" u           ON ua.user_id = u.id
+      JOIN team_member tm     ON tm.user_id = ua.user_id AND tm.team_id = $1
+      JOIN eligible_action ea ON ea.action_id = ua.action_id AND ea.challenge_id = $2
+      JOIN challenge c        ON c.id = $2
+      WHERE ua.status = 'completed'
+        AND ua.end_time BETWEEN c.start_date AND c.end_date + INTERVAL '1 day'
+      ORDER BY ua.end_time DESC`,
+      [teamId, challengeId]
+    );
+    return result.rows;
+  },
+
 };
 
 module.exports = userActionModel;
