@@ -1,3 +1,4 @@
+// backend/src/models/userChallengeModel.js
 const pool = require('../config/db');
 
 const userChallengeModel = {
@@ -87,6 +88,96 @@ const userChallengeModel = {
       [challengeId]
     );
     return parseInt(result.rows[0].count);
+  },
+
+  // ── NEW: Get all active challenges that a user is participating in
+  //         and that include the given action as eligible
+  getActiveForUserAndAction: async (userId, actionId) => {
+    const result = await pool.query(
+      `SELECT uc.*, c.target_type, c.target_value, c.type,
+              c.name AS challenge_name
+       FROM user_challenge uc
+       JOIN challenge c ON uc.challenge_id = c.id
+       JOIN eligible_action ea ON ea.challenge_id = c.id
+       WHERE uc.user_id = $1
+         AND ea.action_id = $2
+         AND c.status = 'active'
+         AND CURRENT_DATE BETWEEN c.start_date AND c.end_date`,
+      [userId, actionId]
+    );
+    return result.rows;
+  },
+
+  // Get solo rankings for a challenge (top N participants by progress)
+  getSoloRankings: async (challengeId, limit = 5) => {
+    const result = await pool.query(
+      `SELECT
+         uc.user_id,
+         u.username,
+         u.profile_image,
+         uc.progress_value,
+         ROW_NUMBER() OVER (ORDER BY uc.progress_value DESC) AS rank
+       FROM user_challenge uc
+       JOIN "user" u ON uc.user_id = u.id
+       WHERE uc.challenge_id = $1
+       ORDER BY uc.progress_value DESC
+       LIMIT $2`,
+      [challengeId, limit]
+    );
+    return result.rows;
+  },
+
+  // Get team rankings for a challenge (top N teams by combined progress)
+  getTeamRankings: async (challengeId, limit = 5) => {
+    const result = await pool.query(
+      `SELECT
+         t.id           AS team_id,
+         t.name         AS team_name,
+         SUM(uc.progress_value) AS team_progress,
+         COUNT(uc.user_id)      AS member_count,
+         DENSE_RANK() OVER (ORDER BY SUM(uc.progress_value) DESC) AS rank
+       FROM user_challenge uc
+       JOIN team t ON uc.team_id = t.id
+       WHERE uc.challenge_id = $1 AND uc.team_id IS NOT NULL
+       GROUP BY t.id, t.name
+       ORDER BY team_progress DESC
+       LIMIT $2`,
+      [challengeId, limit]
+    );
+    return result.rows;
+  },
+
+  // Get the user's own rank in a challenge (solo)
+  getUserRank: async (userId, challengeId) => {
+    const result = await pool.query(
+      `SELECT rank FROM (
+         SELECT user_id,
+                ROW_NUMBER() OVER (ORDER BY progress_value DESC) AS rank
+         FROM user_challenge
+         WHERE challenge_id = $1
+       ) ranked
+       WHERE user_id = $2`,
+      [challengeId, userId]
+    );
+    return result.rows[0]?.rank || null;
+  },
+
+  // Get user's team rank in a challenge (team)
+  getTeamRank: async (teamId, challengeId) => {
+    const result = await pool.query(
+      `SELECT rank FROM (
+         SELECT team_id,
+                DENSE_RANK() OVER (
+                  ORDER BY SUM(progress_value) DESC
+                ) AS rank
+         FROM user_challenge
+         WHERE challenge_id = $1 AND team_id IS NOT NULL
+         GROUP BY team_id
+       ) ranked
+       WHERE team_id = $2`,
+      [challengeId, teamId]
+    );
+    return result.rows[0]?.rank || null;
   },
 
 };

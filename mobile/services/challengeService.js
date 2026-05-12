@@ -57,6 +57,26 @@ const challengeService = {
     return response.data;
   },
 
+  getGifts: async () => {
+    const response = await api.get('/gifts');
+    return response.data;
+  },
+ 
+  claimGift: async (userChallengeRewardId) => {
+    const response = await api.post(`/gifts/${userChallengeRewardId}/claim`);
+    return response.data;
+  },
+
+  getRanking: async (challengeId) => {
+    const response = await api.get(`/challenges/${challengeId}/ranking`);
+    return response.data;
+  },
+
+  getActivity: async (challengeId) => {
+    const response = await api.get(`/challenges/${challengeId}/activity`);
+    return response.data;
+  },
+
 };
 
 export default challengeService;

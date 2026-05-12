@@ -5,6 +5,7 @@ export default function ChallengeProgress({
   current,
   target,
   targetType,
+  unit,
   label,
 }) {
   const percent = target > 0
@@ -35,15 +36,15 @@ export default function ChallengeProgress({
 
       <View style={styles.valueRow}>
         <Text style={styles.currentValue}>
-          {formatValue(current, targetType)}
+          {formatValue(current, targetType, unit)}
         </Text>
         <Text style={styles.separator}>/</Text>
         <Text style={styles.targetValue}>
-          {formatValue(target, targetType)}
+          {formatValue(target, targetType, unit)}
         </Text>
         {target > current && (
           <Text style={styles.remaining}>
-            ({formatValue(target - current, targetType)} left)
+            ({formatValue(target - current, targetType, unit)} left)
           </Text>
         )}
       </View>
@@ -57,15 +58,25 @@ export default function ChallengeProgress({
   );
 }
 
-function formatValue(value, type) {
+// If admin provided a custom unit, use it.
+// Otherwise fall back to the built-in label per target_type.
+function formatValue(value, type, unit) {
   if (!value && value !== 0) return '0';
   const num = parseFloat(value);
+
+  if (unit) {
+    // Use the custom unit from the DB
+    const rounded = Number.isInteger(num) ? Math.round(num) : num.toFixed(1);
+    return `${rounded} ${unit}`;
+  }
+
+  // Fallback defaults
   switch (type) {
     case 'co2_kg': return `${num.toFixed(1)} kg CO₂`;
-    case 'count': return `${Math.round(num)} items`;
-    case 'litre': return `${num.toFixed(1)} L`;
-    case 'kwh': return `${num.toFixed(1)} kWh`;
-    default: return Math.round(num).toString();
+    case 'count':  return `${Math.round(num)} items`;
+    case 'litre':  return `${num.toFixed(1)} L`;
+    case 'kwh':    return `${num.toFixed(1)} kWh`;
+    default:       return Math.round(num).toString();
   }
 }
 
@@ -76,15 +87,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  label: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  percent: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-  },
+  label: { fontSize: 13, color: colors.textSecondary },
+  percent: { fontSize: 14, fontWeight: '700', color: colors.primary },
   percentComplete: { color: colors.success },
   barBg: {
     height: 10,
@@ -103,24 +107,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  currentValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  separator: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  targetValue: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  remaining: {
-    fontSize: 12,
-    color: colors.primary,
-    fontWeight: '500',
-  },
+  currentValue: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
+  separator:    { fontSize: 13, color: colors.textSecondary },
+  targetValue:  { fontSize: 13, color: colors.textSecondary },
+  remaining:    { fontSize: 12, color: colors.primary, fontWeight: '500' },
   completeBadge: {
     backgroundColor: '#f0fdf4',
     borderRadius: 8,
@@ -128,9 +118,5 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     alignSelf: 'flex-start',
   },
-  completeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.success,
-  },
+  completeText: { fontSize: 13, fontWeight: '600', color: colors.success },
 });

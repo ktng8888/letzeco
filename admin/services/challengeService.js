@@ -1,9 +1,11 @@
+// admin/services/challengeService.js  (FULL REPLACEMENT)
 import api from './api';
+
 const challengeService = {
   getAll: async () => (await api.get('/admin/challenges')).data,
 
   getById: async (id) => (await api.get(`/admin/challenges/${id}`)).data,
-  
+
   create: async (formData) => {
     const res = await api.post('/admin/challenges', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
@@ -32,5 +34,20 @@ const challengeService = {
     (await api.delete(
       `/admin/challenges/${challengeId}/eligible-actions/${eligibleActionId}`
     )).data,
+
+  // ── NEW: Save one reward row (sends multipart because badge image is included)
+  saveReward: async (challengeId, formData) => {
+    const res = await api.post(
+      `/admin/challenges/${challengeId}/rewards`,
+      formData,
+      { headers: { 'Content-Type': 'multipart/form-data' } }
+    );
+    return res.data;
+  },
+
+  // ── NEW: Delete all rewards for a challenge (call before re-saving on update)
+  deleteRewards: async (challengeId) =>
+    (await api.delete(`/admin/challenges/${challengeId}/rewards`)).data,
 };
+
 export default challengeService;
