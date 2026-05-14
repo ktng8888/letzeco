@@ -15,6 +15,57 @@ import Button from '../../../components/common/Button';
 
 const PAGE_SIZE = 10;
 
+const TYPE_LABELS = {
+  log: 'Log category',
+  log_specific_action: 'Log action',
+  reach_level: 'Reach level',
+  maintain_streak: 'Streak',
+  earn_total_xp: 'Total XP',
+  save_co2: 'Save CO2',
+  save_litre: 'Save water',
+  save_kwh: 'Save energy',
+  add_friends: 'Friends',
+  complete_challenges: 'Solo challenges',
+  complete_team_challenges: 'Team challenges',
+};
+
+const getGroupKey = (achievement) => [
+  achievement.type || '',
+  achievement.type === 'log' ? achievement.action_category_id || '' : '',
+  achievement.type === 'log_specific_action' ? achievement.action_id || '' : '',
+].join(':');
+
+const buildGroups = (achievements) => {
+  const map = new Map();
+
+  achievements.forEach((achievement) => {
+    const key = getGroupKey(achievement);
+    if (!map.has(key)) {
+      map.set(key, {
+        ...achievement,
+        id: achievement.id,
+        group_key: key,
+        achievements: [],
+      });
+    }
+    map.get(key).achievements.push(achievement);
+  });
+
+  return Array.from(map.values()).map((group) => {
+    const tiers = group.achievements
+      .sort((a, b) => a.target_value - b.target_value);
+    return {
+      ...group,
+      achievements: tiers,
+      tier_count: tiers.length,
+      target_values: tiers.map(a => a.target_value).join(', '),
+      bonus_values: tiers.map(a => `+${a.bonus_xp} XP`).join(', '),
+      first_target: tiers[0]?.target_value,
+      last_target: tiers[tiers.length - 1]?.target_value,
+    };
+  });
+};
+
 export default function AchievementsPage() {
   const router = useRouter();
   const [allData, setAllData] = useState([]);
@@ -29,8 +80,9 @@ export default function AchievementsPage() {
     setIsLoading(true);
     try {
       const res = await achievementService.getAll();
-      setAllData(res.data);
-      setFiltered(res.data);
+      const grouped = buildGroups(res.data);
+      setAllData(grouped);
+      setFiltered(grouped);
     } catch { toast.error('Failed to load.'); }
     finally { setIsLoading(false); }
   };
@@ -41,8 +93,13 @@ export default function AchievementsPage() {
     const q = search.toLowerCase();
     setFiltered(q
       ? allData.filter(a =>
-          a.name?.toLowerCase().includes(q) ||
-          a.badge_name?.toLowerCase().includes(q)
+          TYPE_LABELS[a.type]?.toLowerCase().includes(q) ||
+          a.category_name?.toLowerCase().includes(q) ||
+          a.action_name?.toLowerCase().includes(q) ||
+          a.achievements.some(tier =>
+            tier.name?.toLowerCase().includes(q) ||
+            tier.badge_name?.toLowerCase().includes(q)
+          )
         )
       : allData
     );
@@ -58,8 +115,10 @@ export default function AchievementsPage() {
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      await achievementService.delete(deleteItem.id);
-      toast.success('Achievement deleted.');
+      await Promise.all(
+        deleteItem.achievements.map(item => achievementService.delete(item.id))
+      );
+      toast.success('Achievement group deleted.');
       setDeleteItem(null);
       load();
     } catch (err) {
@@ -74,61 +133,80 @@ export default function AchievementsPage() {
 
   const columns = [
     {
-      key: 'name', label: 'Achievement',
+      key: 'type', label: 'Achievement Type',
       render: (val, row) => (
-        <div>
-          <p className="font-medium text-gray-800">{val}</p>
-        </div>
-      )
-    },
-    {
-      key: 'badge_image', label: 'Badge', width: '80px',
-      render: (val, row) => (
-        <div>
-          {
-            row.badge_image ? (
-              <img
-                src={getImageUrl(row.badge_image)}
-                alt={row.badge_name || 'Badge'}
-                className="w-10 h-10 rounded-lg object-cover"
-              />
-            ) : (
-              <img
-                src={'/default.png'}
-                alt={val}
-                className="w-full h-full object-cover"
-              />
-            )
-          }
-          <p className="text-xs text-gray-400 mt-0.5">
-            {row.badge_name}
+        <div className="space-y-1">
+          <p className="font-medium text-gray-800">
+            {TYPE_LABELS[row.type] || row.type?.replace(/_/g, ' ')}
+          </p>
+          <p className="text-xs text-gray-400">
+            {row.tier_count} target tier{row.tier_count === 1 ? '' : 's'}
           </p>
         </div>
       )
     },
-    { key: 'type', label: 'Type',
-      render: (val) => (
-        <span className="text-xs bg-purple-100 text-purple-700
-          px-2 py-1 rounded-full font-medium capitalize">
-          {val?.replace(/_/g, ' ')}
-        </span>
+    {
+      key: 'category_name', label: 'Category',
+      render: (_, row) => row.type === 'log'
+        ? row.category_name || '-'
+        : '-'
+    },
+    {
+      key: 'action_name', label: 'Action',
+      render: (_, row) => row.type === 'log_specific_action'
+        ? row.action_name || '-'
+        : '-'
+    },
+    {
+      key: 'achievements', label: 'Badges',
+      render: (tiers) => (
+        <div className="flex -space-x-2">
+          {tiers.slice(0, 4).map((tier) => (
+            <div key={tier.id}
+              title={tier.badge_name}
+              className="w-9 h-9 rounded-lg border border-white bg-gray-50
+                overflow-hidden">
+              {tier.badge_image ? (
+              <img
+                  src={getImageUrl(tier.badge_image)}
+                  alt={tier.badge_name || 'Badge'}
+                  className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src={'/default.png'}
+                  alt={tier.badge_name || 'Badge'}
+                className="w-full h-full object-cover"
+              />
+              )}
+            </div>
+          ))}
+          {tiers.length > 4 && (
+            <div className="w-9 h-9 rounded-lg bg-gray-100 border border-white
+              text-xs font-semibold text-gray-500 flex items-center
+              justify-center">
+              +{tiers.length - 4}
+            </div>
+          )}
+        </div>
       )
     },
-    { key: 'target_value', label: 'Target',
+    { key: 'target_values', label: 'Targets',
       render: (val) => val || '-' },
-    { key: 'bonus_xp', label: 'Bonus XP',
+    { key: 'bonus_values', label: 'Bonus XP',
       render: (val) => (
-        <span className="text-yellow-600 font-medium">+{val} XP</span>
-      )
-    },
-    { key: 'category_name', label: 'Category',
-      render: (val) => val || 'Any' },
+        <span className="text-yellow-600 font-medium">{val}</span>
+      ) },
     {
       key: 'id', label: 'Actions', width: '120px',
       render: (_, row) => (
         <ActionButtons
-          onView={() => router.push(`/achievements/${row.id}?mode=view`)}
-          onEdit={() => router.push(`/achievements/${row.id}?mode=edit`)}
+          onView={() => router.push(
+            `/achievements/${row.id}?mode=view&group=${encodeURIComponent(row.group_key)}`
+          )}
+          onEdit={() => router.push(
+            `/achievements/${row.id}?mode=edit&group=${encodeURIComponent(row.group_key)}`
+          )}
           onDelete={() => setDeleteItem(row)}
         />
       )
@@ -150,7 +228,7 @@ export default function AchievementsPage() {
         <div className="p-5 border-b border-gray-100">
           <div className="flex items-center justify-between">
             <h3 className="font-semibold text-gray-800">
-              All Achievements ({filtered.length} Achievements)
+              All Achievements ({filtered.length} Groups)
             </h3>
             <SearchBar value={search} onChange={setSearch}
               onSearch={handleSearch} onClear={handleClear}
@@ -168,7 +246,9 @@ export default function AchievementsPage() {
       <ConfirmDelete isOpen={!!deleteItem}
         onClose={() => setDeleteItem(null)}
         onConfirm={handleDelete}
-        itemName={deleteItem?.name}
+        itemName={deleteItem
+          ? `${TYPE_LABELS[deleteItem.type] || deleteItem.type} group`
+          : ''}
         isLoading={isDeleting} />
     </div>
   );
