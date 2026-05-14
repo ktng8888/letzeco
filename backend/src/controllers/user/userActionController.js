@@ -333,7 +333,7 @@ const userActionController = {
     const userId = req.user.id;
     const { id } = req.params;
     try {
-      const record = await userActionModel.getHistoryById(userId, id);
+      const record = await userActionModel.getById(id);
       if (!record) {
         return res.status(404).json({ message: 'Record not found.' });
       }
