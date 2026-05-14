@@ -365,8 +365,6 @@ export default function ChallengeDetailScreen() {
           {activeTab === 'Team' && (
             <TeamTab
               team={challenge.team}
-              targetType={challenge.target_type}   // ← ADD
-              unit={challenge.unit}                // ← ADD
             />
           )}
           {activeTab === 'Ranking' && (

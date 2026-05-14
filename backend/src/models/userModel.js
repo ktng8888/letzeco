@@ -43,11 +43,12 @@ const userModel = {
 
   // Get public profile (for viewing other users)
   getPublicProfile: async (id) => {
-    const result = await pool.query(
-      `SELECT id, username, level, level_xp,
-              total_xp, weekly_xp, streak, best_streak, profile_image
-       FROM "user" WHERE id = $1`,
-      [id]
+  const result = await pool.query(
+    `SELECT id, username, level, level_xp,
+            total_xp, weekly_xp, streak, best_streak,
+            profile_image, created_at
+     FROM "user" WHERE id = $1`,
+    [id]
     );
     return result.rows[0];
   },

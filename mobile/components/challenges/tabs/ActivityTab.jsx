@@ -1,8 +1,7 @@
-// mobile/components/challenges/tabs/ActivityTab.jsx  (FULL REPLACEMENT)
-import { View, Text, Image, ActivityIndicator, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { formatProgress } from '../../../utils/challengeHelpers';
-import { BASE_URL } from '../../../constants/api';
 import useAuthStore from '../../../store/authStore';
+import { BASE_URL } from '../../../constants/api';
 import colors from '../../../constants/colors';
 
 export default function ActivityTab({
@@ -11,7 +10,7 @@ export default function ActivityTab({
   challengeType,
   targetType,
   unit,
-  teamMembers,   // ← NEW: challenge.team?.members
+  teamMembers,
 }) {
   if (isLoading) {
     return (
@@ -21,8 +20,6 @@ export default function ActivityTab({
       />
     );
   }
-  
-  const { user } = useAuthStore();
 
   // ── TEAM ──
   if (challengeType === 'team') {
@@ -30,40 +27,21 @@ export default function ActivityTab({
     return (
       <View style={styles.container}>
 
-        {/* ── Member contribution summary ── */}
+        {/* ── Member contribution bar chart ── */}
         {teamMembers && teamMembers.length > 0 && (
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Member Contributions</Text>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.summaryRow}
-            >
-              {[...teamMembers]
-                .sort((a, b) =>
-                  parseFloat(b.contribution || 0) - parseFloat(a.contribution || 0)
-                )
-                .map((member) => (
-                  <MemberSummaryChip
-                    key={member.user_id}
-                    member={member}
-                    targetType={targetType}
-                    unit={unit}
-                    isYou={member.user_id === user?.id}
-                  />
-                ))
-              }
-            </ScrollView>
-          </View>
+          <MemberContributionChart
+            members={teamMembers}
+            targetType={targetType}
+            unit={unit}
+          />
         )}
 
-        {/* ── Feed title ── */}
+        {/* ── Feed ── */}
         <Text style={styles.sectionTitle}>Team Activity</Text>
         <Text style={styles.subtitle}>
           Eligible actions logged by all members
         </Text>
 
-        {/* ── Feed items ── */}
         {feed.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyIcon}>📋</Text>
@@ -74,7 +52,7 @@ export default function ActivityTab({
           </View>
         ) : (
           feed.map((item) => (
-            <FeedItem key={item.id} item={item} isYou={item.user_id === user?.id} />
+            <FeedItem key={item.id} item={item} />
           ))
         )}
       </View>
@@ -103,45 +81,90 @@ export default function ActivityTab({
 }
 
 // ─────────────────────────────────────────────────────
-// Member contribution chip (summary row)
+// Member contribution bar chart
 // ─────────────────────────────────────────────────────
-function MemberSummaryChip({ member, targetType, unit, isYou }) {
-  const value = parseFloat(member.contribution || 0);
+function MemberContributionChart({ members, targetType, unit }) {
+  const { user } = useAuthStore();
+
+  const sorted = [...members].sort(
+    (a, b) => parseFloat(b.contribution || 0) - parseFloat(a.contribution || 0)
+  );
+  const maxValue = parseFloat(sorted[0]?.contribution || 0);
 
   return (
-    <View style={styles.chip}>
-      {/* Avatar */}
-      {member.profile_image ? (
-        <Image
-          source={{ uri: `${BASE_URL}/${member.profile_image}` }}
-          style={styles.chipAvatar}
-        />
-      ) : (
-        <View style={styles.chipAvatarFallback}>
-          <Text style={styles.chipAvatarInitial}>
-            {member.username?.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-      )}
+    <View style={styles.summaryCard}>
+      <Text style={styles.summaryTitle}>Member Contributions</Text>
 
-    {/* Name */}
-    <Text style={styles.chipName} numberOfLines={1}>
-        {member.username}
-        {isYou && ' (You)'}
-    </Text>
+      <View style={styles.chartRows}>
+        {sorted.map((member, i) => {
+          const value    = parseFloat(member.contribution || 0);
+          const barPct   = maxValue > 0 ? value / maxValue : 0;
+          const isYou    = member.user_id === user?.id;
+          const isLeader = i === 0 && value > 0;
 
-      {/* Value */}
-      <Text style={styles.chipValue}>
-        {formatProgress(value, targetType, unit)}
-      </Text>
+          return (
+            <View key={member.user_id} style={styles.chartRow}>
+
+              {/* Avatar */}
+              <View style={styles.chartAvatar}>
+                {member.profile_image ? (
+                  <Image
+                    source={{ uri: `${BASE_URL}/${member.profile_image}` }}
+                    style={styles.chartAvatarImg}
+                  />
+                ) : (
+                  <View style={styles.chartAvatarFallback}>
+                    <Text style={styles.chartAvatarInitial}>
+                      {member.username?.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Name */}
+              <View style={styles.chartName}>
+                <Text style={styles.chartNameText} numberOfLines={1}>
+                  {member.username}
+                  {isLeader ? ' 👑' : ''}
+                  {isYou
+                    ? <Text style={styles.youTag}> (You)</Text>
+                    : null
+                  }
+                </Text>
+              </View>
+
+              {/* Bar track */}
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    {
+                      width: `${Math.max(barPct * 100, value > 0 ? 3 : 0)}%`,
+                    },
+                    isYou && styles.barFillYou,
+                  ]}
+                />
+              </View>
+
+              {/* Value */}
+              <Text style={[styles.chartValue, isYou && styles.chartValueYou]}>
+                {formatProgress(value, targetType, unit)}
+              </Text>
+
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
 // ─────────────────────────────────────────────────────
-// Single activity feed item (team view)
+// Single activity feed item
 // ─────────────────────────────────────────────────────
-function FeedItem({ item, isYou }) {
+function FeedItem({ item }) {
+  const { user } = useAuthStore();
+  const isYou  = item.user_id === user?.id;
   const timeAgo = getTimeAgo(item.end_time);
 
   const impacts = [];
@@ -172,7 +195,10 @@ function FeedItem({ item, isYou }) {
       {/* Right: content */}
       <View style={styles.feedContent}>
         <View style={styles.feedHeader}>
-          <Text style={styles.feedUsername}>{item.username}{isYou && ' (You)'}</Text>
+          <Text style={styles.feedUsername}>
+            {item.username}
+            {isYou && <Text style={styles.feedYouTag}> (You)</Text>}
+          </Text>
           <Text style={styles.feedTime}>{timeAgo}</Text>
         </View>
 
@@ -212,7 +238,7 @@ function DayBarChart({ data }) {
       <Text style={styles.chartLabel}>Actions Logged</Text>
       <View style={styles.verticalBars}>
         {data.map((item, i) => {
-          const count = parseInt(item.action_count || 0);
+          const count     = parseInt(item.action_count || 0);
           const heightPct = (count / maxCount) * 100;
           return (
             <View key={i} style={styles.barCol}>
@@ -265,65 +291,101 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
 
-  // ── Member contribution summary card ──
+  // ── Member contribution chart card ──
   summaryCard: {
     backgroundColor: colors.bgWhite,
     borderRadius: 14,
     padding: 14,
-    gap: 10,
+    gap: 12,
     borderWidth: 1,
     borderColor: colors.border,
   },
   summaryTitle: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.textPrimary,
   },
-  summaryRow: {
-    flexDirection: 'row',
+  chartRows: {
     gap: 10,
-    paddingBottom: 2,
   },
-  chip: {
+  chartRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    minWidth: 72,
-    maxWidth: 90,
+    gap: 8,
   },
-  chipAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+
+  // Avatar
+  chartAvatar: {
+    width: 32,
+    height: 32,
+    flexShrink: 0,
   },
-  chipAvatarFallback: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+  chartAvatarImg: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+  },
+  chartAvatarFallback: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.primaryBg,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: colors.primaryLight,
   },
-  chipAvatarInitial: {
-    fontSize: 16,
+  chartAvatarInitial: {
+    fontSize: 13,
     fontWeight: '700',
     color: colors.primary,
-  },
-  chipName: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-  chipValue: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: colors.primary,
-    textAlign: 'center',
   },
 
-  // ── Feed styles ──
+  // Name column — fixed width so bars align
+  chartName: {
+    width: 80,
+    flexShrink: 0,
+  },
+  chartNameText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  youTag: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: colors.primary,
+  },
+
+  // Bar track — takes remaining space
+  barTrack: {
+    flex: 1,
+    height: 10,
+    backgroundColor: colors.bgGrey,
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: colors.primaryLight,
+    borderRadius: 5,
+  },
+  barFillYou: {
+    backgroundColor: colors.primary,
+  },
+
+  // Value label
+  chartValue: {
+    width: 72,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textSecondary,
+    textAlign: 'right',
+    flexShrink: 0,
+  },
+  chartValueYou: {
+    color: colors.primary,
+  },
+
+  // ── Empty state ──
   empty: {
     alignItems: 'center',
     paddingVertical: 32,
@@ -340,6 +402,8 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
+
+  // ── Feed styles ──
   feedItem: {
     flexDirection: 'row',
     gap: 10,
@@ -389,6 +453,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  feedYouTag: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: colors.primary,
   },
   feedTime: {
     fontSize: 11,
