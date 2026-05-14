@@ -1,23 +1,25 @@
-const userModel = require('../models/userModel');
-const userActionModel = require('../models/userActionModel');
-const streakRewardModel = require('../models/streakRewardModel');
+// backend/src/utils/streakService.js  (FULL REPLACEMENT)
+const userModel            = require('../models/userModel');
+const userActionModel      = require('../models/userActionModel');
+const streakRewardModel    = require('../models/streakRewardModel');
 const userStreakRewardModel = require('../models/userStreakRewardModel');
+const xpService            = require('./xpService');   // ← ADD
 
 const streakService = {
 
   updateStreak: async (userId) => {
     try {
-      const user = await userModel.findById(userId);
+      const user        = await userModel.findById(userId);
       const lastActions = await userActionModel.getLastCompletedDates(userId, 2);
 
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      let newStreak = user.streak;
+      let newStreak       = user.streak;
       let streakContinued = false;
 
       if (lastActions.length <= 1) {
-        newStreak = 1;
+        newStreak       = 1;
         streakContinued = true;
       } else {
         const previousDate = new Date(lastActions[1].last_date);
@@ -30,10 +32,10 @@ const streakService = {
         if (diffDays === 0) {
           streakContinued = false;
         } else if (diffDays === 1) {
-          newStreak = user.streak + 1;
+          newStreak       = user.streak + 1;
           streakContinued = true;
         } else {
-          newStreak = 1;
+          newStreak       = 1;
           streakContinued = true;
         }
       }
@@ -42,15 +44,23 @@ const streakService = {
         await userModel.updateStreak(userId, newStreak);
       }
 
-      let streakReward = null;
+      let streakReward      = null;
+      let streakAchievement = null;
+
       if (streakContinued) {
         streakReward = await streakService.checkStreakReward(userId, newStreak);
+
+        // ── NEW: check streak-based achievement ──
+        streakAchievement = await xpService.checkStreakAchievement(
+          userId, newStreak
+        );
       }
 
       return {
-        streak_continued: streakContinued,
-        new_streak: newStreak,
-        streak_reward: streakReward,
+        streak_continued:  streakContinued,
+        new_streak:        newStreak,
+        streak_reward:     streakReward,
+        streak_achievement: streakAchievement,  // ← returned so controller can use it
       };
 
     } catch (err) {
@@ -69,12 +79,13 @@ const streakService = {
       );
       if (existing) return null;
 
+      // Create unclaimed record — XP added on manual claim only
       await userStreakRewardModel.create(userId, reward.id);
 
       return {
-        day:        reward.day,
-        xp_reward:  reward.xp_reward,
-        badge_name: reward.badge_name,
+        day:         reward.day,
+        xp_reward:   reward.xp_reward,
+        badge_name:  reward.badge_name,
         badge_image: reward.badge_image,
       };
 
@@ -86,7 +97,7 @@ const streakService = {
 
   checkAndResetStreak: async (userId) => {
     try {
-      const user = await userModel.findById(userId);
+      const user        = await userModel.findById(userId);
       const lastActions = await userActionModel.getLastCompletedDates(userId, 1);
 
       if (lastActions.length === 0) {

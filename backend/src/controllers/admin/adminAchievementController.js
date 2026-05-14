@@ -1,5 +1,6 @@
 const achievementModel = require('../../models/achievementModel');
 const badgeModel = require('../../models/badgeModel');
+const actionModel = require('../../models/actionModel');
 const { uploadBadge } = require('../../utils/uploadService');
 const { deleteFile } = require('../../utils/uploadService'); 
 const multer = require('multer');
@@ -42,12 +43,25 @@ const adminAchievementController = {
   // + images[]: files named image_0, image_1, image_2...
   createBatch: async (req, res) => {
     try {
-      const { type, action_category_id } = req.body;
+      const { type, action_category_id, action_id } = req.body;
 
       if (!type) {
         return res.status(400).json({
           message: 'Achievement type is required.'
         });
+      }
+      if (type === 'log_specific_action' && (!action_category_id || !action_id)) {
+        return res.status(400).json({
+          message: 'Action category and action are required.'
+        });
+      }
+      if (type === 'log_specific_action') {
+        const action = await actionModel.getById(action_id);
+        if (!action || String(action.action_category_id) !== String(action_category_id)) {
+          return res.status(400).json({
+            message: 'Selected action does not belong to this category.'
+          });
+        }
       }
 
       // Parse rows from JSON string
@@ -66,7 +80,14 @@ const adminAchievementController = {
 
       // Validate rows
       for (const row of rows) {
-        if (!row.target_value || !row.bonus_xp || !row.name || !row.badge_name) {
+        if (
+          row.target_value === undefined ||
+          row.target_value === null ||
+          row.bonus_xp === undefined ||
+          row.bonus_xp === null ||
+          !row.name ||
+          !row.badge_name
+        ) {
           return res.status(400).json({
             message: 'Each row needs target value, bonus XP, achievement name and badge name.'
           });
@@ -102,6 +123,7 @@ const adminAchievementController = {
           badge_name: row.badge_name,
           badge_id: badge.id,
           action_category_id: action_category_id || null,
+          action_id: type === 'log_specific_action' ? action_id : null,
         });
 
         created.push(achievement);
@@ -125,6 +147,23 @@ const adminAchievementController = {
       const existing = await achievementModel.getById(id);
       if (!existing) {
         return res.status(404).json({ message: 'Achievement not found.' });
+      }
+      if (req.body.type === 'log_specific_action') {
+        if (!req.body.action_category_id || !req.body.action_id) {
+          return res.status(400).json({
+            message: 'Action category and action are required.'
+          });
+        }
+
+        const action = await actionModel.getById(req.body.action_id);
+        if (
+          !action ||
+          String(action.action_category_id) !== String(req.body.action_category_id)
+        ) {
+          return res.status(400).json({
+            message: 'Selected action does not belong to this category.'
+          });
+        }
       }
 
       const imageFile = req.files?.['image']?.[0];
@@ -159,6 +198,10 @@ const adminAchievementController = {
         ...req.body,
         target_value: parseInt(req.body.target_value),
         bonus_xp: parseInt(req.body.bonus_xp),
+        action_category_id: req.body.action_category_id || null,
+        action_id: req.body.type === 'log_specific_action'
+          ? req.body.action_id || null
+          : null,
       });
 
       res.json({

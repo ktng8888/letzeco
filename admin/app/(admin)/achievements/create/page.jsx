@@ -5,6 +5,7 @@ import { Plus, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import achievementService from '../../../../services/achievementService';
 import categoryService from '../../../../services/categoryService';
+import actionService from '../../../../services/actionService';
 import PageHeader from '../../../../components/layout/PageHeader';
 import FormCard from '../../../../components/common/FormCard';
 import Select from '../../../../components/common/Select';
@@ -13,13 +14,13 @@ import Input from '../../../../components/common/Input';
 
 const ACHIEVEMENT_TYPES = [
   { value: 'log', label: 'Log X actions in Y category' },
+  { value: 'log_specific_action', label: 'Log specific action' },
   { value: 'reach_level', label: 'Reach level X' },
-  { value: 'streak', label: 'Maintain streak for X days' },
-  { value: 'total_xp', label: 'Earn X total XP' },
-  { value: 'total_actions', label: 'Log X actions' },
-  { value: 'friends', label: 'Add X friends' },
-  { value: 'challenges', label: 'Complete X challenges' },
-  { value: 'team_challenges', label: 'Complete X team challenges' },
+  { value: 'maintain_streak', label: 'Maintain streak for X days' },
+  { value: 'earn_total_xp', label: 'Earn X total XP' },
+  { value: 'add_friends', label: 'Add X friends' },
+  { value: 'complete_challenges', label: 'Complete X challenges' },
+  { value: 'complete_team_challenges', label: 'Complete X team challenges' },
 ];
 
 // Empty row template
@@ -35,8 +36,10 @@ const emptyRow = () => ({
 export default function CreateAchievementPage() {
   const router = useRouter();
   const [categories, setCategories] = useState([]);
+  const [actions, setActions] = useState([]);
   const [type, setType] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [actionId, setActionId] = useState('');
   const [rows, setRows] = useState([emptyRow()]);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
@@ -50,7 +53,20 @@ export default function CreateAchievementPage() {
       .catch(console.error);
   }, []);
 
-  const needsCategory = type === 'log';
+  const needsCategory = type === 'log' || type === 'log_specific_action';
+  const needsAction = type === 'log_specific_action';
+
+  useEffect(() => {
+    if (!needsAction || !categoryId) {
+      setActions([]);
+      setActionId('');
+      return;
+    }
+
+    actionService.getByCategory(categoryId)
+      .then(res => setActions(res.data))
+      .catch(console.error);
+  }, [categoryId, needsAction]);
 
   // Update a specific field in a row
   const updateRow = (index, field, value) => {
@@ -80,9 +96,11 @@ export default function CreateAchievementPage() {
   const validate = () => {
     const e = {};
     if (!type) e.type = 'Achievement type is required.';
+    if (needsCategory && !categoryId) e.category = 'Category is required.';
+    if (needsAction && !actionId) e.action = 'Action is required.';
     rows.forEach((row, i) => {
       if (!row.target_value) e[`target_${i}`] = 'Required';
-      if (!row.bonus_xp) e[`bonus_${i}`] = 'Required';
+      if (row.bonus_xp === '') e[`bonus_${i}`] = 'Required';
       if (!row.name) e[`name_${i}`] = 'Required';
       if (!row.badge_name) e[`badge_name_${i}`] = 'Required';
     });
@@ -98,6 +116,7 @@ export default function CreateAchievementPage() {
       const formData = new FormData();
       formData.append('type', type);
       if (categoryId) formData.append('action_category_id', categoryId);
+      if (actionId) formData.append('action_id', actionId);
 
       // Append rows as JSON (without image files)
       const rowsData = rows.map(({ imageFile, imagePreview, ...rest }) => rest);
@@ -123,6 +142,9 @@ export default function CreateAchievementPage() {
   const catOptions = categories.map(c => ({
     value: String(c.id), label: c.name
   }));
+  const actionOptions = actions.map(a => ({
+    value: String(a.id), label: a.name
+  }));
 
   return (
     <div>
@@ -135,13 +157,15 @@ export default function CreateAchievementPage() {
         <div className="p-6 space-y-6">
 
           {/* Achievement Type + Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Select
               label="Achievement Type"
               value={type}
               onChange={(e) => {
                 setType(e.target.value);
                 setCategoryId('');
+                setActionId('');
+                setActions([]);
                 setErrors(p => ({ ...p, type: '' }));
               }}
               options={ACHIEVEMENT_TYPES}
@@ -152,10 +176,25 @@ export default function CreateAchievementPage() {
             <Select
               label="Action Category (if applicable)"
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              onChange={(e) => {
+                setCategoryId(e.target.value);
+                setActionId('');
+              }}
               options={catOptions}
               placeholder="Select category"
               disabled={!needsCategory}
+              required={needsCategory}
+              error={errors.category}
+            />
+            <Select
+              label="Action (for specific action)"
+              value={actionId}
+              onChange={(e) => setActionId(e.target.value)}
+              options={actionOptions}
+              placeholder={categoryId ? 'Select action' : 'Select category first'}
+              disabled={!needsAction || !categoryId}
+              required={needsAction}
+              error={errors.action}
             />
           </div>
 
