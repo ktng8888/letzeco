@@ -3,6 +3,8 @@ import api from './api';
 const actionService = {
   getAll: async () => (await api.get('/admin/actions')).data,
   getById: async (id) => (await api.get(`/admin/actions/${id}`)).data,
+  getByCategory: async (categoryId) =>
+    (await api.get(`/admin/actions/category/${categoryId}`)).data,
 
   create: async (formData) => {
     const res = await api.post('/admin/actions', formData, {

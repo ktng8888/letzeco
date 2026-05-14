@@ -5,6 +5,7 @@ import { Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import achievementService from '../../../../services/achievementService';
 import categoryService from '../../../../services/categoryService';
+import actionService from '../../../../services/actionService';
 import PageHeader from '../../../../components/layout/PageHeader';
 import FormCard from '../../../../components/common/FormCard';
 import Select from '../../../../components/common/Select';
@@ -12,13 +13,13 @@ import Button from '../../../../components/common/Button';
 
 const ACHIEVEMENT_TYPES = [
   { value: 'log', label: 'Log X actions in Y category' },
+  { value: 'log_specific_action', label: 'Log specific action' },
   { value: 'reach_level', label: 'Reach level X' },
-  { value: 'streak', label: 'Maintain streak for X days' },
-  { value: 'total_xp', label: 'Earn X total XP' },
-  { value: 'total_actions', label: 'Log X actions' },
-  { value: 'friends', label: 'Add X friends' },
-  { value: 'challenges', label: 'Complete X challenges' },
-  { value: 'team_challenges', label: 'Complete X team challenges' },
+  { value: 'maintain_streak', label: 'Maintain streak for X days' },
+  { value: 'earn_total_xp', label: 'Earn X total XP' },
+  { value: 'add_friends', label: 'Add X friends' },
+  { value: 'complete_challenges', label: 'Complete X challenges' },
+  { value: 'complete_team_challenges', label: 'Complete X team challenges' },
 ];
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')
@@ -31,8 +32,10 @@ function AchievementDetail() {
   const isView = searchParams.get('mode') === 'view';
 
   const [categories, setCategories] = useState([]);
+  const [actions, setActions] = useState([]);
   const [type, setType] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [actionId, setActionId] = useState('');
   const [row, setRow] = useState({
     target_value: '',
     bonus_xp: '',
@@ -55,9 +58,10 @@ function AchievementDetail() {
       setCategories(catRes.data);
       setType(a.type || '');
       setCategoryId(String(a.action_category_id || ''));
+      setActionId(String(a.action_id || ''));
       setRow({
-        target_value: String(a.target_value || ''),
-        bonus_xp: String(a.bonus_xp || ''),
+        target_value: String(a.target_value ?? ''),
+        bonus_xp: String(a.bonus_xp ?? ''),
         name: a.name || '',
         badge_name: a.badge_name || '',
         badge_image: a.badge_image || null,
@@ -69,12 +73,28 @@ function AchievementDetail() {
   const updateRow = (field, value) =>
     setRow(p => ({ ...p, [field]: value }));
 
+  const needsCategory = type === 'log' || type === 'log_specific_action';
+  const needsAction = type === 'log_specific_action';
+
+  useEffect(() => {
+    if (!needsAction || !categoryId) {
+      setActions([]);
+      if (!needsAction) setActionId('');
+      return;
+    }
+
+    actionService.getByCategory(categoryId)
+      .then(res => setActions(res.data))
+      .catch(console.error);
+  }, [categoryId, needsAction]);
+
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
       const formData = new FormData();
       formData.append('type', type);
       formData.append('action_category_id', categoryId || '');
+      formData.append('action_id', needsAction ? actionId || '' : '');
       formData.append('name', row.name);
       formData.append('badge_name', row.badge_name);
       formData.append('target_value', row.target_value);
@@ -100,8 +120,10 @@ function AchievementDetail() {
   const catOptions = categories.map(c => ({
     value: String(c.id), label: c.name
   }));
+  const actionOptions = actions.map(a => ({
+    value: String(a.id), label: a.name
+  }));
 
-  const needsCategory = type === 'log';
   const displayImage = imagePreview
     || (row.badge_image
       ? `${API_URL}/${row.badge_image.replace(/\\/g, '/')}`
@@ -122,11 +144,16 @@ function AchievementDetail() {
         <div className="p-6 space-y-6">
 
           {/* Type + Category */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <Select
               label="Achievement Type"
               value={type}
-              onChange={(e) => setType(e.target.value)}
+              onChange={(e) => {
+                setType(e.target.value);
+                setCategoryId('');
+                setActionId('');
+                setActions([]);
+              }}
               options={ACHIEVEMENT_TYPES}
               required
               disabled={isView}
@@ -134,10 +161,21 @@ function AchievementDetail() {
             <Select
               label="Action Category (if applicable)"
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
+              onChange={(e) => {
+                setCategoryId(e.target.value);
+                setActionId('');
+              }}
               options={catOptions}
               placeholder="Select category"
               disabled={!needsCategory || isView}
+            />
+            <Select
+              label="Action (for specific action)"
+              value={actionId}
+              onChange={(e) => setActionId(e.target.value)}
+              options={actionOptions}
+              placeholder={categoryId ? 'Select action' : 'Select category first'}
+              disabled={!needsAction || !categoryId || isView}
             />
           </div>
 

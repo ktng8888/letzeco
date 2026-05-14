@@ -1,6 +1,7 @@
 const friendshipModel = require('../../models/friendshipModel');
 const userModel = require('../../models/userModel');
 const notificationService = require('../../utils/notificationService');
+const xpService = require('../../utils/xpService');
 
 const friendshipController = {
 
@@ -176,56 +177,53 @@ const friendshipController = {
   // APPROVE FRIEND REQUEST
   approve: async (req, res) => {
     const userId = req.user.id;
-    const { id } = req.params; // friendship id
-
+    const { id } = req.params;
+ 
     try {
       const friendship = await friendshipModel.getById(id);
       if (!friendship) {
-        return res.status(404).json({
-          message: 'Friend request not found.'
-        });
+        return res.status(404).json({ message: 'Friend request not found.' });
       }
-
-      // Only receiver can approve
       if (friendship.request_receiver_user_id !== userId) {
         return res.status(403).json({
           message: 'Not authorized to approve this request.'
         });
       }
-
-      // Must be pending
       if (friendship.status !== 'pending') {
-        return res.status(400).json({
-          message: 'This request is not pending.'
-        });
+        return res.status(400).json({ message: 'This request is not pending.' });
       }
-
+ 
       const approved = await friendshipModel.approve(id);
-
-      // Notify sender that request was approved
-      const approver = await userModel.findById(userId);
-
-      // Get original sender's push token
+ 
+      const approver      = await userModel.findById(userId);
       const originalSender = await userModel.findById(
         friendship.request_sender_user_id
       );
-
-      // Friend approved — push + DB
+ 
       try {
         await notificationService.friendRequestApproved(
           friendship.request_sender_user_id,
           approver.username,
-          originalSender.push_token  // ← push token needed
+          originalSender.push_token
         );
       } catch (notifErr) {
         console.warn('Notification failed (non-critical):', notifErr.message);
       }
 
+      try {
+        await Promise.all([
+          xpService.checkFriendAchievement(userId),
+          xpService.checkFriendAchievement(friendship.request_sender_user_id),
+        ]);
+      } catch (achErr) {
+        console.warn('Friend achievement check failed (non-critical):', achErr.message);
+      }
+ 
       res.json({
         message: 'Friend request approved!',
-        data: approved
+        data: approved,
       });
-
+ 
     } catch (err) {
       console.error('Approve friend request error:', err);
       res.status(500).json({ message: 'Server error.' });

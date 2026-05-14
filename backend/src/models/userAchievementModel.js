@@ -10,6 +10,7 @@ const userAchievementModel = {
         b.name AS badge_name,
         b.image AS badge_image,
         ac.name AS category_name,
+        act.name AS action_name,
         ua.achieve_date,
         ua.id AS user_achievement_id,
         CASE WHEN ua.id IS NOT NULL
@@ -18,6 +19,7 @@ const userAchievementModel = {
        FROM achievement a
        LEFT JOIN badge b ON a.badge_id = b.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
+       LEFT JOIN action act ON a.action_id = act.id
        LEFT JOIN user_achievement ua
          ON a.id = ua.achievement_id
          AND ua.user_id = $1
@@ -36,10 +38,12 @@ const userAchievementModel = {
         a.bonus_xp, a.type,
         a.target_value,
         b.name AS badge_name,
-        b.image AS badge_image
+        b.image AS badge_image,
+        act.name AS action_name
        FROM user_achievement ua
        LEFT JOIN achievement a ON ua.achievement_id = a.id
        LEFT JOIN badge b ON a.badge_id = b.id
+       LEFT JOIN action act ON a.action_id = act.id
        WHERE ua.user_id = $1
        ORDER BY ua.achieve_date DESC`,
       [userId]
