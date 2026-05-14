@@ -3,6 +3,7 @@ const userStreakRewardModel = require('../../models/userStreakRewardModel');
 const achievementModel = require('../../models/achievementModel');
 const badgeModel = require('../../models/badgeModel');
 const userModel = require('../../models/userModel');
+const xpService = require('../../utils/xpService');
 
 const achievementController = {
 
@@ -129,16 +130,19 @@ const achievementController = {
         });
       }
 
-      // Make sure it belongs to this user
       if (reward.user_id !== userId) {
         return res.status(403).json({ message: 'Not authorized.' });
       }
 
-      // Check if already claimed
       if (reward.status === 'claimed') {
         return res.status(400).json({
           message: 'Reward already claimed.'
         });
+      }
+
+      let xpResult = null;
+      if (reward.xp_reward > 0) {
+        xpResult = await xpService.addXP(userId, reward.xp_reward);
       }
 
       // Mark as claimed
@@ -150,18 +154,18 @@ const achievementController = {
       res.json({
         message: 'Streak reward claimed!',
         data: {
-          day: reward.day,
-          xp_reward: reward.xp_reward,
-          // Note: XP was already added when streak was hit
-          // These are the current updated values
+          day:        reward.day,
+          xp_reward:  reward.xp_reward,
           badge_name: reward.badge_name,
           badge_image: reward.badge_image,
+          level_up:   xpResult?.level_up  || false,
+          new_level:  xpResult?.new_level || null,
           user: {
-            level: user.level,
-            level_xp: user.level_xp,
-            total_xp: user.total_xp,
+            level:     user.level,
+            level_xp:  user.level_xp,
+            total_xp:  user.total_xp,
             weekly_xp: user.weekly_xp,
-            streak: user.streak
+            streak:    user.streak,
           }
         }
       });

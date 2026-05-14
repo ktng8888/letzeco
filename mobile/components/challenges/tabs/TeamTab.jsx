@@ -1,9 +1,15 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { formatProgress } from '../../../utils/challengeHelpers';
+import {
+  View, Text, Image, TouchableOpacity,
+  StyleSheet, Alert
+} from 'react-native';
+import * as Clipboard from 'expo-clipboard';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
+import { BASE_URL } from '../../../constants/api';
 import useAuthStore from '../../../store/authStore';
 import colors from '../../../constants/colors';
 
-export default function TeamTab({ team, targetType, unit }) {
+export default function TeamTab({ team }) {
   const { user } = useAuthStore();
   if (!team) return null;
 
@@ -17,66 +23,115 @@ export default function TeamTab({ team, targetType, unit }) {
         <MemberRow
           key={member.user_id}
           member={member}
-          targetType={targetType}
-          unit={unit}
           isYou={member.user_id === user?.id}
+          currentUserId={user?.id}
         />
       ))}
 
       {team.code && (
-        <View style={styles.codeCard}>
-          <Text style={styles.codeLabel}>Share Code with Friends</Text>
-          <Text style={styles.code}>{team.code}</Text>
-          <Text style={styles.codeHint}>
-            Members can use this code to join your team
-          </Text>
-        </View>
+        <CodeCard code={team.code} />
       )}
     </View>
   );
 }
 
-function MemberRow({ member, targetType, unit, isYou }) {
+function MemberRow({ member, isYou, currentUserId }) {
+  const router = useRouter();
+
+  const handlePress = () => {
+    if (isYou) {
+      router.push('/(tabs)/profile');
+    } else {
+      router.push(`/screens/user-profile?userId=${member.user_id}`);
+    }
+  };
+
   return (
-    <View style={[styles.memberRow, isYou && styles.memberRowYou]}>
-      <View style={styles.memberAvatar}>
-        <Text style={styles.memberAvatarText}>
-          {member.username?.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>
-          {member.username}
-          {isYou && (
-            <Text style={styles.youTag}> (You)</Text>
-          )}
-        </Text>
-        <Text style={styles.memberMeta}>Lv. {member.level}</Text>
-      </View>
-      {member.contribution != null && (
-        <Text style={styles.memberContrib}>
-          {formatProgress(member.contribution, targetType, unit)}
-        </Text>
+    <TouchableOpacity
+      style={[styles.memberRow, isYou && styles.memberRowYou]}
+      onPress={handlePress}
+      activeOpacity={0.7}
+    >
+      {/* Avatar */}
+      {member.profile_image ? (
+        <Image
+          source={{ uri: `${BASE_URL}/${member.profile_image}` }}
+          style={styles.memberAvatar}
+        />
+      ) : (
+        <View style={[styles.memberAvatar, styles.memberAvatarFallback]}>
+          <Text style={styles.memberAvatarInitial}>
+            {member.username?.charAt(0).toUpperCase()}
+          </Text>
+        </View>
       )}
+
+      {/* Name */}
+      <Text style={styles.memberName}>
+        {member.username}
+        {isYou && (
+          <Text style={styles.youTag}> (You)</Text>
+        )}
+      </Text>
+
+      {/* Chevron */}
+      <Ionicons
+        name="chevron-forward"
+        size={16}
+        color={colors.textLight}
+      />
+    </TouchableOpacity>
+  );
+}
+
+// Copyable team code card
+function CodeCard({ code }) {
+  const handleCopy = async () => {
+    await Clipboard.setStringAsync(code);
+    Alert.alert('Copied!', `Team code "${code}" copied to clipboard.`);
+  };
+
+  return (
+    <View style={styles.codeCard}>
+      <Text style={styles.codeLabel}>Share Code with Friends</Text>
+
+      <TouchableOpacity
+        style={styles.codeRow}
+        onPress={handleCopy}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.code}>{code}</Text>
+        <View style={styles.copyBtn}>
+          <Ionicons name="copy-outline" size={18} color={colors.primary} />
+          <Text style={styles.copyText}>Copy</Text>
+        </View>
+      </TouchableOpacity>
+
+      <Text style={styles.codeHint}>
+        Tap the code to copy · Members can use this to join your team
+      </Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { gap: 12 },
+
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
     color: colors.textPrimary,
     marginTop: 8,
   },
+
+  // ── Member row ──
   memberRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.bgWhite,
     borderRadius: 12,
     padding: 12,
-    gap: 10,
+    gap: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -89,21 +144,25 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryLight,
   },
   memberAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  memberAvatarFallback: {
     backgroundColor: colors.primaryBg,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
   },
-  memberAvatarText: {
-    fontSize: 16,
+  memberAvatarInitial: {
+    fontSize: 17,
     fontWeight: '700',
     color: colors.primary,
   },
-  memberInfo: { flex: 1 },
   memberName: {
-    fontSize: 14,
+    flex: 1,
+    fontSize: 15,
     fontWeight: '600',
     color: colors.textPrimary,
   },
@@ -112,35 +171,52 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: colors.primary,
   },
-  memberMeta: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  memberContrib: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.primary,
-  },
+
+  // ── Code card ──
   codeCard: {
     backgroundColor: colors.primaryBg,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 16,
     alignItems: 'center',
-    gap: 6,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
   },
   codeLabel: {
     fontSize: 13,
+    fontWeight: '600',
     color: colors.textSecondary,
   },
+  codeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   code: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 30,
+    fontWeight: '800',
     color: colors.primary,
-    letterSpacing: 4,
+    letterSpacing: 5,
+  },
+  copyBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  copyText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
   },
   codeHint: {
-    fontSize: 12,
+    fontSize: 11,
     color: colors.textSecondary,
     textAlign: 'center',
   },

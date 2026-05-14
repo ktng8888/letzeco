@@ -1,3 +1,4 @@
+// mobile/app/screens/user-profile.jsx  (FULL REPLACEMENT)
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert, RefreshControl
@@ -6,14 +7,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import userService from '../../services/userService';
-import profileService from '../../services/profileService';
-import friendService from '../../services/friendService';
-import progressService from '../../services/progressService';
-import ProfileHeader from '../../components/profile/ProfileHeader';
-import BadgeGrid from '../../components/profile/BadgeGrid';
-import ImpactStats from '../../components/profile/ImpactStats';
-import LoadingScreen from '../../components/common/LoadingScreen';
+import userService       from '../../services/userService';
+import profileService    from '../../services/profileService';
+import friendService     from '../../services/friendService';
+import progressService   from '../../services/progressService';
+import leaderboardService from '../../services/leaderboardService';  // ← ADD
+
+import ProfileHeader  from '../../components/profile/ProfileHeader';
+import BadgeGrid      from '../../components/profile/BadgeGrid';
+import ImpactStats    from '../../components/profile/ImpactStats';
+import StatsSummary   from '../../components/profile/StatsSummary';  // ← ADD
+import LoadingScreen  from '../../components/common/LoadingScreen';
 import colors from '../../constants/colors';
 
 const TABS = ['Badge', 'Impact', 'Stat'];
@@ -22,28 +26,37 @@ export default function UserProfileScreen() {
   const router = useRouter();
   const { userId } = useLocalSearchParams();
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [profile, setProfile] = useState(null);
-  const [badges, setBadges] = useState(null);
-  const [activeTab, setActiveTab] = useState('Badge');
+  const [isLoading, setIsLoading]           = useState(true);
+  const [refreshing, setRefreshing]         = useState(false);
+  const [profile, setProfile]               = useState(null);
+  const [badges, setBadges]                 = useState(null);
+  const [activeTab, setActiveTab]           = useState('Badge');
   const [friendshipStatus, setFriendshipStatus] = useState('none');
-  const [friendshipId, setFriendshipId] = useState(null);
-  const [impact, setImpact] = useState(null);
+  const [friendshipId, setFriendshipId]     = useState(null);
+  const [impact, setImpact]                 = useState(null);
+  const [globalRank, setGlobalRank]         = useState(null);  // ← ADD
 
   const loadData = async () => {
     try {
-      const [profileData, badgesData, impactData] = await Promise.all([
-        userService.getUserProfile(userId),
-        profileService.getFriendBadges(userId),
-        progressService.getUserProgress(userId),
-      ]);
+      const [profileData, badgesData, impactData, leaderboardData] =
+        await Promise.all([
+          userService.getUserProfile(userId),
+          profileService.getFriendBadges(userId),
+          progressService.getUserProgress(userId),
+          leaderboardService.getGlobal(),          // ← ADD
+        ]);
 
       setProfile(profileData.data);
       setBadges(badgesData.data);
       setImpact(impactData.data?.environmental_impact);
       setFriendshipStatus(profileData.data.friendship_status);
       setFriendshipId(profileData.data.friendship_id);
+
+      // ── Find this user's rank from the global leaderboard list ──
+      const leaderboard = leaderboardData.data?.leaderboard || [];
+      const targetId    = parseInt(userId);
+      const entry       = leaderboard.find(u => u.id === targetId);
+      setGlobalRank(entry?.rank ?? null);           // ← ADD
 
     } catch (err) {
       console.error('Load user profile error:', err);
@@ -103,9 +116,7 @@ export default function UserProfileScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {profile?.username}
-        </Text>
+        <Text style={styles.headerTitle}>{profile?.username}</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -134,10 +145,7 @@ export default function UserProfileScreen() {
           {TABS.map((tab) => (
             <TouchableOpacity
               key={tab}
-              style={[
-                styles.tab,
-                activeTab === tab && styles.tabActive
-              ]}
+              style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
             >
               <Text style={[
@@ -158,22 +166,17 @@ export default function UserProfileScreen() {
           />
         )}
 
-{/*}
         {activeTab === 'Impact' && (
-          <ImpactStats user={profile} />
+          <ImpactStats impact={impact} />
         )}
-          */}
 
-          {activeTab === 'Impact' && (
-  <ImpactStats impact={impact} /> // ← pass impact not user
-)}
-
+        {/* ── FIXED: was showing placeholder, now shows real stats ── */}
         {activeTab === 'Stat' && (
-          <View style={styles.statPlaceholder}>
-            <Text style={styles.statPlaceholderText}>
-              Stats coming soon
-            </Text>
-          </View>
+          <StatsSummary
+            user={profile}
+            totalBadges={badges?.total_unlocked || 0}
+            globalRank={globalRank}
+          />
         )}
 
         <View style={{ height: 20 }} />
@@ -225,13 +228,5 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '700',
-  },
-  statPlaceholder: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  statPlaceholderText: {
-    fontSize: 14,
-    color: colors.textSecondary,
   },
 });

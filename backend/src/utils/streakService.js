@@ -8,7 +8,6 @@ const streakService = {
   updateStreak: async (userId) => {
     try {
       const user = await userModel.findById(userId);
-
       const lastActions = await userActionModel.getLastCompletedDates(userId, 2);
 
       const today = new Date();
@@ -51,7 +50,7 @@ const streakService = {
       return {
         streak_continued: streakContinued,
         new_streak: newStreak,
-        streak_reward: streakReward
+        streak_reward: streakReward,
       };
 
     } catch (err) {
@@ -72,15 +71,11 @@ const streakService = {
 
       await userStreakRewardModel.create(userId, reward.id);
 
-      if (reward.xp_reward > 0) {
-        await userModel.addXpDirect(userId, reward.xp_reward);
-      }
-
       return {
-        day: reward.day,
-        xp_reward: reward.xp_reward,
+        day:        reward.day,
+        xp_reward:  reward.xp_reward,
         badge_name: reward.badge_name,
-        badge_image: reward.badge_image
+        badge_image: reward.badge_image,
       };
 
     } catch (err) {
