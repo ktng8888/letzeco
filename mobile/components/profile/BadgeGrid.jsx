@@ -1,12 +1,56 @@
 import {
   View, Text, Image, TouchableOpacity, StyleSheet
 } from 'react-native';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { BASE_URL } from '../../constants/api';
 import colors from '../../constants/colors';
 
-export default function BadgeGrid({ unlocked, locked }) {
+const FILTERS = [
+  { key: 'all', label: 'Show all' },
+  { key: 'unlocked', label: 'Show unlocked' },
+  { key: 'locked', label: 'Show locked' },
+  { key: 'current', label: 'Show current status' },
+];
+
+const getGroupKey = (badge) => [
+  badge.type || '',
+  badge.type === 'log' ? badge.action_category_id || '' : '',
+  badge.type === 'log_specific_action' ? badge.action_id || '' : '',
+].join(':');
+
+const getCurrentStatusBadges = (badges) => {
+  const groups = new Map();
+
+  badges.forEach((badge) => {
+    const key = getGroupKey(badge);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(badge);
+  });
+
+  return Array.from(groups.values()).map((group) => {
+    const tiers = group.sort((a, b) => a.target_value - b.target_value);
+    const nextLocked = tiers.find(badge => !badge.is_unlocked);
+    return nextLocked || tiers[tiers.length - 1];
+  }).filter(Boolean);
+};
+
+export default function BadgeGrid({ unlocked = [], locked = [] }) {
   const router = useRouter();
+  const [filter, setFilter] = useState('all');
+
+  const allBadges = useMemo(
+    () => [
+      ...unlocked.map(badge => ({ ...badge, is_unlocked: true })),
+      ...locked.map(badge => ({ ...badge, is_unlocked: false })),
+    ],
+    [unlocked, locked]
+  );
+
+  const currentStatus = useMemo(
+    () => getCurrentStatusBadges(allBadges),
+    [allBadges]
+  );
 
   const goToDetail = (achievementId) => {
     router.push({
@@ -15,116 +59,158 @@ export default function BadgeGrid({ unlocked, locked }) {
     });
   };
 
+  const renderBadgeCard = (badge) => {
+    const progress = Math.min(
+      ((badge.current_progress || 0) / (badge.target_value || 1)) * 100,
+      100
+    );
+
+    return (
+      <TouchableOpacity
+        key={badge.id}
+        style={styles.badgeCard}
+        onPress={() => goToDetail(badge.id)}
+        activeOpacity={0.75}
+      >
+        <View style={styles.badgeImgWrap}>
+          {badge.badge_image ? (
+            <Image
+              source={{ uri: `${BASE_URL}/${badge.badge_image}` }}
+              style={[
+                styles.badgeImg,
+                !badge.is_unlocked && styles.badgeImgLocked,
+              ]}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={[
+              styles.badgeImg,
+              badge.is_unlocked
+                ? styles.badgeImgFallback
+                : styles.badgeImgFallbackLocked,
+            ]}>
+              <Text style={styles.fallbackEmoji}>
+                {badge.is_unlocked ? '🏅' : '🔒'}
+              </Text>
+            </View>
+          )}
+
+          {badge.is_unlocked ? (
+            <View style={styles.checkDot}>
+              <Text style={styles.checkDotText}>✓</Text>
+            </View>
+          ) : (
+            <View style={styles.lockOverlay}>
+              <Text style={styles.lockIcon}>🔒</Text>
+            </View>
+          )}
+        </View>
+
+        <Text style={[
+          styles.badgeName,
+          !badge.is_unlocked && styles.badgeNameLocked,
+        ]} numberOfLines={2}>
+          {badge.badge_name}
+        </Text>
+
+        <View style={styles.progressBar}>
+          <View style={[
+            styles.progressFill,
+            { width: badge.is_unlocked ? '100%' : `${progress}%` }
+          ]} />
+        </View>
+
+        {!badge.is_unlocked && (
+          <Text style={styles.progressText}>
+            {badge.current_progress || 0} / {badge.target_value}
+          </Text>
+        )}
+      </TouchableOpacity>
+    );
+  };
+
+  const renderSection = (title, badges) => (
+    badges?.length > 0 && (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <View style={styles.grid}>
+          {badges.map(renderBadgeCard)}
+        </View>
+      </View>
+    )
+  );
+
+  const isEmpty =
+    (filter === 'all' && allBadges.length === 0) ||
+    (filter === 'unlocked' && unlocked.length === 0) ||
+    (filter === 'locked' && locked.length === 0) ||
+    (filter === 'current' && currentStatus.length === 0);
+
   return (
     <View style={styles.container}>
-
-      {/* Filter info */}
-      <View style={styles.filterRow}>
+      <View style={styles.filterHeader}>
         <Text style={styles.filterInfo}>
-          {unlocked?.length || 0} unlocked · {locked?.length || 0} locked
+          {unlocked.length} unlocked · {locked.length} locked
         </Text>
+        <View style={styles.filterOptions}>
+          {FILTERS.map((item) => {
+            const active = filter === item.key;
+            return (
+              <TouchableOpacity
+                key={item.key}
+                style={styles.filterOption}
+                onPress={() => setFilter(item.key)}
+                activeOpacity={0.75}
+              >
+                <View style={[
+                  styles.checkbox,
+                  active && styles.checkboxActive,
+                ]}>
+                  {active && <Text style={styles.checkboxTick}>✓</Text>}
+                </View>
+                <Text style={[
+                  styles.filterLabel,
+                  active && styles.filterLabelActive,
+                ]}>
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
-      {/* Unlocked Badges */}
-      {unlocked?.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Unlocked</Text>
-          <View style={styles.grid}>
-            {unlocked.map((badge) => (
-              <TouchableOpacity
-                key={badge.id}
-                style={styles.badgeCard}
-                onPress={() => goToDetail(badge.id)}
-                activeOpacity={0.75}
-              >
-                <View style={styles.badgeImgWrap}>
-                  {badge.badge_image ? (
-                    <Image
-                      source={{ uri: `${BASE_URL}/${badge.badge_image}` }}
-                      style={styles.badgeImg}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View style={[styles.badgeImg, styles.badgeImgFallback]}>
-                      <Text style={styles.fallbackEmoji}>🏅</Text>
-                    </View>
-                  )}
-                  {/* Unlocked checkmark */}
-                  <View style={styles.checkDot}>
-                    <Text style={styles.checkDotText}>✓</Text>
-                  </View>
-                </View>
-                <Text style={styles.badgeName} numberOfLines={2}>
-                  {badge.badge_name}
-                </Text>
-                {/* Full progress bar */}
-                <View style={styles.progressBar}>
-                  <View style={[styles.progressFill, { width: '100%' }]} />
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+      {filter === 'all' && (
+        <>
+          {renderSection('Unlocked', unlocked.map(badge => ({
+            ...badge,
+            is_unlocked: true,
+          })))}
+          {renderSection('Locked', locked.map(badge => ({
+            ...badge,
+            is_unlocked: false,
+          })))}
+        </>
       )}
 
-      {/* Locked Badges */}
-      {locked?.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Locked</Text>
-          <View style={styles.grid}>
-            {locked.map((badge) => (
-              <TouchableOpacity
-                key={badge.id}
-                style={styles.badgeCard}
-                onPress={() => goToDetail(badge.id)}
-                activeOpacity={0.75}
-              >
-                <View style={styles.badgeImgWrap}>
-                  {badge.badge_image ? (
-                    // Show image but greyed out
-                    <Image
-                      source={{ uri: `${BASE_URL}/${badge.badge_image}` }}
-                      style={[styles.badgeImg, styles.badgeImgLocked]}
-                      resizeMode="contain"
-                    />
-                  ) : (
-                    <View style={[styles.badgeImg, styles.badgeImgFallbackLocked]}>
-                      <Text style={styles.fallbackEmoji}>🔒</Text>
-                    </View>
-                  )}
-                  {/* Lock overlay */}
-                  <View style={styles.lockOverlay}>
-                    <Text style={styles.lockIcon}>🔒</Text>
-                  </View>
-                </View>
-                <Text style={[styles.badgeName, styles.badgeNameLocked]}
-                  numberOfLines={2}>
-                  {badge.badge_name}
-                </Text>
-                {/* Progress bar */}
-                <View style={styles.progressBar}>
-                  <View style={[
-                    styles.progressFill,
-                    {
-                      width: `${Math.min(
-                        ((badge.current_progress || 0) / (badge.target_value || 1)) * 100,
-                        100
-                      )}%`
-                    }
-                  ]} />
-                </View>
-                <Text style={styles.progressText}>
-                  {badge.current_progress || 0} / {badge.target_value}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
+      {filter === 'unlocked' && renderSection(
+        'Unlocked',
+        unlocked.map(badge => ({ ...badge, is_unlocked: true }))
       )}
 
-      {(!unlocked?.length && !locked?.length) && (
+      {filter === 'locked' && renderSection(
+        'Locked',
+        locked.map(badge => ({ ...badge, is_unlocked: false }))
+      )}
+
+      {filter === 'current' && renderSection(
+        'Current Status',
+        currentStatus
+      )}
+
+      {isEmpty && (
         <View style={styles.empty}>
-          <Text style={styles.emptyText}>No badges yet</Text>
+          <Text style={styles.emptyText}>No badges to show</Text>
         </View>
       )}
     </View>
@@ -136,13 +222,56 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 16,
   },
-  filterRow: {
-    marginBottom: 4,
+  filterHeader: {
+    gap: 10,
   },
   filterInfo: {
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '500',
+  },
+  filterOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    borderRadius: 8,
+    backgroundColor: colors.bgWhite,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  checkbox: {
+    width: 16,
+    height: 16,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: colors.textSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxTick: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '800',
+    lineHeight: 12,
+  },
+  filterLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  filterLabelActive: {
+    color: colors.textPrimary,
   },
   section: { gap: 10 },
   sectionTitle: {
@@ -160,8 +289,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 5,
   },
-
-  // Badge image wrapper (relative positioned for overlay)
   badgeImgWrap: {
     width: 64,
     height: 64,
@@ -187,8 +314,6 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   fallbackEmoji: { fontSize: 28 },
-
-  // Unlocked checkmark dot
   checkDot: {
     position: 'absolute',
     bottom: 0,
@@ -207,8 +332,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '700',
   },
-
-  // Lock overlay
   lockOverlay: {
     position: 'absolute',
     top: 0, left: 0, right: 0, bottom: 0,
@@ -217,8 +340,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   lockIcon: { fontSize: 20 },
-
-  // Badge name
   badgeName: {
     fontSize: 10,
     fontWeight: '600',
@@ -229,8 +350,6 @@ const styles = StyleSheet.create({
   badgeNameLocked: {
     color: colors.textSecondary,
   },
-
-  // Progress bar
   progressBar: {
     width: '100%',
     height: 4,
@@ -248,7 +367,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: 'center',
   },
-
   empty: {
     padding: 40,
     alignItems: 'center',
