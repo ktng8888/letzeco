@@ -49,6 +49,9 @@ export default function AchievementDetailScreen() {
   const progressPercent = current.target_value > 0
     ? Math.min((current.current_progress / current.target_value) * 100, 100)
     : 100;
+  const displayProgress = current.target_value > 0
+    ? Math.min(current.current_progress, current.target_value)
+    : current.current_progress;
 
   const tierColor = getTierColor(current.badge_name);
 
@@ -116,7 +119,7 @@ export default function AchievementDetailScreen() {
             ]} />
           </View>
           <Text style={styles.progressText}>
-            {current.current_progress} / {current.target_value}
+            {displayProgress} / {current.target_value}
           </Text>
         </View>
 
