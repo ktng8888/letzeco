@@ -10,7 +10,7 @@ const FILTERS = [
   { key: 'all', label: 'Show all' },
   { key: 'unlocked', label: 'Show unlocked' },
   { key: 'locked', label: 'Show locked' },
-  { key: 'current', label: 'Show current status' },
+  { key: 'currentTier', label: 'Show current tier' },
 ];
 
 const getGroupKey = (badge) => [
@@ -19,7 +19,7 @@ const getGroupKey = (badge) => [
   badge.type === 'log_specific_action' ? badge.action_id || '' : '',
 ].join(':');
 
-const getCurrentStatusBadges = (badges) => {
+const getCurrentTierBadges = (badges) => {
   const groups = new Map();
 
   badges.forEach((badge) => {
@@ -37,7 +37,7 @@ const getCurrentStatusBadges = (badges) => {
 
 export default function BadgeGrid({ unlocked = [], locked = [] }) {
   const router = useRouter();
-  const [filter, setFilter] = useState('all');
+  const [filters, setFilters] = useState(['all']);
 
   const allBadges = useMemo(
     () => [
@@ -47,8 +47,8 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     [unlocked, locked]
   );
 
-  const currentStatus = useMemo(
-    () => getCurrentStatusBadges(allBadges),
+  const currentTierBadges = useMemo(
+    () => getCurrentTierBadges(allBadges),
     [allBadges]
   );
 
@@ -56,6 +56,22 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     router.push({
       pathname: '/screens/achievement-detail',
       params: { achievementId },
+    });
+  };
+
+  const toggleFilter = (key) => {
+    if (key === 'all') {
+      setFilters(['all']);
+      return;
+    }
+
+    setFilters((current) => {
+      const withoutAll = current.filter(item => item !== 'all');
+      const next = withoutAll.includes(key)
+        ? withoutAll.filter(item => item !== key)
+        : [...withoutAll, key];
+
+      return next.length > 0 ? next : ['all'];
     });
   };
 
@@ -140,11 +156,14 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     )
   );
 
-  const isEmpty =
-    (filter === 'all' && allBadges.length === 0) ||
-    (filter === 'unlocked' && unlocked.length === 0) ||
-    (filter === 'locked' && locked.length === 0) ||
-    (filter === 'current' && currentStatus.length === 0);
+  const activeFilters = filters.includes('all') ? ['all'] : filters;
+  const isEmpty = activeFilters.every((filter) => {
+    if (filter === 'all') return allBadges.length === 0;
+    if (filter === 'unlocked') return unlocked.length === 0;
+    if (filter === 'locked') return locked.length === 0;
+    if (filter === 'currentTier') return currentTierBadges.length === 0;
+    return true;
+  });
 
   return (
     <View style={styles.container}>
@@ -154,12 +173,12 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
         </Text>
         <View style={styles.filterOptions}>
           {FILTERS.map((item) => {
-            const active = filter === item.key;
+            const active = filters.includes(item.key);
             return (
               <TouchableOpacity
                 key={item.key}
                 style={styles.filterOption}
-                onPress={() => setFilter(item.key)}
+                onPress={() => toggleFilter(item.key)}
                 activeOpacity={0.75}
               >
                 <View style={[
@@ -180,7 +199,7 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
         </View>
       </View>
 
-      {filter === 'all' && (
+      {activeFilters.includes('all') && (
         <>
           {renderSection('Unlocked', unlocked.map(badge => ({
             ...badge,
@@ -193,19 +212,19 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
         </>
       )}
 
-      {filter === 'unlocked' && renderSection(
+      {activeFilters.includes('unlocked') && renderSection(
         'Unlocked',
         unlocked.map(badge => ({ ...badge, is_unlocked: true }))
       )}
 
-      {filter === 'locked' && renderSection(
+      {activeFilters.includes('locked') && renderSection(
         'Locked',
         locked.map(badge => ({ ...badge, is_unlocked: false }))
       )}
 
-      {filter === 'current' && renderSection(
-        'Current Status',
-        currentStatus
+      {activeFilters.includes('currentTier') && renderSection(
+        'Current Tier',
+        currentTierBadges
       )}
 
       {isEmpty && (
