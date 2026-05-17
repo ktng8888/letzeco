@@ -4,10 +4,8 @@ import { getRankBorderColor } from '../../utils/rankUtils';
 import { useRouter } from 'expo-router';
 import colors from '../../constants/colors';
 
-export default function TopThreePodium({ top3, myId }) {
-  if (!top3 || top3.length === 0) return null;
-
-  const [first, second, third] = top3;
+export default function TopThreePodium({ top3, myId, isFriends }) {
+  const [first, second, third] = top3 || [];
 
   return (
     <View style={styles.podium}>
@@ -17,6 +15,7 @@ export default function TopThreePodium({ top3, myId }) {
         rank={2}
         height={80}
         isMe={second?.id === myId}
+        isFriends={isFriends}
       />
       {/* 1st place */}
       <PodiumItem
@@ -24,6 +23,7 @@ export default function TopThreePodium({ top3, myId }) {
         rank={1}
         height={110}
         isMe={first?.id === myId}
+        isFriends={isFriends}
       />
       {/* 3rd place */}
       <PodiumItem
@@ -31,17 +31,36 @@ export default function TopThreePodium({ top3, myId }) {
         rank={3}
         height={60}
         isMe={third?.id === myId}
+        isFriends={isFriends}
       />
     </View>
   );
 }
 
-function PodiumItem({ user, rank, height, isMe }) {
-    const router = useRouter();
-  
-    if (!user) return <View style={styles.podiumSlot} />;
-
+function PodiumItem({ user, rank, height, isMe, isFriends }) {
+  const router = useRouter();
   const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+
+  if (!user) {
+    return (
+      <View style={styles.podiumSlot}>
+        <Text style={styles.medal}>{medal}</Text>
+        <TouchableOpacity
+          style={[styles.avatar, styles.avatarEmpty]}
+          onPress={() => isFriends && router.push('/screens/friends')}
+        >
+          <Text style={styles.avatarEmptyIcon}>+</Text>
+        </TouchableOpacity>
+        <Text style={styles.usernameEmpty}>
+          {isFriends ? 'Add Friend' : '---'}
+        </Text>
+        <Text style={styles.xp}>—</Text>
+        <View style={[styles.block, { height }]}>
+          <Text style={styles.rankText}>#{rank}</Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity
@@ -133,7 +152,7 @@ const styles = StyleSheet.create({
     borderColor: '#f59e0b',
     backgroundColor: '#fef3c7',
   },
-    avatarImg: {
+  avatarImg: {
         width: '100%',
         height: '100%',
         borderRadius: 26,
@@ -142,6 +161,22 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  avatarEmpty: {
+    borderStyle: 'dashed',
+    backgroundColor: '#f3f4f6',
+    borderColor: colors.border,
+  },
+  avatarEmptyIcon: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    fontWeight: '300',
+  },
+  usernameEmpty: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   username: {
     fontSize: 12,

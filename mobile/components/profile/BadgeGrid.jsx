@@ -8,9 +8,9 @@ import colors from '../../constants/colors';
 
 const FILTERS = [
   { key: 'all', label: 'Show all' },
+  { key: 'currentTier', label: 'Show current tier' },
   { key: 'unlocked', label: 'Show unlocked' },
   { key: 'locked', label: 'Show locked' },
-  { key: 'currentTier', label: 'Show current tier' },
 ];
 
 const getGroupKey = (badge) => [
@@ -255,6 +255,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   filterOption: {
+    width: '47%',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
