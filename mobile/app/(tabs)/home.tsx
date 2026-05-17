@@ -88,6 +88,22 @@ export default function HomeScreen() {
 
   const handleClaimPress = (reward: StreakReward) => {
     if (
+      !reward.is_earned &&
+      reward.day === streak + 1 &&
+      todayLoggedCount === 0
+    ) {
+      Alert.alert(
+        `Day ${reward.day} is ready`,
+        'Log one eco-action today to unlock this streak reward.',
+        [
+          { text: 'Later', style: 'cancel' },
+          { text: 'Log Action', onPress: () => router.push('/(tabs)/log-action') },
+        ]
+      );
+      return;
+    }
+
+    if (
       !reward.is_earned ||
       reward.claim_status !== 'unclaimed' ||
       !reward.user_streak_reward_id
@@ -358,13 +374,14 @@ export default function HomeScreen() {
               const claimed  = r.claim_status === 'claimed';
               const earned   = r.is_earned;
               const canClaim = earned && r.claim_status === 'unclaimed' && todayLoggedCount > 0;
+              const canUnlockToday = !earned && r.day === streak + 1 && todayLoggedCount === 0;
 
               return (
                 <TouchableOpacity
                   key={r.day}
                   style={styles.dayCol}
                   onPress={() => handleClaimPress(r)}
-                  disabled={!(earned && !claimed)}
+                  disabled={!(earned && !claimed) && !canUnlockToday}
                 >
                   <Text style={[styles.dayLabel]}>
                     Day {r.day}
@@ -373,11 +390,14 @@ export default function HomeScreen() {
                     styles.dayBox,
                     claimed && styles.dayBoxClaimed,
                     canClaim && styles.dayBoxCanClaim,
+                    canUnlockToday && styles.dayBoxToday,
                   ]}>
                     {claimed
                       ? <Ionicons name="checkmark" size={16} color="#fff" />
                       : canClaim
                         ? <Ionicons name="gift" size={16} color="#f59e0b" />
+                        : canUnlockToday
+                          ? <Ionicons name="lock-open-outline" size={16} color={colors.primary} />
                         : r.badge_image
                           ? <Image source={{ uri: getImageUrl(r.badge_image) ?? undefined }} style={styles.dayImg} />
                           : earned
@@ -655,8 +675,8 @@ const styles = StyleSheet.create({
     width: CARD_W, borderRadius: 22,
     minHeight: 230, overflow: 'hidden',
     backgroundColor: colors.bgWhite,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12, shadowRadius: 8, elevation: 5,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   joinCard: {
     backgroundColor: colors.primaryBg,
@@ -773,6 +793,11 @@ const styles = StyleSheet.create({
   },
   dayBoxClaimed: { backgroundColor: colors.primary, borderColor: colors.primary },
   dayBoxCanClaim: { backgroundColor: '#fef3c7', borderColor: '#f59e0b', borderWidth: 2 },
+  dayBoxToday: {
+    backgroundColor: colors.primaryBg,
+    borderColor: colors.primaryLight,
+    borderWidth: 2,
+  },
   dayImg: { width: 24, height: 24, borderRadius: 12 },
   dayXp: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
 
