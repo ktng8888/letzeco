@@ -151,10 +151,10 @@ export default function ActionCompleteScreen() {
           <View style={styles.streakCard}>
             <Text style={styles.streakCardIcon}>🔥</Text>
             <Text style={styles.streakCardTitle}>
-              {streak_reward.day} Day Streak!
+              Day {streak_reward.day} Streak Reward Unlocked!
             </Text>
             <Text style={styles.streakCardText}>
-              +{streak_reward.xp_reward} XP bonus earned!
+              Claim +{streak_reward.xp_reward} XP from Home.
             </Text>
           </View>
         )}

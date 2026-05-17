@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const userModel = require('../../models/userModel');
 const { sendOtpEmail } = require('../../utils/emailService');
-const { checkAndResetStreak } = require('../../utils/streakService');
+const streakService = require('../../utils/streakService');
 
 const authController = {
 
@@ -65,7 +65,7 @@ const authController = {
         return res.status(400).json({ message: 'Invalid email or password.' });
       }
 
-      await checkAndResetStreak(user.id);
+      await streakService.checkAndResetStreak(user.id);
 
       // Generate token
       const token = jwt.sign(

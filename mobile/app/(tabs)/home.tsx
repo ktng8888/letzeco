@@ -3,7 +3,7 @@ import {
   RefreshControl, TouchableOpacity, Image, Modal,
   Alert, FlatList, Dimensions
 } from 'react-native';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -22,13 +22,11 @@ import colors from '../../constants/colors';
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = SCREEN_W - 48;
 
-const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const CHALLENGE_GRADIENTS = [
   '#22c55e', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6',
 ];
 
 type StreakReward = {
-  id: number;
   day: number;
   xp_reward: number;
   badge_name: string | null;
@@ -41,7 +39,6 @@ type StreakReward = {
 export default function HomeScreen() {
   const router = useRouter();
   const { user, updateUser } = useAuthStore();
-  const flatListRef = useRef<FlatList>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -90,7 +87,11 @@ export default function HomeScreen() {
   const onRefresh = useCallback(() => { setRefreshing(true); loadData(); }, []);
 
   const handleClaimPress = (reward: StreakReward) => {
-    if (!reward.is_earned || reward.claim_status === 'claimed') return;
+    if (
+      !reward.is_earned ||
+      reward.claim_status !== 'unclaimed' ||
+      !reward.user_streak_reward_id
+    ) return;
     if (todayLoggedCount === 0) {
       Alert.alert(
         'Log an action first! 🌿',
@@ -126,15 +127,7 @@ export default function HomeScreen() {
   const hasUnclaimed = streakRewards.some(
     (r: StreakReward) => r.is_earned && r.claim_status === 'unclaimed'
   );
-  const hasLoggedToday = todayLoggedCount > 0;
-  const todaySlotIndex = Math.min(hasLoggedToday ? Math.max(streak - 1, 0) : streak, 6);
-  const todayDayIndex = new Date().getDay();
-  const firstDayIndex = (todayDayIndex - todaySlotIndex + 7) % 7;
-  const streakDays = Array.from({ length: 7 }, (_, i) => ({
-    dayName: DAY_NAMES[(firstDayIndex + i) % 7],
-    reward: streakRewards[i] || null,
-    isToday: i === todaySlotIndex,
-  }));
+  const streakDays = streakRewards;
 
   const carouselItems: any[] = myChallenges.length > 0
     ? [...myChallenges, { id: 'join', isJoin: true }]
@@ -228,7 +221,6 @@ export default function HomeScreen() {
         {/* ── CHALLENGE CAROUSEL ── */}
         <View style={styles.carouselWrap}>
           <FlatList
-            ref={flatListRef}
             data={carouselItems}
             horizontal
             pagingEnabled
@@ -326,61 +318,50 @@ export default function HomeScreen() {
             </View>
           )}
 
-          <View style={styles.streakDays}>
-            {streakDays.map((item, i) => {
-              const r = item.reward;
-              const claimed = r?.claim_status === 'claimed';
-              const earned = r?.is_earned;
-              const canClaim = earned && !claimed && todayLoggedCount > 0;
-              const isTodayTarget = item.isToday && !hasLoggedToday && !earned;
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
+          >
+            {streakDays.map((r: StreakReward) => {
+              const claimed  = r.claim_status === 'claimed';
+              const earned   = r.is_earned;
+              const canClaim = earned && r.claim_status === 'unclaimed' && todayLoggedCount > 0;
+
               return (
                 <TouchableOpacity
-                  key={i}
+                  key={r.day}
                   style={styles.dayCol}
-                  onPress={() => {
-                    if (isTodayTarget) {
-                      router.push('/(tabs)/log-action');
-                      return;
-                    }
-                    if (r) handleClaimPress(r);
-                  }}
-                  disabled={isTodayTarget ? false : (!r || !(earned && !claimed))}
+                  onPress={() => handleClaimPress(r)}
+                  disabled={!(earned && !claimed)}
                 >
-                  <Text style={[styles.dayLabel, item.isToday && styles.dayLabelToday]}>
-                    {item.dayName}
+                  <Text style={[styles.dayLabel]}>
+                    Day {r.day}
                   </Text>
                   <View style={[
                     styles.dayBox,
                     claimed && styles.dayBoxClaimed,
                     canClaim && styles.dayBoxCanClaim,
-                    item.isToday && !earned && styles.dayBoxToday,
-                    isTodayTarget && styles.dayBoxTodayTarget,
                   ]}>
-                    {isTodayTarget
-                      ? <Text style={styles.dayTargetText}>Start</Text>
-                      : claimed
+                    {claimed
                       ? <Ionicons name="checkmark" size={16} color="#fff" />
                       : canClaim
                         ? <Ionicons name="gift" size={16} color="#f59e0b" />
-                        : r?.badge_image
-                          ? <Image
-                              source={{ uri: getImageUrl(r.badge_image) ?? undefined }}
-                              style={styles.dayImg}
-                            />
-                          : <Text style={{ fontSize: 12 }}>{earned ? '⭐' : ''}</Text>
+                        : r.badge_image
+                          ? <Image source={{ uri: getImageUrl(r.badge_image) ?? undefined }} style={styles.dayImg} />
+                          : earned
+                            ? <Text style={{ fontSize: 12 }}>⭐</Text>
+                            : null
                     }
                   </View>
-                  <Text style={[
-                    styles.dayXp,
-                    claimed && { color: colors.primary },
-                    isTodayTarget && styles.dayXpLocked
-                  ]}>
-                    {r ? `${r.xp_reward}XP` : '—'}
+                  <Text style={[styles.dayXp, claimed && { color: colors.primary }]}>
+                    {r.xp_reward}XP
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
+
         </View>
 
         {/* ── TODAY'S ACTIONS ── */}
@@ -703,13 +684,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10, paddingVertical: 7, marginBottom: 10,
   },
   bannerText: { fontSize: 12, color: colors.primary, flex: 1 },
-  streakDays: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 },
-  dayCol: { alignItems: 'center', flex: 1 },
+  dayCol: {
+    alignItems: 'center',
+    width: 52,
+  },
   dayLabel: {
     fontSize: 10, color: colors.textSecondary,
     marginBottom: 5, fontWeight: '500',
   },
-  dayLabelToday: { color: colors.primary, fontWeight: '700' },
   dayBox: {
     width: 36, height: 36, borderRadius: 10,
     backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center',
@@ -717,20 +699,8 @@ const styles = StyleSheet.create({
   },
   dayBoxClaimed: { backgroundColor: colors.primary, borderColor: colors.primary },
   dayBoxCanClaim: { backgroundColor: '#fef3c7', borderColor: '#f59e0b', borderWidth: 2 },
-  dayBoxToday: { borderColor: colors.primary, borderWidth: 2 },
-  dayBoxTodayTarget: {
-    backgroundColor: '#eefaf2',
-    borderColor: colors.primary,
-    borderWidth: 2,
-  },
-  dayTargetText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.primary,
-  },
   dayImg: { width: 24, height: 24, borderRadius: 12 },
   dayXp: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
-  dayXpLocked: { opacity: 0.65 },
 
   // ── Today Actions ──
   actionCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 10 },

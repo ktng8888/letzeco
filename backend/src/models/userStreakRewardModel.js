@@ -31,7 +31,8 @@ const userStreakRewardModel = {
     const result = await pool.query(
       `SELECT
         usr.*,
-        sr.day, sr.xp_reward,
+        COALESCE(usr.day, sr.day) AS day,
+        COALESCE(usr.xp_reward, sr.xp_reward) AS xp_reward,
         b.name AS badge_name,
         b.image AS badge_image
        FROM user_streak_reward usr
@@ -48,13 +49,14 @@ const userStreakRewardModel = {
   getById: async (id) => {
     const result = await pool.query(
       `SELECT usr.*,
-              sr.day, sr.xp_reward,
+              COALESCE(sr.day, usr.day) AS day,
+              COALESCE(sr.xp_reward, usr.xp_reward) AS xp_reward,
               b.name AS badge_name,
               b.image AS badge_image
-       FROM user_streak_reward usr
-       LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
-       LEFT JOIN badge b ON sr.badge_id = b.id
-       WHERE usr.id = $1`,
+      FROM user_streak_reward usr
+      LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
+      LEFT JOIN badge b ON sr.badge_id = b.id
+      WHERE usr.id = $1`,
       [id]
     );
     return result.rows[0];
@@ -69,13 +71,36 @@ const userStreakRewardModel = {
     return result.rows[0] || null;
   },
 
-  create: async (userId, rewardId) => {
+  getByUserAndDay: async (userId, day) => {
+    const result = await pool.query(
+      `SELECT usr.*
+      FROM user_streak_reward usr
+      LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
+      WHERE usr.user_id = $1
+        AND COALESCE(usr.day, sr.day) = $2`,
+      [userId, day]
+    );
+    return result.rows[0] || null;
+  },
+
+  createForDay: async (userId, day, xpReward) => {
     const result = await pool.query(
       `INSERT INTO user_streak_reward
-        (user_id, streak_reward_id, obtain_date, status)
-      VALUES ($1, $2, NOW(), 'unclaimed')
+        (user_id, streak_reward_id, day, xp_reward, obtain_date, status)
+      VALUES ($1, NULL, $2, $3, NOW(), 'unclaimed')
       RETURNING *`,
-      [userId, rewardId]
+      [userId, day, xpReward]
+    );
+    return result.rows[0];
+  },
+
+  create: async (userId, rewardId, day = null, xpReward = null) => {
+    const result = await pool.query(
+      `INSERT INTO user_streak_reward
+        (user_id, streak_reward_id, day, xp_reward, obtain_date, status)
+      VALUES ($1, $2, $3, $4, NOW(), 'unclaimed')
+      RETURNING *`,
+      [userId, rewardId, day, xpReward]
     );
     return result.rows[0];
   },
@@ -93,7 +118,8 @@ const userStreakRewardModel = {
     const result = await pool.query(
       `UPDATE user_streak_reward
        SET status = 'claimed'
-       WHERE id = $1 RETURNING *`,
+       WHERE id = $1 AND status <> 'claimed'
+       RETURNING *`,
       [id]
     );
     return result.rows[0];

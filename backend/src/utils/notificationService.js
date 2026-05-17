@@ -144,7 +144,7 @@ const notificationService = {
     await notificationModel.create(
       userId,
       `🔥 ${day} Day Streak!`,
-      `You earned ${xpReward} XP for your ${day}-day streak!`,
+      `${xpReward} XP reward for your ${day}-day streak!`,
       'streak_reward',
       day
     );
