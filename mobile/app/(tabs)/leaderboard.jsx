@@ -2,8 +2,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, RefreshControl, Modal
 } from 'react-native';
-import { useState, useEffect, useCallback } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 
 import leaderboardService from '../../services/leaderboardService';
@@ -42,9 +41,8 @@ export default function LeaderboardScreen() {
   };
 
   useFocusEffect(
-      useCallback(() => { loadData(); }, [])
+    useCallback(() => { loadData(); }, [])
   );
-  
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -57,10 +55,8 @@ export default function LeaderboardScreen() {
   const leaderboard = currentData?.leaderboard || [];
   const yourRank = currentData?.your_rank || '-';
   const top3 = leaderboard.slice(0, 3);
-  //const rest = leaderboard.slice(3);
   const rest = leaderboard;
 
-  // Get current week range
   const weekRange = getWeekRange();
 
   return (
@@ -70,22 +66,16 @@ export default function LeaderboardScreen() {
 
       {/* Period Info */}
       <View style={styles.periodRow}>
-        <Text style={styles.periodText}>
-          Period: {weekRange}
-        </Text>
+        <Text style={styles.periodText}>Period: {weekRange}</Text>
         <TouchableOpacity onPress={() => setShowInfo(true)}>
-          <Text style={styles.rankingInfoBtn}>
-            About Ranking ⓘ
-          </Text>
+          <Text style={styles.rankingInfoBtn}>About Ranking ⓘ</Text>
         </TouchableOpacity>
       </View>
 
       {/* Your Rank Banner */}
       <View style={styles.yourRankBanner}>
         <View style={styles.yourRankLeft}>
-          <Text style={styles.yourRankEmoji}>
-            {getRankEmoji(yourRank)}
-          </Text>
+          <Text style={styles.yourRankEmoji}>{getRankEmoji(yourRank)}</Text>
           <View>
             <Text style={styles.yourRankLabel}>Your Rank</Text>
             <Text style={styles.yourRankValue}>#{yourRank}</Text>
@@ -103,10 +93,7 @@ export default function LeaderboardScreen() {
           style={[styles.tab, activeTab === 'global' && styles.tabActive]}
           onPress={() => setActiveTab('global')}
         >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'global' && styles.tabTextActive
-          ]}>
+          <Text style={[styles.tabText, activeTab === 'global' && styles.tabTextActive]}>
             🌍 Global
           </Text>
         </TouchableOpacity>
@@ -114,10 +101,7 @@ export default function LeaderboardScreen() {
           style={[styles.tab, activeTab === 'friends' && styles.tabActive]}
           onPress={() => setActiveTab('friends')}
         >
-          <Text style={[
-            styles.tabText,
-            activeTab === 'friends' && styles.tabTextActive
-          ]}>
+          <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
             👫 Friends
           </Text>
         </TouchableOpacity>
@@ -133,33 +117,30 @@ export default function LeaderboardScreen() {
           />
         }
       >
-        {leaderboard.length === 0 ? (
+        {leaderboard.length === 0 && activeTab === 'global' ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🏆</Text>
-            <Text style={styles.emptyText}>
-              {activeTab === 'friends'
-                ? 'Add friends to see the friends leaderboard!'
-                : 'No data yet. Start logging actions!'
-              }
-            </Text>
+            <Text style={styles.emptyText}>No data yet. Start logging actions!</Text>
           </View>
         ) : (
           <>
-            {/* Top 3 Podium */}
+            {/* Top 3 Podium — always shown for friends tab even if empty */}
             <View style={styles.podiumSection}>
-              <TopThreePodium top3={top3} myId={user?.id} />
+              <TopThreePodium
+                top3={top3}
+                myId={user?.id}
+                isFriends={activeTab === 'friends'}
+              />
             </View>
 
             {/* Rest of leaderboard */}
-            <View style={styles.listSection}>
-              {rest.map((item) => (
-                <LeaderboardCard
-                  key={item.id}
-                  item={item}
-                  myId={user?.id}
-                />
-              ))}
-            </View>
+            {leaderboard.length > 0 && (
+              <View style={styles.listSection}>
+                {rest.map((item) => (
+                  <LeaderboardCard key={item.id} item={item} myId={user?.id} />
+                ))}
+              </View>
+            )}
           </>
         )}
 
@@ -178,9 +159,7 @@ export default function LeaderboardScreen() {
           onPress={() => setShowInfo(false)}
         >
           <View style={styles.infoModal}>
-            <Text style={styles.infoTitle}>
-              🏆 Ranking Formula
-            </Text>
+            <Text style={styles.infoTitle}>🏆 Ranking Formula</Text>
             <Text style={styles.infoText}>
               Weekly XP {'>'} Level {'>'} Total XP {'>'} Streak
             </Text>
