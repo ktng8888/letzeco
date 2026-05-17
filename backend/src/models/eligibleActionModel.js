@@ -6,7 +6,12 @@ const eligibleActionModel = {
   getByChallengeId: async (challengeId) => {
     const result = await pool.query(
       `SELECT ea.*, a.name AS action_name,
-              ac.name AS category_name
+              a.image AS action_image,
+              a.xp_reward,
+              ac.name AS category_name,
+              ac.image AS category_image,
+              ac.tag_bg_colour_code,
+              ac.tag_text_colour_code
        FROM eligible_action ea
        LEFT JOIN action a ON ea.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id

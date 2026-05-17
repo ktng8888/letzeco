@@ -302,7 +302,13 @@ export default function ChallengeDetailScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.logBtn}
-              onPress={() => router.push('/(tabs)/log-action')}
+              onPress={() => router.push({
+                pathname: '/screens/challenge-actions',
+                params: {
+                  challengeId: challenge.id,
+                  challengeName: challenge.name,
+                },
+              })}
             >
               <Text style={styles.logBtnText}>Log Eligible Action</Text>
             </TouchableOpacity>
