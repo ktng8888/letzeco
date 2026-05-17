@@ -183,13 +183,60 @@ const achievementController = {
   getStreakRewards: async (req, res) => {
     const userId = req.user.id;
     try {
-      const rewards = await userStreakRewardModel.getAllWithStatus(userId);
-      const user    = await userModel.getProfile(userId);
+      const user = await userModel.getProfile(userId);
+      const streak = user.streak;
+      const FIXED_XP = 200;
+
+      // Fetch the 7 static day rewards from streak_reward table
+      const staticRewards = await pool.query(
+        `SELECT sr.*, b.name AS badge_name, b.image AS badge_image
+        FROM streak_reward sr
+        LEFT JOIN badge b ON sr.badge_id = b.id
+        ORDER BY sr.day ASC`
+      );
+      const staticMap = {};
+      for (const r of staticRewards.rows) staticMap[r.day] = r;
+
+      // Fetch all user earned reward records. Day 8+ rows have no streak_reward_id,
+      // so keep the user row as the source of truth and use streak_reward as fallback.
+      const claimedRows = await pool.query(
+        `SELECT
+          usr.*,
+          COALESCE(usr.day, sr.day) AS day,
+          COALESCE(usr.xp_reward, sr.xp_reward) AS xp_reward
+        FROM user_streak_reward usr
+        LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
+        WHERE usr.user_id = $1`,
+        [userId]
+      );
+
+      const claimedMap = {};
+      for (const r of claimedRows.rows) claimedMap[r.day] = r;
+
+      // Build a sliding window of 7 days centered on current streak
+      // Show from max(1, streak-2) so user sees their history + upcoming
+      const windowStart = Math.max(1, streak - 2);
+      const rewards = Array.from({ length: 7 }, (_, i) => {
+        const day = windowStart + i;
+        const isFixed = day > 7;
+        const staticReward = staticMap[day] || null;
+        const claimedRow = claimedMap[day] || null;
+
+        return {
+          day,
+          xp_reward:            isFixed ? FIXED_XP : (staticReward?.xp_reward ?? 0),
+          badge_name:           staticReward?.badge_name ?? null,
+          badge_image:          staticReward?.badge_image ?? null,
+          is_earned:            day <= streak,
+          claim_status:         claimedRow ? claimedRow.status : null,
+          user_streak_reward_id: claimedRow ? claimedRow.id : null,
+        };
+      });
 
       res.json({
         message: 'Streak rewards retrieved successfully.',
         data: {
-          current_streak: user.streak,
+          current_streak: streak,
           rewards,
         }
       });
@@ -223,7 +270,10 @@ const achievementController = {
         xpResult = await xpService.addXP(userId, reward.xp_reward);
       }
 
-      await userStreakRewardModel.claim(id);
+      const claimed = await userStreakRewardModel.claim(id);
+      if (!claimed) {
+        return res.status(400).json({ message: 'Reward already claimed.' });
+      }
 
       const user = await userModel.getProfile(userId);
 

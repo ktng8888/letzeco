@@ -71,24 +71,40 @@ const streakService = {
 
   checkStreakReward: async (userId, currentStreak) => {
     try {
-      const reward = await streakRewardModel.getByDay(currentStreak);
-      if (!reward) return null;
+      if (currentStreak <= 7) {
+        // Normal path: look up static reward
+        const reward = await streakRewardModel.getByDay(currentStreak);
+        if (!reward) return null;
 
-      const existing = await userStreakRewardModel.getByUserAndReward(
-        userId, reward.id
-      );
-      if (existing) return null;
+        const existing = await userStreakRewardModel.getByUserAndDay(userId, currentStreak);
+        if (existing) return null;
 
-      // Create unclaimed record — XP added on manual claim only
-      await userStreakRewardModel.create(userId, reward.id);
+        await userStreakRewardModel.create(
+          userId,
+          reward.id,
+          reward.day,
+          reward.xp_reward
+        );
+        return {
+          day:         reward.day,
+          xp_reward:   reward.xp_reward,
+          badge_name:  reward.badge_name,
+          badge_image: reward.badge_image,
+        };
+      } else {
+        // Day 8+: fixed 200 XP, no static streak_reward row
+        // Check if already created for this day
+        const existing = await userStreakRewardModel.getByUserAndDay(userId, currentStreak);
+        if (existing) return null;
 
-      return {
-        day:         reward.day,
-        xp_reward:   reward.xp_reward,
-        badge_name:  reward.badge_name,
-        badge_image: reward.badge_image,
-      };
-
+        await userStreakRewardModel.createForDay(userId, currentStreak, 200);
+        return {
+          day:         currentStreak,
+          xp_reward:   200,
+          badge_name:  null,
+          badge_image: null,
+        };
+      }
     } catch (err) {
       console.error('Check streak reward error:', err);
       throw err;
