@@ -140,6 +140,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 22,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgWhite,
+    padding: 14,
+    gap: 12,
   },
   rewardsList: { gap: 12 },
   rewardSection: {

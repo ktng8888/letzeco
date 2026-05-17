@@ -253,6 +253,9 @@ export default function HomeScreen() {
               }
               const bgColor = CHALLENGE_GRADIENTS[index % CHALLENGE_GRADIENTS.length];
               const isTeam = item.type === 'team';
+              const challengeImageUrl = getImageUrl(
+                item.challenge_image || item.image
+              );
               const daysLeft = Math.max(0, Math.ceil(
                 (new Date(item.end_date).getTime() - Date.now()) / 86400000
               ));
@@ -261,31 +264,59 @@ export default function HomeScreen() {
               );
               return (
                 <TouchableOpacity
-                  style={[styles.challengeCard, { backgroundColor: bgColor }]}
+                  style={styles.challengeCard}
                   onPress={() => router.push({
                     pathname: '/screens/challenge-detail',
                     params: { id: item.challenge_id }
                   })}
+                  activeOpacity={0.88}
                 >
+                  <View
+                    style={[
+                      styles.challengeImageBg,
+                      !challengeImageUrl && { backgroundColor: bgColor },
+                    ]}
+                  >
+                    {challengeImageUrl ? (
+                      <Image
+                        source={{ uri: challengeImageUrl }}
+                        style={styles.challengeImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Ionicons name="leaf" size={38} color="#fff" />
+                    )}
                   <View style={styles.cTypeBadge}>
                     <Text style={styles.cTypeText}>
                       {isTeam ? '👥 Team' : '🎯 Solo'}
                     </Text>
                   </View>
-                  <Text style={styles.cName} numberOfLines={2}>
-                    {item.challenge_name}
-                  </Text>
-                  <Text style={styles.cDays}>
-                    {daysLeft > 0 ? `${daysLeft} days left` : 'Ends today'}
-                  </Text>
-                  <View style={styles.cProgressBg}>
-                    <View style={[styles.cProgressFill, { width: `${prog}%` }]} />
                   </View>
-                  <Text style={styles.cProgressLabel}>
-                    {item.progress_value || 0} / {item.target_value || '?'}
-                  </Text>
-                  <View style={styles.cViewBtn}>
-                    <Text style={[styles.cViewBtnText, { color: bgColor }]}>View</Text>
+                  <View style={styles.challengeBody}>
+                    <View style={styles.challengeTitleRow}>
+                      <View style={styles.challengeTitleBlock}>
+                        <Text style={styles.cName} numberOfLines={1}>
+                          {item.challenge_name}
+                        </Text>
+                        <Text style={styles.cDays}>
+                          {daysLeft > 0 ? `${daysLeft} days left` : 'Ends today'}
+                        </Text>
+                      </View>
+                      <View style={styles.cViewBtn}>
+                        <Text style={styles.cViewBtnText}>View</Text>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={14}
+                          color={colors.primary}
+                        />
+                      </View>
+                    </View>
+                    <View style={styles.cProgressBg}>
+                      <View style={[styles.cProgressFill, { width: `${prog}%` }]} />
+                    </View>
+                    <Text style={styles.cProgressLabel}>
+                      {item.progress_value || 0} / {item.target_value || '?'}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               );
@@ -621,8 +652,9 @@ const styles = StyleSheet.create({
   // ── Carousel ──
   carouselWrap: { paddingTop: 14, paddingBottom: 4 },
   challengeCard: {
-    width: CARD_W, borderRadius: 20, padding: 20,
-    minHeight: 175, justifyContent: 'space-between',
+    width: CARD_W, borderRadius: 22,
+    minHeight: 230, overflow: 'hidden',
+    backgroundColor: colors.bgWhite,
     shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12, shadowRadius: 8, elevation: 5,
   },
@@ -630,6 +662,34 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryBg,
     borderWidth: 2, borderColor: colors.primaryLight,
     alignItems: 'center', justifyContent: 'center', gap: 8,
+    padding: 20,
+  },
+  challengeImageBg: {
+    height: 145,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  challengeImage: {
+    width: '100%',
+    height: '100%',
+  },
+  challengeBody: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 14,
+    gap: 7,
+    position: 'relative',
+  },
+  challengeTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  challengeTitleBlock: {
+    flex: 1,
+    minWidth: 0,
   },
   joinIcon: { fontSize: 32 },
   joinTitle: { fontSize: 17, fontWeight: '700', color: colors.primary },
@@ -640,24 +700,38 @@ const styles = StyleSheet.create({
   },
   joinBtnText: { fontSize: 13, fontWeight: '700', color: '#fff' },
   cTypeBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4,
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(17,24,39,0.62)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   cTypeText: { fontSize: 11, fontWeight: '600', color: '#fff' },
-  cName: { fontSize: 17, fontWeight: '700', color: '#fff', marginTop: 6 },
-  cDays: { fontSize: 11, color: 'rgba(255,255,255,0.8)', marginBottom: 6 },
+  cName: { fontSize: 18, fontWeight: '800', color: colors.textPrimary },
+  cDays: { fontSize: 12, color: colors.textSecondary },
   cProgressBg: {
-    height: 5, backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3, overflow: 'hidden',
+    height: 7, backgroundColor: colors.bgGrey,
+    borderRadius: 999, overflow: 'hidden',
   },
-  cProgressFill: { height: '100%', backgroundColor: '#fff', borderRadius: 3 },
-  cProgressLabel: { fontSize: 10, color: 'rgba(255,255,255,0.8)', marginTop: 3 },
+  cProgressFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 999 },
+  cProgressLabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   cViewBtn: {
-    alignSelf: 'flex-end', backgroundColor: '#fff',
-    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 6, marginTop: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primaryBg,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    flexShrink: 0,
   },
-  cViewBtnText: { fontSize: 12, fontWeight: '700' },
+  cViewBtnText: { fontSize: 13, fontWeight: '800', color: colors.primary },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 5, marginTop: 10 },
   dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#d1d5db' },
   dotActive: { backgroundColor: colors.primary, width: 16 },
