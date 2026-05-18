@@ -7,12 +7,12 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { BASE_URL } from '../../constants/api';
 
 import friendService from '../../services/friendService';
 import useAuthStore from '../../store/authStore';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import colors from '../../constants/colors';
+import { getImageUrl } from '../../utils/imageUrl';
 
 const TABS = ['Friend', 'Sent Request', 'Pending Request'];
 
@@ -301,6 +301,7 @@ export default function FriendsScreen() {
                     id: r.receiver_id,
                     username: r.receiver_username,
                     level: r.receiver_level,
+                    profile_image: r.receiver_profile_image,
                   }}
                   onViewPress={() => router.push({
                     pathname: '/screens/user-profile',
@@ -328,6 +329,7 @@ export default function FriendsScreen() {
                     id: r.sender_id,
                     username: r.sender_username,
                     level: r.sender_level,
+                    profile_image: r.sender_profile_image,
                   }}
                   onApprove={() => handleApprove(r.friendship_id)}
                   onReject={() => handleReject(r.friendship_id)}
@@ -353,12 +355,14 @@ export default function FriendsScreen() {
 // ─────────────────────────────────────────
 
 function FriendCard({ user, onViewPress, onRemovePress, primaryAction, secondaryAction }) {
+  const avatarUri = getImageUrl(user?.profile_image);
+
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        {user?.profile_image ? (
+        {avatarUri ? (
           <Image
-              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
           />
         ) : (
@@ -392,12 +396,14 @@ function FriendCard({ user, onViewPress, onRemovePress, primaryAction, secondary
 }
 
 function PendingCard({ user, onApprove, onReject, onViewPress }) {
+  const avatarUri = getImageUrl(user?.profile_image);
+
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        {user?.profile_image ? (
+        {avatarUri ? (
           <Image
-              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
           />
         ) : (
@@ -430,6 +436,7 @@ function PendingCard({ user, onApprove, onReject, onViewPress }) {
 
 function SearchResultCard({ user, onViewPress, onActionPress }) {
   const status = user.friendship_status;
+  const avatarUri = getImageUrl(user?.profile_image);
 
   const actionLabel = status === 'friends'
     ? 'Friends'
@@ -442,9 +449,9 @@ function SearchResultCard({ user, onViewPress, onActionPress }) {
   return (
     <View style={styles.friendCard}>
       <View style={styles.friendAvatar}>
-        {user?.profile_image ? (
+        {avatarUri ? (
           <Image
-              source={{ uri: `${BASE_URL}/${user.profile_image}` }}
+              source={{ uri: avatarUri }}
               style={styles.avatar}
           />
         ) : (

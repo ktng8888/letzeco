@@ -10,6 +10,7 @@ import PageHeader from '../../../../components/layout/PageHeader';
 import FormCard from '../../../../components/common/FormCard';
 import Select from '../../../../components/common/Select';
 import Button from '../../../../components/common/Button';
+import ConfirmDelete from '../../../../components/common/ConfirmDelete';
 
 const ACHIEVEMENT_TYPES = [
   { value: 'log', label: 'Log category' },
@@ -67,6 +68,8 @@ function AchievementDetail() {
   const [imagePreviews, setImagePreviews] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [deleteRow, setDeleteRow] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const fileRefs = useRef({});
 
   const needsCategory = type === 'log' || type === 'log_specific_action';
@@ -144,6 +147,47 @@ function AchievementDetail() {
       delete next[rowKey];
       return next;
     });
+  };
+
+  const handleDeleteRowPress = (row) => {
+    if (rows.length <= 1) {
+      toast.error('Achievement group must have at least one tier.');
+      return;
+    }
+
+    if (!row.id) {
+      handleRemoveNewRow(getRowKey(row));
+      return;
+    }
+
+    setDeleteRow(row);
+  };
+
+  const handleConfirmDeleteTier = async () => {
+    if (!deleteRow?.id) return;
+
+    setIsDeleting(true);
+    try {
+      await achievementService.delete(deleteRow.id);
+      const rowKey = getRowKey(deleteRow);
+      setRows(prev => prev.filter(row => getRowKey(row) !== rowKey));
+      setImageFiles(prev => {
+        const next = { ...prev };
+        delete next[rowKey];
+        return next;
+      });
+      setImagePreviews(prev => {
+        const next = { ...prev };
+        delete next[rowKey];
+        return next;
+      });
+      setDeleteRow(null);
+      toast.success('Tier deleted.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete tier.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -421,12 +465,15 @@ function AchievementDetail() {
                         </td>
                         {!isView && (
                           <td className="px-2 py-3">
-                            {!row.id && rows.length > 1 && (
+                            {rows.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => handleRemoveNewRow(rowKey)}
+                                onClick={() => handleDeleteRowPress(row)}
+                                disabled={isSaving || isDeleting}
                                 className="p-1.5 bg-red-50 hover:bg-red-100
-                                  text-red-500 rounded-lg transition"
+                                  text-red-500 rounded-lg transition
+                                  disabled:opacity-50 disabled:cursor-not-allowed"
+                                title="Delete tier"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -454,6 +501,14 @@ function AchievementDetail() {
           </Button>
         </div>
       </FormCard>
+
+      <ConfirmDelete
+        isOpen={!!deleteRow}
+        onClose={() => setDeleteRow(null)}
+        onConfirm={handleConfirmDeleteTier}
+        itemName={deleteRow?.name || 'this tier'}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
