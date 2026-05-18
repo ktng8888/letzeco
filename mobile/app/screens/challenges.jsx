@@ -14,6 +14,11 @@ import ChallengeCard from '../../components/challenges/ChallengeCard';
 import colors from '../../constants/colors';
 
 const TABS = ['Participating', 'Available', 'Completed'];
+const TYPE_FILTERS = [
+  { key: 'all', label: 'All', icon: 'apps-outline' },
+  { key: 'solo', label: 'Solo', icon: 'person-outline' },
+  { key: 'team', label: 'Team', icon: 'people-outline' },
+];
 
 export default function ChallengesScreen() {
   const router = useRouter();
@@ -21,6 +26,7 @@ export default function ChallengesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('Participating');
+  const [activeType, setActiveType] = useState('all');
   const [allChallenges, setAllChallenges] = useState([]);
   const [myChallenges, setMyChallenges] = useState([]);
 
@@ -69,7 +75,16 @@ export default function ChallengesScreen() {
     }
   };
 
-  const currentData = getTabData();
+  const tabData = getTabData();
+  const typeCounts = TYPE_FILTERS.reduce((acc, filter) => {
+    acc[filter.key] = filter.key === 'all'
+      ? tabData.length
+      : tabData.filter(c => c.type === filter.key).length;
+    return acc;
+  }, {});
+  const currentData = activeType === 'all'
+    ? tabData
+    : tabData.filter(c => c.type === activeType);
 
   return (
     <View style={styles.container}>
@@ -114,6 +129,41 @@ export default function ChallengesScreen() {
         })}
       </View>
 
+      <View style={styles.typeFilters}>
+        {TYPE_FILTERS.map((filter) => {
+          const active = activeType === filter.key;
+          return (
+            <TouchableOpacity
+              key={filter.key}
+              style={[
+                styles.typeFilter,
+                active && styles.typeFilterActive,
+              ]}
+              onPress={() => setActiveType(filter.key)}
+              activeOpacity={0.75}
+            >
+              <Ionicons
+                name={filter.icon}
+                size={15}
+                color={active ? colors.primary : colors.textSecondary}
+              />
+              <Text style={[
+                styles.typeFilterText,
+                active && styles.typeFilterTextActive,
+              ]}>
+                {filter.label}
+              </Text>
+              <Text style={[
+                styles.typeFilterCount,
+                active && styles.typeFilterCountActive,
+              ]}>
+                {typeCounts[filter.key]}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
@@ -127,8 +177,8 @@ export default function ChallengesScreen() {
       >
         {currentData.length === 0 ? (
           <EmptyState
-            title={getEmptyTitle(activeTab)}
-            subtitle={getEmptySubtitle(activeTab)}
+            title={getEmptyTitle(activeTab, activeType)}
+            subtitle={getEmptySubtitle(activeTab, activeType)}
             buttonText={activeTab === 'Participating'
               ? 'Browse Challenges'
               : null
@@ -164,23 +214,25 @@ export default function ChallengesScreen() {
   );
 }
 
-function getEmptyTitle(tab) {
+function getEmptyTitle(tab, type = 'all') {
+  const typeLabel = type === 'all' ? '' : `${type} `;
   switch (tab) {
-    case 'Participating': return 'No challenges yet';
-    case 'Available': return 'No available challenges';
-    case 'Completed': return 'No completed challenges';
+    case 'Participating': return `No ${typeLabel}challenges yet`;
+    case 'Available': return `No available ${typeLabel}challenges`;
+    case 'Completed': return `No completed ${typeLabel}challenges`;
     default: return 'No challenges';
   }
 }
 
-function getEmptySubtitle(tab) {
+function getEmptySubtitle(tab, type = 'all') {
+  const typeLabel = type === 'all' ? 'challenge' : `${type} challenge`;
   switch (tab) {
     case 'Participating':
-      return 'Join a challenge to start tracking your progress!';
+      return `Join a ${typeLabel} to start tracking your progress!`;
     case 'Available':
-      return 'Check back later for new challenges!';
+      return `Check back later for new ${typeLabel}s!`;
     case 'Completed':
-      return 'Complete a challenge to see it here!';
+      return `Complete a ${typeLabel} to see it here!`;
     default: return '';
   }
 }
@@ -233,6 +285,55 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: colors.primary,
     fontWeight: '700',
+  },
+  typeFilters: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+    backgroundColor: colors.bgLight,
+  },
+  typeFilter: {
+    flex: 1,
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    backgroundColor: colors.bgWhite,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  typeFilterActive: {
+    backgroundColor: colors.primaryBg,
+    borderColor: colors.primaryLight,
+  },
+  typeFilterText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  typeFilterTextActive: {
+    color: colors.primary,
+  },
+  typeFilterCount: {
+    minWidth: 20,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 999,
+    backgroundColor: colors.bgGrey,
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    textAlign: 'center',
+    overflow: 'hidden',
+  },
+  typeFilterCountActive: {
+    backgroundColor: colors.bgWhite,
+    color: colors.primary,
   },
   content: {
     padding: 16,
