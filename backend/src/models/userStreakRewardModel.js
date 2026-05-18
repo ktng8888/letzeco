@@ -108,7 +108,7 @@ const userStreakRewardModel = {
   deleteByUserId: async (userId) => {
     await pool.query(
       `DELETE FROM user_streak_reward
-       WHERE user_id = $1 AND status = 'unclaimed'`,
+       WHERE user_id = $1`,
       [userId]
     );
   },

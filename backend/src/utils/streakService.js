@@ -17,6 +17,7 @@ const streakService = {
 
       let newStreak       = user.streak;
       let streakContinued = false;
+      let streakRestarted = false;
 
       if (lastActions.length <= 1) {
         newStreak       = 1;
@@ -37,10 +38,14 @@ const streakService = {
         } else {
           newStreak       = 1;
           streakContinued = true;
+          streakRestarted = true;
         }
       }
 
       if (streakContinued) {
+        if (streakRestarted) {
+          await userStreakRewardModel.deleteByUserId(userId);
+        }
         await userModel.updateStreak(userId, newStreak);
       }
 

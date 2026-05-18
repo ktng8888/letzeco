@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { Upload } from 'lucide-react';
+import { Plus, Trash2, Upload } from 'lucide-react';
 import toast from 'react-hot-toast';
 import achievementService from '../../../../services/achievementService';
 import categoryService from '../../../../services/categoryService';
@@ -40,6 +40,16 @@ const getGroupKey = (achievement) => [
 
 const isSameGroup = (achievement, groupKey) =>
   getGroupKey(achievement) === groupKey;
+
+const newRow = () => ({
+  id: null,
+  tempId: `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  target_value: '',
+  bonus_xp: '',
+  name: '',
+  badge_name: '',
+  badge_image: null,
+});
 
 function AchievementDetail() {
   const router = useRouter();
@@ -102,24 +112,56 @@ function AchievementDetail() {
       .catch(console.error);
   }, [categoryId, needsAction]);
 
-  const updateRow = (id, field, value) => {
+  const getRowKey = (row) => row.id || row.tempId;
+
+  const updateRow = (rowKey, field, value) => {
     setRows(prev => prev.map(row =>
-      row.id === id ? { ...row, [field]: value } : row
+      getRowKey(row) === rowKey ? { ...row, [field]: value } : row
     ));
   };
 
-  const handleImageChange = (rowId, file) => {
-    setImageFiles(prev => ({ ...prev, [rowId]: file }));
+  const handleImageChange = (rowKey, file) => {
+    setImageFiles(prev => ({ ...prev, [rowKey]: file }));
     setImagePreviews(prev => ({
       ...prev,
-      [rowId]: URL.createObjectURL(file),
+      [rowKey]: URL.createObjectURL(file),
     }));
+  };
+
+  const handleAddRow = () => {
+    setRows(prev => [...prev, newRow()]);
+  };
+
+  const handleRemoveNewRow = (rowKey) => {
+    setRows(prev => prev.filter(row => getRowKey(row) !== rowKey));
+    setImageFiles(prev => {
+      const next = { ...prev };
+      delete next[rowKey];
+      return next;
+    });
+    setImagePreviews(prev => {
+      const next = { ...prev };
+      delete next[rowKey];
+      return next;
+    });
   };
 
   const handleSubmit = async () => {
     setIsSaving(true);
     try {
-      await Promise.all(rows.map((row) => {
+      for (const row of rows) {
+        if (!row.target_value || row.bonus_xp === '' || !row.name || !row.badge_name) {
+          toast.error('Each tier needs target, bonus XP, achievement name and badge name.');
+          setIsSaving(false);
+          return;
+        }
+      }
+
+      const existingRows = rows.filter(row => row.id);
+      const addedRows = rows.filter(row => !row.id);
+
+      await Promise.all(existingRows.map((row) => {
+        const rowKey = getRowKey(row);
         const formData = new FormData();
         formData.append('type', type);
         formData.append('action_category_id', needsCategory ? categoryId || '' : '');
@@ -128,11 +170,33 @@ function AchievementDetail() {
         formData.append('badge_name', row.badge_name);
         formData.append('target_value', row.target_value);
         formData.append('bonus_xp', row.bonus_xp);
-        if (imageFiles[row.id]) {
-          formData.append('image', imageFiles[row.id]);
+        if (imageFiles[rowKey]) {
+          formData.append('image', imageFiles[rowKey]);
         }
         return achievementService.update(row.id, formData);
       }));
+
+      if (addedRows.length > 0) {
+        const formData = new FormData();
+        formData.append('type', type);
+        if (needsCategory && categoryId) formData.append('action_category_id', categoryId);
+        if (needsAction && actionId) formData.append('action_id', actionId);
+        formData.append('rows', JSON.stringify(addedRows.map(row => ({
+          target_value: row.target_value,
+          bonus_xp: row.bonus_xp,
+          name: row.name,
+          badge_name: row.badge_name,
+        }))));
+
+        addedRows.forEach((row, index) => {
+          const rowKey = getRowKey(row);
+          if (imageFiles[rowKey]) {
+            formData.append(`image_${index}`, imageFiles[rowKey]);
+          }
+        });
+
+        await achievementService.createBatch(formData);
+      }
 
       toast.success('Achievement group updated!');
       router.push('/achievements');
@@ -217,6 +281,12 @@ function AchievementDetail() {
                   ({rows.length} achievement{rows.length === 1 ? '' : 's'})
                 </span>
               </div>
+              {!isView && (
+                <Button onClick={handleAddRow} size="sm">
+                  <Plus className="w-4 h-4" />
+                  Add Tier
+                </Button>
+              )}
             </div>
 
             <div className="border border-gray-200 rounded-xl overflow-hidden">
@@ -233,23 +303,27 @@ function AchievementDetail() {
                       text-gray-600">Badge Name</th>
                     <th className="text-left px-4 py-3 font-semibold
                       text-gray-600 w-56">Badge Graphic</th>
+                    {!isView && (
+                      <th className="w-12" />
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {rows.map((row) => {
-                    const displayImage = imagePreviews[row.id]
+                    const rowKey = getRowKey(row);
+                    const displayImage = imagePreviews[rowKey]
                       || (row.badge_image
                         ? `${API_URL}/${row.badge_image.replace(/\\/g, '/')}`
                         : null);
 
                     return (
-                      <tr key={row.id}
+                      <tr key={rowKey}
                         className="border-t border-gray-100 align-top">
                         <td className="px-4 py-3">
                           <input type="number"
                             value={row.target_value}
                             onChange={(e) =>
-                              updateRow(row.id, 'target_value', e.target.value)
+                              updateRow(rowKey, 'target_value', e.target.value)
                             }
                             min="1"
                             disabled={isView}
@@ -263,7 +337,7 @@ function AchievementDetail() {
                           <input type="number"
                             value={row.bonus_xp}
                             onChange={(e) =>
-                              updateRow(row.id, 'bonus_xp', e.target.value)
+                              updateRow(rowKey, 'bonus_xp', e.target.value)
                             }
                             disabled={isView}
                             className="w-full px-3 py-2 text-sm border
@@ -276,7 +350,7 @@ function AchievementDetail() {
                           <input type="text"
                             value={row.name}
                             onChange={(e) =>
-                              updateRow(row.id, 'name', e.target.value)
+                              updateRow(rowKey, 'name', e.target.value)
                             }
                             disabled={isView}
                             className="w-full px-3 py-2 text-sm border
@@ -289,7 +363,7 @@ function AchievementDetail() {
                           <input type="text"
                             value={row.badge_name}
                             onChange={(e) =>
-                              updateRow(row.id, 'badge_name', e.target.value)
+                              updateRow(rowKey, 'badge_name', e.target.value)
                             }
                             disabled={isView}
                             className="w-full px-3 py-2 text-sm border
@@ -315,7 +389,7 @@ function AchievementDetail() {
                               <div className="flex flex-col gap-1">
                                 <button type="button"
                                   onClick={() =>
-                                    fileRefs.current[row.id]?.click()
+                                    fileRefs.current[rowKey]?.click()
                                   }
                                   className="px-2 py-1 text-xs bg-gray-100
                                     hover:bg-gray-200 border border-gray-300
@@ -324,19 +398,19 @@ function AchievementDetail() {
                                 </button>
                                 <span className="text-xs text-gray-400
                                   max-w-[90px] truncate">
-                                  {imageFiles[row.id]
-                                    ? imageFiles[row.id].name
+                                  {imageFiles[rowKey]
+                                    ? imageFiles[rowKey].name
                                     : row.badge_image
                                       ? row.badge_image.split('/').pop()
                                       : 'No Photo Chosen'}
                                 </span>
                                 <input
-                                  ref={el => fileRefs.current[row.id] = el}
+                                  ref={el => fileRefs.current[rowKey] = el}
                                   type="file"
                                   accept="image/jpeg,image/png"
                                   onChange={(e) => {
                                     const file = e.target.files[0];
-                                    if (file) handleImageChange(row.id, file);
+                                    if (file) handleImageChange(rowKey, file);
                                     e.target.value = '';
                                   }}
                                   className="hidden"
@@ -345,6 +419,20 @@ function AchievementDetail() {
                             )}
                           </div>
                         </td>
+                        {!isView && (
+                          <td className="px-2 py-3">
+                            {!row.id && rows.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveNewRow(rowKey)}
+                                className="p-1.5 bg-red-50 hover:bg-red-100
+                                  text-red-500 rounded-lg transition"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            )}
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
