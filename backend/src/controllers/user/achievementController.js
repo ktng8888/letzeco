@@ -314,6 +314,13 @@ const achievementController = {
       const achievements = await userAchievementModel.getAllWithProgress(id);
       const unlocked     = achievements.filter(a => a.is_unlocked);
       const locked       = achievements.filter(a => !a.is_unlocked);
+      const lockedWithProgress = await Promise.all(
+        locked.map(async (a) => ({
+          ...a,
+          current_progress: await getCurrentProgress(id, a),
+          target_value:     a.target_value,
+        }))
+      );
 
       res.json({
         message: 'Friend badges retrieved successfully.',
@@ -327,7 +334,7 @@ const achievementController = {
           total_unlocked: unlocked.length,
           total_locked:   locked.length,
           unlocked,
-          locked,
+          locked: lockedWithProgress,
         }
       });
 
