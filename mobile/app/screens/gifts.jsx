@@ -2,7 +2,7 @@
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator,
-  Modal, Image, RefreshControl,
+  Image, RefreshControl,
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import challengeService from '../../services/challengeService';
 import LoadingScreen from '../../components/common/LoadingScreen';
+import { RewardClaimedModal } from '../../components/modals';
 import colors from '../../constants/colors';
 import { BASE_URL } from '../../constants/api';
 
@@ -155,43 +156,11 @@ export default function GiftsScreen() {
         </ScrollView>
       )}
 
-      {/* Success Modal */}
-      <Modal
+      <RewardClaimedModal
         visible={!!claimResult}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setClaimResult(null)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalIcon}>🎉</Text>
-            <Text style={styles.modalTitle}>Reward Claimed!</Text>
-
-            {claimResult?.xp_reward > 0 && (
-              <Text style={styles.modalXp}>
-                +{claimResult.xp_reward} XP
-              </Text>
-            )}
-            {claimResult?.badge_name && (
-              <Text style={styles.modalBadge}>
-                🏅 "{claimResult.badge_name}" badge unlocked!
-              </Text>
-            )}
-            {claimResult?.level_up && (
-              <Text style={styles.modalLevel}>
-                🎊 Level Up! You are now Level {claimResult.new_level}!
-              </Text>
-            )}
-
-            <TouchableOpacity
-              style={styles.modalBtn}
-              onPress={() => setClaimResult(null)}
-            >
-              <Text style={styles.modalBtnText}>Awesome!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        result={claimResult}
+        onClose={() => setClaimResult(null)}
+      />
 
     </View>
   );
@@ -257,26 +226,4 @@ const styles = StyleSheet.create({
     textAlign: 'center', lineHeight: 20,
   },
 
-  modalOverlay: {
-    flex: 1, backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center', justifyContent: 'center', padding: 32,
-  },
-  modal: {
-    backgroundColor: '#fff', borderRadius: 24, padding: 28,
-    alignItems: 'center', width: '100%', gap: 10,
-  },
-  modalIcon: { fontSize: 48 },
-  modalTitle: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-  modalXp: { fontSize: 24, fontWeight: '800', color: colors.primary },
-  modalBadge: {
-    fontSize: 14, color: colors.textSecondary, textAlign: 'center',
-  },
-  modalLevel: {
-    fontSize: 15, fontWeight: '600', color: '#f59e0b', textAlign: 'center',
-  },
-  modalBtn: {
-    backgroundColor: colors.primary, borderRadius: 14,
-    paddingVertical: 14, paddingHorizontal: 40, marginTop: 8,
-  },
-  modalBtnText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });

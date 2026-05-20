@@ -92,23 +92,24 @@ const unlockAchievement = async (userId, achievement) => {
 const getEligibleAchievements = async (type, progress, categoryId = null) => {
   let query;
   let params;
+  const progressValue = Number(progress) || 0;
 
   if (categoryId !== null && categoryId !== undefined) {
     query = `
       ${achievementSelect}
       WHERE a.type = $1
-        AND a.target_value <= $2
+        AND a.target_value::numeric <= $2::numeric
         AND a.action_category_id = $3
       ORDER BY a.target_value ASC`;
-    params = [type, progress, categoryId];
+    params = [type, progressValue, categoryId];
   } else {
     query = `
       ${achievementSelect}
       WHERE a.type = $1
-        AND a.target_value <= $2
+        AND a.target_value::numeric <= $2::numeric
         AND (a.action_category_id IS NULL OR a.action_category_id = 0)
       ORDER BY a.target_value ASC`;
-    params = [type, progress];
+    params = [type, progressValue];
   }
 
   const result = await pool.query(query, params);
@@ -221,23 +222,38 @@ const xpService = {
 
   checkLogAchievement: async (userId, actionCategoryId) => {
     try {
-      const logCount = await pool.query(
-        `SELECT COUNT(*) FROM user_action ua
-         LEFT JOIN action a ON ua.action_id = a.id
-         WHERE ua.user_id = $1
-           AND a.action_category_id = $2
-           AND ua.status = 'completed'`,
-        [userId, actionCategoryId]
-      );
+      const [categoryLogCount, totalLogCount] = await Promise.all([
+        pool.query(
+          `SELECT COUNT(*) FROM user_action ua
+           LEFT JOIN action a ON ua.action_id = a.id
+           WHERE ua.user_id = $1
+             AND a.action_category_id = $2
+             AND ua.status = 'completed'`,
+          [userId, actionCategoryId]
+        ),
+        pool.query(
+          `SELECT COUNT(*) FROM user_action
+           WHERE user_id = $1
+             AND status = 'completed'`,
+          [userId]
+        ),
+      ]);
 
-      return firstUnlocked(
-        await unlockEligibleAchievements(
+      const unlocked = [
+        ...await unlockEligibleAchievements(
           userId,
           'log',
-          parseInt(logCount.rows[0].count),
+          parseInt(categoryLogCount.rows[0].count),
           actionCategoryId
-        )
-      );
+        ),
+        ...await unlockEligibleAchievements(
+          userId,
+          'log',
+          parseInt(totalLogCount.rows[0].count)
+        ),
+      ];
+
+      return firstUnlocked(unlocked);
     } catch (err) {
       console.error('Check log achievement error:', err);
       throw err;
