@@ -3,7 +3,7 @@ const express                  = require('express');
 const router                   = express.Router();
 const adminChallengeController = require('../../controllers/admin/adminChallengeController');
 const verifyAdmin              = require('../../middleware/adminMiddleware');
-const { uploadChallenge, uploadBadge } = require('../../utils/uploadService');
+const { uploadChallenge, uploadSpecialBadge } = require('../../utils/uploadService');
 
 // Challenge CRUD
 router.get('/',    verifyAdmin, adminChallengeController.getAll);
@@ -31,7 +31,7 @@ router.delete('/:id/eligible-actions/:eligibleActionId',   verifyAdmin, adminCha
 router.post(
   '/:id/rewards',
   verifyAdmin,
-  uploadBadge.single('badge_image'),
+  uploadSpecialBadge.single('badge_image'),
   adminChallengeController.saveReward
 );
 router.delete('/:id/rewards', verifyAdmin, adminChallengeController.deleteRewards);

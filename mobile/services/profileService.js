@@ -57,6 +57,11 @@ const profileService = {
     return response.data;
   },
 
+  getUserAchievements: async (userId) => {
+    const response = await api.get(`/achievements/user/${userId}`);
+    return response.data;
+  },
+
   getStreakRewards: async () => {
     const response = await api.get('/achievements/streak-rewards');
     return response.data;

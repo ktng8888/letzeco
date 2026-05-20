@@ -7,7 +7,8 @@ const verifyToken = require('../../middleware/authMiddleware');
 router.get('/badges', verifyToken, achievementController.getBadges);
 router.get('/streak-rewards', verifyToken, achievementController.getStreakRewards);
 router.post('/streak-rewards/claim/:id', verifyToken, achievementController.claimStreakReward);
-router.get('/', verifyToken, achievementController.getAchievements);
+router.get('/user/:id', verifyToken, achievementController.getUserAchievements);
 router.get('/badges/:id', verifyToken, achievementController.getFriendBadges);
+router.get('/', verifyToken, achievementController.getAchievements);
 
 module.exports = router;

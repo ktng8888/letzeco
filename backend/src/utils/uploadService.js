@@ -65,9 +65,9 @@ const challengeStorage = multer.diskStorage({
   }
 });
 
-const badgeStorage = multer.diskStorage({
+const createBadgeStorage = (type) => multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = 'uploads/badges/';
+    const folder = `uploads/badges/${type}/`;
     createFolderIfNotExists(folder);
     cb(null, folder);
   },
@@ -76,6 +76,9 @@ const badgeStorage = multer.diskStorage({
     cb(null, `badge_${Date.now()}${ext}`);
   }
 });
+
+const badgeStorage = createBadgeStorage('normal');
+const specialBadgeStorage = createBadgeStorage('special');
 
 // Proof photo upload
 const proofStorage = multer.diskStorage({
@@ -130,6 +133,12 @@ const uploadBadge = multer({
   limits: { fileSize: 5 * 1024 * 1024 }
 });
 
+const uploadSpecialBadge = multer({
+  storage: specialBadgeStorage,
+  fileFilter: imageFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+});
+
 const uploadProof = multer({
   storage: proofStorage,
   fileFilter: imageFilter,
@@ -150,6 +159,7 @@ module.exports = {
   uploadAction,
   uploadChallenge,
   uploadBadge,
+  uploadSpecialBadge,
   uploadProof,
   deleteFile
 };

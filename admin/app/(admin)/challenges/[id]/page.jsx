@@ -3,6 +3,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Plus, Trash2 } from 'lucide-react';
 import { buildFormData } from '../../../../utils/buildFormData';
+import { getImageUrl } from '../../../../utils/imageUrl';
 import toast from 'react-hot-toast';
 import challengeService from '../../../../services/challengeService';
 import actionService from '../../../../services/actionService';
@@ -84,7 +85,7 @@ function ChallengeDetail() {
           badge_name:   completion.badge_name  || '',
           badge_file:   null,
           badge_preview: completion.badge_image
-            ? `${process.env.NEXT_PUBLIC_API_URL || ''}/${completion.badge_image}`
+            ? getImageUrl(completion.badge_image)
             : null,
         });
       }
@@ -97,7 +98,7 @@ function ChallengeDetail() {
           badge_name:   r.badge_name  || '',
           badge_file:   null,
           badge_preview: r.badge_image
-            ? `${process.env.NEXT_PUBLIC_API_URL || ''}/${r.badge_image}`
+            ? getImageUrl(r.badge_image)
             : null,
         })));
       }
