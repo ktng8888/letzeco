@@ -8,12 +8,12 @@ import { Ionicons } from '@expo/vector-icons';
 
 import profileService from '../../services/profileService';
 import LoadingScreen from '../../components/common/LoadingScreen';
-import { BASE_URL } from '../../constants/api';
+import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
 
 export default function AchievementDetailScreen() {
   const router = useRouter();
-  const { achievementId } = useLocalSearchParams();
+  const { achievementId, userId } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [achievements, setAchievements] = useState([]);
   const [current, setCurrent] = useState(null);
@@ -22,7 +22,9 @@ export default function AchievementDetailScreen() {
 
   const loadData = async () => {
     try {
-      const data = await profileService.getAchievements();
+      const data = userId
+        ? await profileService.getUserAchievements(userId)
+        : await profileService.getAchievements();
       const all = data.data;
       setAchievements(all);
       const found = all.find(a => a.id === parseInt(achievementId));
@@ -80,7 +82,7 @@ export default function AchievementDetailScreen() {
           <View style={styles.badgeImgWrap}>
             {current.badge_image ? (
               <Image
-                source={{ uri: `${BASE_URL}/${current.badge_image}` }}
+                source={{ uri: getImageUrl(current.badge_image) }}
                 style={[
                   styles.badgeImg,
                   !current.is_unlocked && styles.badgeImgLocked,
@@ -166,7 +168,10 @@ export default function AchievementDetailScreen() {
                       if (!isActive) {
                         router.replace({
                           pathname: '/screens/achievement-detail',
-                          params: { achievementId: ach.id },
+                          params: {
+                            achievementId: ach.id,
+                            ...(userId ? { userId } : {}),
+                          },
                         });
                       }
                     }}
@@ -175,7 +180,7 @@ export default function AchievementDetailScreen() {
                     {/* Tier badge thumbnail */}
                     {ach.badge_image ? (
                       <Image
-                        source={{ uri: `${BASE_URL}/${ach.badge_image}` }}
+                        source={{ uri: getImageUrl(ach.badge_image) }}
                         style={[
                           styles.tierImg,
                           !ach.is_unlocked && styles.tierImgLocked,

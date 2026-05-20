@@ -4,8 +4,13 @@ import {
 import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { BASE_URL } from '../../constants/api';
+import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
+
+const BADGE_TYPES = [
+  { key: 'achievement', label: 'Achievement' },
+  { key: 'special', label: 'Special' },
+];
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -57,9 +62,18 @@ const getCurrentTierBadges = (badges) => {
   }).filter(Boolean);
 };
 
-export default function BadgeGrid({ unlocked = [], locked = [] }) {
+export default function BadgeGrid({
+  unlocked = [],
+  locked = [],
+  special = [],
+  profileUserId = null,
+}) {
   const router = useRouter();
+  const [activeBadgeType, setActiveBadgeType] = useState('achievement');
   const [filters, setFilters] = useState(['currentTier']);
+  const specialEmptyMessage = profileUserId
+    ? 'Currently no special badge owned by the user'
+    : 'Get by participating challenges';
 
   const allBadges = useMemo(
     () => [
@@ -95,10 +109,20 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     [allBadges, groupOrder]
   );
 
+  const specialBadges = useMemo(
+    () => [...special].sort((a, b) =>
+      new Date(b.obtain_date || 0) - new Date(a.obtain_date || 0)
+    ),
+    [special]
+  );
+
   const goToDetail = (achievementId) => {
     router.push({
       pathname: '/screens/achievement-detail',
-      params: { achievementId },
+      params: {
+        achievementId,
+        ...(profileUserId ? { userId: profileUserId } : {}),
+      },
     });
   };
 
@@ -145,7 +169,7 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
         <View style={styles.badgeImgWrap}>
           {badge.badge_image ? (
             <Image
-              source={{ uri: `${BASE_URL}/${badge.badge_image}` }}
+              source={{ uri: getImageUrl(badge.badge_image) }}
               style={[
                 styles.badgeImg,
                 !badge.is_unlocked && styles.badgeImgLocked,
@@ -202,6 +226,38 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     );
   };
 
+  const renderSpecialBadgeCard = (badge) => (
+    <View
+      key={badge.user_challenge_reward_id || badge.challenge_reward_id}
+      style={styles.badgeCard}
+    >
+      <View style={styles.badgeImgWrap}>
+        {badge.badge_image ? (
+          <Image
+            source={{ uri: getImageUrl(badge.badge_image) }}
+            style={styles.badgeImg}
+            resizeMode="contain"
+          />
+        ) : (
+          <View style={[styles.badgeImg, styles.badgeImgFallback]}>
+            <Ionicons name="ribbon" size={26} color={colors.primary} />
+          </View>
+        )}
+        <View style={styles.checkDot}>
+          <Ionicons name="checkmark" size={11} color="#fff" />
+        </View>
+      </View>
+
+      <Text style={styles.badgeName} numberOfLines={2}>
+        {badge.badge_name}
+      </Text>
+
+      <Text style={styles.specialSource} numberOfLines={2}>
+        {badge.challenge_name}
+      </Text>
+    </View>
+  );
+
   const renderSection = (title, badges) => (
     badges?.length > 0 && (
       <View style={styles.section}>
@@ -227,6 +283,45 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.typeTabs}>
+        {BADGE_TYPES.map((item) => {
+          const active = activeBadgeType === item.key;
+          return (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.typeTab, active && styles.typeTabActive]}
+              onPress={() => setActiveBadgeType(item.key)}
+              activeOpacity={0.75}
+            >
+              <Text style={[styles.typeTabText, active && styles.typeTabTextActive]}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {activeBadgeType === 'special' ? (
+        <>
+          {specialBadges.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Special</Text>
+                <Text style={styles.sectionCount}>{specialBadges.length}</Text>
+              </View>
+              <View style={styles.grid}>
+                {specialBadges.map(renderSpecialBadgeCard)}
+              </View>
+            </View>
+          ) : (
+            <View style={styles.empty}>
+              <Ionicons name="trophy-outline" size={34} color={colors.textLight} />
+              <Text style={styles.emptyText}>{specialEmptyMessage}</Text>
+            </View>
+          )}
+        </>
+      ) : (
+        <>
       <View style={styles.summaryRow}>
         <CountCard label="Total" value={allBadges.length} />
         <CountCard label="Unlocked" value={unlocked.length} color={colors.primary} />
@@ -297,6 +392,8 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
           <Text style={styles.emptyText}>No badges to show</Text>
         </View>
       )}
+        </>
+      )}
     </View>
   );
 }
@@ -314,6 +411,31 @@ const styles = StyleSheet.create({
   container: {
     padding: 16,
     gap: 16,
+  },
+  typeTabs: {
+    flexDirection: 'row',
+    padding: 3,
+    borderRadius: 12,
+    backgroundColor: colors.bgWhite,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  typeTab: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 9,
+    borderRadius: 9,
+  },
+  typeTabActive: {
+    backgroundColor: colors.primaryBg,
+  },
+  typeTabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  typeTabTextActive: {
+    color: colors.primary,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -522,9 +644,17 @@ const styles = StyleSheet.create({
   empty: {
     padding: 40,
     alignItems: 'center',
+    gap: 8,
   },
   emptyText: {
     fontSize: 14,
     color: colors.textSecondary,
+  },
+  specialSource: {
+    fontSize: 9,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 12,
+    minHeight: 24,
   },
 });

@@ -1,6 +1,7 @@
 // backend/src/controllers/user/achievementController.js  (FULL REPLACEMENT)
 const userAchievementModel  = require('../../models/userAchievementModel');
 const userStreakRewardModel  = require('../../models/userStreakRewardModel');
+const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
 const achievementModel      = require('../../models/achievementModel');
 const badgeModel            = require('../../models/badgeModel');
 const userModel             = require('../../models/userModel');
@@ -128,6 +129,7 @@ const achievementController = {
     const userId = req.user.id;
     try {
       const achievements = await userAchievementModel.getAllWithProgress(userId);
+      const special = await userChallengeRewardModel.getClaimedBadgesByUser(userId);
       const unlocked = achievements.filter(a => a.is_unlocked);
       const locked   = achievements.filter(a => !a.is_unlocked);
 
@@ -146,6 +148,8 @@ const achievementController = {
           total_locked:   locked.length,
           unlocked,
           locked: lockedWithProgress,
+          special,
+          total_special: special.length,
         }
       });
 
@@ -175,6 +179,35 @@ const achievementController = {
 
     } catch (err) {
       console.error('Get achievements error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+  // GET ANOTHER USER'S ACHIEVEMENTS PROGRESS
+  getUserAchievements: async (req, res) => {
+    const { id } = req.params;
+    try {
+      const user = await userModel.getPublicProfile(id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found.' });
+      }
+
+      const achievements = await userAchievementModel.getAllWithProgress(id);
+
+      const achievementsWithProgress = await Promise.all(
+        achievements.map(async (a) => ({
+          ...a,
+          current_progress: await getCurrentProgress(id, a),
+        }))
+      );
+
+      res.json({
+        message: 'User achievements retrieved successfully.',
+        data: achievementsWithProgress,
+      });
+
+    } catch (err) {
+      console.error('Get user achievements error:', err);
       res.status(500).json({ message: 'Server error.' });
     }
   },
@@ -312,6 +345,7 @@ const achievementController = {
       }
 
       const achievements = await userAchievementModel.getAllWithProgress(id);
+      const special      = await userChallengeRewardModel.getClaimedBadgesByUser(id);
       const unlocked     = achievements.filter(a => a.is_unlocked);
       const locked       = achievements.filter(a => !a.is_unlocked);
       const lockedWithProgress = await Promise.all(
@@ -335,6 +369,8 @@ const achievementController = {
           total_locked:   locked.length,
           unlocked,
           locked: lockedWithProgress,
+          special,
+          total_special: special.length,
         }
       });
 

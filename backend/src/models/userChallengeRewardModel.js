@@ -93,6 +93,35 @@ const userChallengeRewardModel = {
     return result.rows[0];
   },
 
+  // Get claimed challenge badges owned by a user
+  getClaimedBadgesByUser: async (userId) => {
+    const result = await pool.query(
+      `SELECT
+         ucr.id             AS user_challenge_reward_id,
+         ucr.obtain_date,
+         ucr.status,
+         cr.id              AS challenge_reward_id,
+         cr.type,
+         cr.top_value,
+         cr.xp_reward,
+         b.id               AS badge_id,
+         b.name             AS badge_name,
+         b.image            AS badge_image,
+         c.id               AS challenge_id,
+         c.name             AS challenge_name
+       FROM user_challenge_reward ucr
+       JOIN challenge_reward cr ON ucr.challenge_reward_id = cr.id
+       JOIN challenge c         ON cr.challenge_id = c.id
+       JOIN badge b             ON cr.badge_id = b.id
+       WHERE ucr.user_id = $1
+         AND ucr.status = 'claimed'
+         AND cr.badge_id IS NOT NULL
+       ORDER BY ucr.obtain_date DESC, ucr.id DESC`,
+      [userId]
+    );
+    return result.rows;
+  },
+
 };
 
 module.exports = userChallengeRewardModel;

@@ -65,6 +65,9 @@ export default function ProfileScreen() {
 
   if (isLoading) return <LoadingScreen />;
 
+  const totalOwnedBadges =
+    (badges?.total_unlocked || 0) + (badges?.total_special || 0);
+
   return (
     <View style={styles.container}>
 
@@ -110,7 +113,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <ProfileHeader
           user={profile}
-          totalBadges={badges?.total_unlocked || 0}
+          totalBadges={totalOwnedBadges}
           totalActions={profile?.total_actions || 0}
           totalFriends={profile?.total_friends || 0}
           isOwnProfile
@@ -143,6 +146,7 @@ export default function ProfileScreen() {
           <BadgeGrid
             unlocked={badges.unlocked}
             locked={badges.locked}
+            special={badges.special}
           />
         )}
 
@@ -153,7 +157,7 @@ export default function ProfileScreen() {
         {activeTab === 'Stat' && (
           <StatsSummary
             user={profile}
-            totalBadges={badges?.total_unlocked || 0}
+            totalBadges={totalOwnedBadges}
             globalRank={globalRank}
           />
         )}
