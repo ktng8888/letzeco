@@ -23,7 +23,7 @@ import HomeTopBar from '../../components/home/HomeTopBar';
 import ChallengeCarousel from '../../components/home/ChallengeCarousel';
 import StreakRewardsCard from '../../components/home/StreakRewardsCard';
 import TodayActionsSection from '../../components/home/TodayActionsSection';
-import ClaimRewardModal from '../../components/home/ClaimRewardModal';
+import { ClaimRewardModal } from '../../components/modals';
 import colors from '../../constants/colors';
 
 export default function HomeScreen() {

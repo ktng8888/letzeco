@@ -1,11 +1,11 @@
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Modal, Animated
+  StyleSheet, Animated
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../store/authStore';
+import { BadgeUnlockedModal, LevelUpModal } from '../../components/modals';
 import colors from '../../constants/colors';
 
 export default function ActionCompleteScreen() {
@@ -182,76 +182,17 @@ export default function ActionCompleteScreen() {
         <View style={{ height: 20 }} />
       </ScrollView>
 
-      {/* Level Up Modal */}
-      <Modal
+      <LevelUpModal
         visible={showLevelUp}
-        transparent
-        animationType="fade"
-        onRequestClose={handleLevelUpClose}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalEmoji}>🎉</Text>
-            <Text style={styles.modalTitle}>Congratulations!</Text>
-            <Text style={styles.modalSubtitle}>Level Up!</Text>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelBadgeText}>Lv.</Text>
-              <Text style={styles.levelBadgeNumber}>{data.new_level}</Text>
-            </View>
-            <Text style={styles.modalText}>
-              You reached Level {data.new_level}!{'\n'}
-              Keep going, eco warrior! 🌿
-            </Text>
-            <TouchableOpacity
-              style={styles.modalBtn}
-              onPress={handleLevelUpClose}
-            >
-              <Text style={styles.modalBtnText}>Got it!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        level={data.new_level}
+        onClose={handleLevelUpClose}
+      />
 
-      {/* Badge Unlocked Modal */}
-      <Modal
+      <BadgeUnlockedModal
         visible={showBadge}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowBadge(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalEmoji}>🏅</Text>
-            <Text style={styles.modalTitle}>Badge Unlocked!</Text>
-            <View style={styles.badgeDisplay}>
-              <Text style={styles.badgeName}>
-                {new_badge?.badge_name}
-              </Text>
-              <Text style={styles.badgeAchievement}>
-                {data.new_badge?.name}
-              </Text>
-            </View>
-            {new_badge?.bonus_xp > 0 && (
-              <View style={styles.bonusXpBadge}>
-                <Text style={styles.bonusXpText}>
-                  +{new_badge.bonus_xp} XP Bonus!
-                </Text>
-              </View>
-            )}
-            <Text style={styles.modalText}>
-              You're making real change with every eco-friendly trip!
-              Keep rolling towards a greener planet!
-            </Text>
-            <TouchableOpacity
-              style={styles.modalBtn}
-              onPress={() => setShowBadge(false)}
-            >
-              <Text style={styles.modalBtnText}>Keep Going!</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
+        badge={new_badge}
+        onClose={() => setShowBadge(false)}
+      />
     </View>
   );
 }
@@ -402,104 +343,5 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontSize: 15,
     fontWeight: '500',
-  },
-  // Modals
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-  },
-  modal: {
-    backgroundColor: colors.bgWhite,
-    borderRadius: 24,
-    padding: 28,
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalEmoji: { fontSize: 52, marginBottom: 8 },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 4,
-  },
-  modalSubtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginBottom: 16,
-  },
-  levelBadge: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    backgroundColor: colors.primaryBg,
-    borderRadius: 60,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    marginBottom: 12,
-    gap: 4,
-  },
-  levelBadgeText: {
-    fontSize: 18,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-  levelBadgeNumber: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  modalText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
-  },
-  modalBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 40,
-    width: '100%',
-    alignItems: 'center',
-  },
-  modalBtnText: {
-    color: colors.textWhite,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  badgeDisplay: {
-    alignItems: 'center',
-    backgroundColor: colors.primaryBg,
-    borderRadius: 14,
-    padding: 16,
-    width: '100%',
-    marginBottom: 12,
-  },
-  badgeName: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  badgeAchievement: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  bonusXpBadge: {
-    backgroundColor: colors.xpBg,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    marginBottom: 12,
-  },
-  bonusXpText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.xpColor,
   },
 });

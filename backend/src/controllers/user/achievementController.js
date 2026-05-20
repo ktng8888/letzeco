@@ -14,7 +14,16 @@ const getCurrentProgress = async (userId, achievement) => {
     switch (achievement.type) {
 
       case 'log': {
-        if (!achievement.action_category_id) return 0;
+        if (!achievement.action_category_id) {
+          const r = await pool.query(
+            `SELECT COUNT(*) AS count
+             FROM user_action
+             WHERE user_id = $1
+               AND status = 'completed'`,
+            [userId]
+          );
+          return parseInt(r.rows[0].count);
+        }
         return await userAchievementModel
           .getLogProgress(userId, achievement.action_category_id);
       }
