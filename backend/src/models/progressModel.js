@@ -284,18 +284,6 @@ const progressModel = {
     return result.rows;
   },
 
-  // Get monthly goals
-  getMonthlyGoals: async (userId) => {
-    const result = await pool.query(
-      `SELECT * FROM monthly_goal
-       WHERE user_id = $1
-       AND DATE_TRUNC('month', created_at) =
-           DATE_TRUNC('month', CURRENT_DATE)`,
-      [userId]
-    );
-    return result.rows[0];
-  },
-
   // Get CO2 saved comparison with others
   getCo2Comparison: async (userId, period) => {
     let dateFilter = '';

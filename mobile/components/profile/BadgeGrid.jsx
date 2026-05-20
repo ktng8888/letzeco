@@ -20,6 +20,27 @@ const getGroupKey = (badge) => [
   badge.type === 'log_specific_action' ? badge.action_id || '' : '',
 ].join(':');
 
+const getGroupOrder = (badges) => {
+  const order = new Map();
+
+  badges.forEach((badge) => {
+    const key = getGroupKey(badge);
+    if (!order.has(key)) order.set(key, order.size);
+  });
+
+  return order;
+};
+
+const sortBadgesByGroup = (badges, groupOrder) =>
+  [...badges].sort((a, b) => {
+    const groupDiff = (groupOrder.get(getGroupKey(a)) ?? 0)
+      - (groupOrder.get(getGroupKey(b)) ?? 0);
+
+    if (groupDiff !== 0) return groupDiff;
+
+    return Number(a.target_value || 0) - Number(b.target_value || 0);
+  });
+
 const getCurrentTierBadges = (badges) => {
   const groups = new Map();
 
@@ -48,9 +69,30 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
     [unlocked, locked]
   );
 
-  const currentTierBadges = useMemo(
-    () => getCurrentTierBadges(allBadges),
+  const groupOrder = useMemo(
+    () => getGroupOrder(allBadges),
     [allBadges]
+  );
+
+  const sortedUnlocked = useMemo(
+    () => sortBadgesByGroup(
+      unlocked.map(badge => ({ ...badge, is_unlocked: true })),
+      groupOrder
+    ),
+    [unlocked, groupOrder]
+  );
+
+  const sortedLocked = useMemo(
+    () => sortBadgesByGroup(
+      locked.map(badge => ({ ...badge, is_unlocked: false })),
+      groupOrder
+    ),
+    [locked, groupOrder]
+  );
+
+  const currentTierBadges = useMemo(
+    () => sortBadgesByGroup(getCurrentTierBadges(allBadges), groupOrder),
+    [allBadges, groupOrder]
   );
 
   const goToDetail = (achievementId) => {
@@ -230,25 +272,19 @@ export default function BadgeGrid({ unlocked = [], locked = [] }) {
 
       {activeFilters.includes('all') && (
         <>
-          {renderSection('Unlocked', unlocked.map(badge => ({
-            ...badge,
-            is_unlocked: true,
-          })))}
-          {renderSection('Locked', locked.map(badge => ({
-            ...badge,
-            is_unlocked: false,
-          })))}
+          {renderSection('Unlocked', sortedUnlocked)}
+          {renderSection('Locked', sortedLocked)}
         </>
       )}
 
       {activeFilters.includes('unlocked') && renderSection(
         'Unlocked',
-        unlocked.map(badge => ({ ...badge, is_unlocked: true }))
+        sortedUnlocked
       )}
 
       {activeFilters.includes('locked') && renderSection(
         'Locked',
-        locked.map(badge => ({ ...badge, is_unlocked: false }))
+        sortedLocked
       )}
 
       {activeFilters.includes('currentTier') && renderSection(

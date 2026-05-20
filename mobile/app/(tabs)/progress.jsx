@@ -18,7 +18,6 @@ import CategoryBreakdown from '../../components/progress/CategoryBreakdown';
 import ActivityChart from '../../components/progress/ActivityChart';
 import ComparisonCard from '../../components/progress/ComparisonCard';
 import TrendChart from '../../components/progress/TrendChart';
-import MonthlyGoals from '../../components/progress/MonthlyGoals';
 import colors from '../../constants/colors';
 
 const PERIODS = [
@@ -229,14 +228,6 @@ export default function ProgressScreen() {
             <CategoryBreakdown
               data={progress?.category_breakdown || []}
             />
-          </View>
-        </View>
-
-        {/* Monthly Goals */}
-        <View style={styles.section}>
-          <SectionHeader title="Monthly Goals" />
-          <View style={styles.card}>
-            <MonthlyGoals goals={progress?.monthly_goals} />
           </View>
         </View>
 
