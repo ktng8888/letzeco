@@ -13,14 +13,17 @@ import Button from '../../../../components/common/Button';
 import Input from '../../../../components/common/Input';
 
 const ACHIEVEMENT_TYPES = [
-  { value: 'log', label: 'Log X actions in Y category' },
-  { value: 'log_specific_action', label: 'Log specific action' },
-  { value: 'reach_level', label: 'Reach level X' },
-  { value: 'maintain_streak', label: 'Maintain streak for X days' },
-  { value: 'earn_total_xp', label: 'Earn X total XP' },
-  { value: 'add_friends', label: 'Add X friends' },
-  { value: 'complete_challenges', label: 'Complete X challenges' },
-  { value: 'complete_team_challenges', label: 'Complete X team challenges' },
+  { value: 'log', label: 'Log category' },
+  { value: 'log_specific_action', label: 'Log action' },
+  { value: 'reach_level', label: 'Reach level' },
+  { value: 'maintain_streak', label: 'Maintain streak' },
+  { value: 'earn_total_xp', label: 'Total XP' },
+  { value: 'save_co2', label: 'Save CO2' },
+  { value: 'save_litre', label: 'Save water' },
+  { value: 'save_kwh', label: 'Save energy' },
+  { value: 'add_friends', label: 'Friends' },
+  { value: 'complete_challenges', label: 'Solo challenges' },
+  { value: 'complete_team_challenges', label: 'Team challenges' },
 ];
 
 // Empty row template
