@@ -1,4 +1,3 @@
-// mobile/app/screens/gifts.jsx  (NEW FILE)
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, Alert, ActivityIndicator,

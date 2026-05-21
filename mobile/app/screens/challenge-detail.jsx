@@ -211,11 +211,8 @@ export default function ChallengeDetailScreen() {
               styles.typeText,
               { color: isTeamChallenge ? '#3b82f6' : colors.primary },
             ]}>
-              {isTeamChallenge ? 'Tea' : 'Sol'}
+              {isTeamChallenge ? 'Team' : 'Solo'}
             </Text>
-          </View>
-          <View style={styles.statusBadge}>
-            <Text style={styles.statusText}>Active</Text>
           </View>
         </View>
       </View>
@@ -429,14 +426,6 @@ const styles = StyleSheet.create({
   headerBadges: { flexDirection: 'row', gap: 8 },
   typeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   typeText: { fontSize: 12, fontWeight: '700' },
-  statusBadge: {
-    backgroundColor: colors.primaryBg,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  statusText: { fontSize: 12, fontWeight: '600', color: colors.primary },
-
   infoSection: {
     backgroundColor: colors.bgWhite,
     padding: 16,

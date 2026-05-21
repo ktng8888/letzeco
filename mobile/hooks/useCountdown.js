@@ -14,7 +14,10 @@ export function useCountdown(startTime, timeLimitSeconds) {
     const tick = () => {
       const now = Date.now();
       const diff = Math.max(0, endTime - now);
-      const seconds = Math.floor(diff / 1000);
+      const seconds = Math.min(
+        timeLimitSeconds,
+        Math.floor(diff / 1000)
+      );
 
       setRemaining(seconds);
 
