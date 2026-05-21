@@ -159,43 +159,58 @@ export default function ActionInProgressScreen() {
   const timePercent = hasTimeLimit
     ? Math.max(0, (remaining / timeLimitSeconds) * 100)
     : 0;
+  const isTimeLow = hasTimeLimit && timePercent < 20;
 
   return (
     <View style={styles.container}>
 
-      {/* Header */}
+      {/* Timer Header */}
       <View style={[
         styles.header,
         { paddingTop: insets.top + 26 },
         isExpired && styles.headerExpired
       ]}>
-        <Text style={styles.headerLabel}>
-          {isExpired ? 'Time is Over' : 'Action in Progress'}
-        </Text>
-        <Text style={styles.startTime}>
-          Started at {formatTime(userAction.start_time)}
-        </Text>
+        <View style={styles.statusPill}>
+          <Ionicons
+            name={isExpired ? 'alert-circle' : 'flash'}
+            size={14}
+            color={isExpired ? colors.error : colors.primary}
+          />
+          <Text style={[
+            styles.statusPillText,
+            isExpired && styles.statusPillTextExpired,
+          ]}>
+            {isExpired ? 'Time is Over' : 'Action in Progress'}
+          </Text>
+        </View>
 
         {/* Timer */}
         {hasTimeLimit && (
-          <View style={styles.timerContainer}>
-            <Text style={[
-              styles.timerText,
-              isExpired && styles.timerExpired
-            ]}>
-              {isExpired ? '0 min 0 sec' : formatted}
-            </Text>
-            <Text style={styles.timerLabel}>
-              {isExpired ? '⚠️ Time is Over' : 'left'}
-            </Text>
-
-            {/* Timer Progress Ring placeholder */}
-            {hasTimeLimit && !isExpired && (
-              <View style={styles.progressBar}>
+          <View style={styles.compactTimer}>
+            <View style={styles.compactTimerTop}>
+              <View style={styles.compactTimerCopy}>
+                <Text style={styles.compactTimerLabel}>
+                  Started {formatTime(userAction.start_time)}
+                </Text>
+                <Text style={[
+                  styles.compactTimerText,
+                  isExpired && styles.timerExpired,
+                  isTimeLow && !isExpired && styles.timerLow,
+                ]}>
+                  {isExpired ? '0 min 0 sec' : formatted}
+                </Text>
+              </View>
+              <Text style={styles.compactTimerState}>
+                {isExpired ? 'ended' : 'left'}
+              </Text>
+            </View>
+            {!isExpired && (
+              <View style={styles.compactProgressBar}>
                 <View style={[
                   styles.progressFill,
+                  styles.compactProgressFill,
                   { width: `${timePercent}%` },
-                  timePercent < 20 && styles.progressFillDanger
+                  isTimeLow && styles.progressFillDanger
                 ]} />
               </View>
             )}
@@ -211,20 +226,25 @@ export default function ActionInProgressScreen() {
         ]}
       >
         {/* Action Info */}
-        <Badge
-          text={userAction.category_name || 'Eco Action'}
-          bgColor={userAction.tag_bg_colour_code}
-          textColor={userAction.tag_text_colour_code}
-          size="lg"
-        />
-        <Text style={styles.actionName}>{userAction.action_name}</Text>
+        <View style={styles.actionCard}>
+          <Badge
+            text={userAction.category_name || 'Eco Action'}
+            bgColor={userAction.tag_bg_colour_code}
+            textColor={userAction.tag_text_colour_code}
+            size="lg"
+          />
+          <Text style={styles.actionName}>{userAction.action_name}</Text>
 
-        {/* Description */}
-        <Text style={styles.description}>{userAction.description}</Text>
+          {/* Description */}
+          <Text style={styles.description}>{userAction.description}</Text>
+        </View>
 
         {/* Environmental Impact */}
         <View style={styles.impactCard}>
-          <Text style={styles.impactTitle}>Environmental Impact</Text>
+          <View style={styles.impactHeader}>
+            <Ionicons name="leaf" size={18} color={colors.primary} />
+            <Text style={styles.impactTitle}>Environmental Impact</Text>
+          </View>
           <View style={styles.impactRow}>
             <ImpactBox
               value={formatImpactValue(userAction.co2_saved)}
@@ -247,13 +267,27 @@ export default function ActionInProgressScreen() {
         {/* Proof Section */}
         {userAction.proof && !isExpired && (
           <View style={styles.proofSection}>
-            <Text style={styles.proofTitle}>Provide Proof (Optional)</Text>
-            <Text style={styles.proofRequirement}>
-              📷 {userAction.proof?.requirement || 'Upload a photo'}
-            </Text>
-            <Text style={styles.proofBonus}>
-              (bonus +{userAction.proof?.bonus_xp} XP)
-            </Text>
+            <View style={styles.proofHeader}>
+              <View style={styles.proofIconWrap}>
+                <Ionicons name="camera" size={22} color={colors.primary} />
+              </View>
+              <View style={styles.proofHeaderText}>
+                <Text style={styles.proofTitle}>Provide Proof</Text>
+                <Text style={styles.proofOptional}>Optional bonus task</Text>
+              </View>
+              <View style={styles.proofBonusPill}>
+                <Text style={styles.proofBonusText}>
+                  +{userAction.proof?.bonus_xp || 0} XP
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.proofRequirementBox}>
+              <Ionicons name="image-outline" size={18} color={colors.textSecondary} />
+              <Text style={styles.proofRequirement}>
+                {userAction.proof?.requirement || 'Upload a photo'}
+              </Text>
+            </View>
 
             {proofUploaded ? (
               <View style={styles.proofUploadedWrap}>
@@ -410,13 +444,49 @@ export default function ActionInProgressScreen() {
 }
 
 function ImpactBox({ value, unit, icon }) {
+  const active = value !== '-' && Number(value) > 0;
+  const meta = getImpactMeta(unit);
   return (
-    <View style={styles.impactBox}>
-      <Text style={styles.impactIcon}>{icon}</Text>
-      <Text style={styles.impactValue}>{value}</Text>
+    <View style={[
+      styles.impactBox,
+      active && {
+        borderColor: meta.color,
+        backgroundColor: colors.bgWhite,
+      },
+    ]}>
+      <View style={[
+        styles.impactIconWrap,
+        active && {
+          borderColor: meta.color,
+          backgroundColor: `${meta.color}12`,
+        },
+      ]}>
+        <Ionicons
+          name={meta.icon}
+          size={27}
+          color={active ? meta.color : colors.textLight}
+        />
+      </View>
+      <Text style={[
+        styles.impactValue,
+        active && { color: meta.color },
+      ]}>
+        {active ? value : '--'}
+      </Text>
       <Text style={styles.impactUnit}>{unit}</Text>
+      <Text style={styles.impactLabel}>Saved</Text>
     </View>
   );
+}
+
+function getImpactMeta(unit = '') {
+  if (unit.includes('Water')) {
+    return { icon: 'water-outline', color: colors.info };
+  }
+  if (unit.includes('kWh')) {
+    return { icon: 'flash-outline', color: colors.xpColor };
+  }
+  return { icon: 'cloud-outline', color: colors.primary };
 }
 
 function formatImpactValue(value) {
@@ -436,7 +506,7 @@ function formatTime(dateString) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bgWhite },
+  container: { flex: 1, backgroundColor: colors.bgLight },
   header: {
     backgroundColor: colors.primary,
     paddingTop: 56,
@@ -453,31 +523,26 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.9)',
     marginBottom: 4,
   },
-  startTime: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 12,
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 7,
   },
-  timerContainer: { alignItems: 'center', gap: 4 },
-  timerText: {
-    fontSize: 42,
-    fontWeight: '700',
-    color: colors.textWhite,
-    textAlign: 'center',
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  statusPillTextExpired: {
+    color: colors.error,
   },
   timerExpired: { color: colors.xpColor },
-  timerLabel: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-  },
-  progressBar: {
-    width: 200,
-    height: 6,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 3,
-    marginTop: 8,
-    overflow: 'hidden',
-  },
+  timerLow: { color: colors.xpColor },
   progressFill: {
     height: '100%',
     backgroundColor: colors.textWhite,
@@ -486,9 +551,73 @@ const styles = StyleSheet.create({
   progressFillDanger: {
     backgroundColor: colors.xpColor,
   },
+  compactTimer: {
+    width: '100%',
+    maxWidth: 430,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 18,
+    padding: 12,
+    gap: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  compactTimerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  compactTimerCopy: {
+    flex: 1,
+    minWidth: 0,
+  },
+  compactTimerLabel: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  compactTimerText: {
+    fontSize: 18,
+    color: colors.primary,
+    fontWeight: '900',
+  },
+  compactTimerState: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  compactProgressBar: {
+    height: 7,
+    backgroundColor: colors.bgGrey,
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  compactProgressFill: {
+    backgroundColor: colors.primary,
+  },
   content: {
     paddingHorizontal: 24,
-    paddingTop: 18,
+    paddingTop: 24,
+  },
+  actionCard: {
+    backgroundColor: colors.bgWhite,
+    borderRadius: 18,
+    padding: 18,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   actionName: {
     fontSize: 22,
@@ -502,62 +631,142 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 22,
-    marginBottom: 20,
   },
   impactCard: {
-    backgroundColor: colors.bgGrey,
-    borderRadius: 14,
-    padding: 18,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   impactTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 12,
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  impactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginBottom: 14,
   },
   impactRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 8,
+    gap: 10,
   },
   impactBox: {
     flex: 1,
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
     minWidth: 0,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.bgWhite,
+    paddingVertical: 13,
+    paddingHorizontal: 6,
   },
-  impactIcon: { fontSize: 22 },
+  impactIconWrap: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
   impactValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.textSecondary,
   },
   impactUnit: {
+    fontSize: 11,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    fontWeight: '700',
+  },
+  impactLabel: {
     fontSize: 11,
     color: colors.textSecondary,
     textAlign: 'center',
   },
   
   proofSection: {
-    backgroundColor: colors.bgGrey,
-    borderRadius: 14,
-    padding: 18,
-    gap: 8,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 18,
+    padding: 16,
+    gap: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  proofHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  proofIconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: colors.primaryBg,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  proofHeaderText: {
+    flex: 1,
+    minWidth: 0,
   },
   proofTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '800',
     color: colors.textPrimary,
   },
+  proofOptional: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  proofBonusPill: {
+    backgroundColor: colors.xpBg,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  proofBonusText: {
+    fontSize: 12,
+    color: colors.xpColor,
+    fontWeight: '900',
+  },
+  proofRequirementBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    backgroundColor: colors.bgGrey,
+    borderRadius: 13,
+    padding: 12,
+  },
   proofRequirement: {
+    flex: 1,
     fontSize: 14,
     color: colors.textSecondary,
-  },
-  proofBonus: {
-    fontSize: 13,
-    color: colors.primary,
-    fontWeight: '500',
+    lineHeight: 20,
   },
   proofUploaded: {
     flexDirection: 'row',
@@ -573,20 +782,20 @@ const styles = StyleSheet.create({
   photoBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 6,
-    backgroundColor: colors.bgWhite,
-    borderWidth: 1,
+    backgroundColor: colors.primaryBg,
+    borderWidth: 1.5,
     borderColor: colors.primary,
-    borderRadius: 10,
+    borderRadius: 14,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    alignSelf: 'flex-start',
-    marginTop: 4,
+    paddingVertical: 12,
+    alignSelf: 'stretch',
   },
   photoBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     color: colors.primary,
-    fontWeight: '500',
+    fontWeight: '800',
   },
   proofUploadedRow: {
     flexDirection: 'row',
