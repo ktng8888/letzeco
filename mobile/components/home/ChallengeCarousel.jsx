@@ -103,6 +103,10 @@ function ChallengeCard({ challenge, index, onPress }) {
     ((challenge.progress_value || 0) / (challenge.target_value || 1)) * 100,
     100
   );
+  const progressValue = formatOneDecimal(challenge.progress_value || 0);
+  const targetValue = challenge.target_value
+    ? formatOneDecimal(challenge.target_value)
+    : '?';
 
   return (
     <TouchableOpacity style={styles.challengeCard} onPress={onPress} activeOpacity={0.88}>
@@ -146,11 +150,17 @@ function ChallengeCard({ challenge, index, onPress }) {
           <View style={[styles.cProgressFill, { width: `${progress}%` }]} />
         </View>
         <Text style={styles.cProgressLabel}>
-          {challenge.progress_value || 0} / {challenge.target_value || '?'}
+          {progressValue} / {targetValue}
         </Text>
       </View>
     </TouchableOpacity>
   );
+}
+
+function formatOneDecimal(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0.0';
+  return num.toFixed(1);
 }
 
 const styles = StyleSheet.create({
