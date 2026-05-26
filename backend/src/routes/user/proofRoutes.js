@@ -11,6 +11,11 @@ router.post(
   uploadProof.single('image'),
   proofController.uploadProofPhoto
 );
+router.post(
+  '/validate/:userActionId',
+  verifyToken,
+  proofController.validateProofPhoto
+);
 router.delete(
   '/delete/:userActionId',
   verifyToken,

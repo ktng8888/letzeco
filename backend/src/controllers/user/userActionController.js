@@ -1,6 +1,7 @@
 // backend/src/controllers/user/userActionController.js  (FULL REPLACEMENT)
 const userActionModel          = require('../../models/userActionModel');
 const actionModel              = require('../../models/actionModel');
+const proofModel               = require('../../models/proofModel');
 const userProofModel           = require('../../models/userProofModel');
 const userChallengeModel       = require('../../models/userChallengeModel');
 const challengeRewardModel     = require('../../models/challengeRewardModel');
@@ -8,6 +9,14 @@ const userChallengeRewardModel = require('../../models/userChallengeRewardModel'
 const xpService                = require('../../utils/xpService');
 const streakService            = require('../../utils/streakService');
 const notificationService      = require('../../utils/notificationService');
+const { deleteFile }           = require('../../utils/uploadService');
+const jwt                      = require('jsonwebtoken');
+
+const isProofUploadPath = (imagePath) => {
+  if (!imagePath) return false;
+  const normalized = imagePath.replace(/\\/g, '/');
+  return normalized.startsWith('uploads/proofs/') && !normalized.includes('..');
+};
 
 const userActionController = {
 
@@ -53,6 +62,7 @@ const userActionController = {
   complete: async (req, res) => {
     const userId = req.user.id;
     const { id } = req.params;
+    const { proof_image, proof_validation_token } = req.body || {};
 
     try {
       const userAction = await userActionModel.getById(id);
@@ -67,6 +77,8 @@ const userActionController = {
       }
 
       const action = await actionModel.getById(userAction.action_id);
+      const proofRequirement = await proofModel.getByActionId(userAction.action_id);
+      let approvedProof = null;
 
       // Time limit check
       if (action.time_limit) {
@@ -83,6 +95,9 @@ const userActionController = {
         }
 
         if (now - startTime > timeLimitMs) {
+          if (isProofUploadPath(proof_image)) {
+            deleteFile(proof_image);
+          }
           await userActionModel.cancel(id);
           return res.status(400).json({
             message: 'Time is over! Action has been cancelled.',
@@ -91,8 +106,42 @@ const userActionController = {
         }
       }
 
+      const existingProof = await userProofModel.getByUserActionId(id);
+      if (existingProof?.status === 'approved') {
+        approvedProof = existingProof;
+      } else if (proof_validation_token && proofRequirement) {
+        let decoded;
+        try {
+          decoded = jwt.verify(proof_validation_token, process.env.JWT_SECRET);
+        } catch (tokenErr) {
+          return res.status(400).json({ message: 'Proof validation expired. Please validate again.' });
+        }
+
+        if (
+          decoded.type !== 'proof_validation' ||
+          decoded.status !== 'approved' ||
+          decoded.user_id !== userId ||
+          decoded.user_action_id !== Number(id) ||
+          decoded.proof_id !== proofRequirement.id ||
+          decoded.image !== proof_image
+        ) {
+          return res.status(400).json({ message: 'Invalid proof validation.' });
+        }
+
+        approvedProof = await userProofModel.create(
+          userId,
+          proofRequirement.id,
+          id,
+          proof_image
+        );
+        approvedProof = await userProofModel.updateStatus(approvedProof.id, 'approved');
+        approvedProof.bonus_xp = proofRequirement.bonus_xp;
+      } else if (isProofUploadPath(proof_image)) {
+        deleteFile(proof_image);
+      }
+
       // Proof bonus XP
-      const userProof = await userProofModel.getByUserActionId(id);
+      const userProof = approvedProof || existingProof;
       const bonusXp   = (userProof && userProof.status === 'approved')
         ? (userProof.bonus_xp || 0)
         : 0;
@@ -336,6 +385,9 @@ const userActionController = {
       const record = await userActionModel.getById(id);
       if (!record) {
         return res.status(404).json({ message: 'Record not found.' });
+      }
+      if (record.user_id !== userId) {
+        return res.status(403).json({ message: 'Not authorized.' });
       }
       res.json({
         message: 'Record retrieved successfully.',

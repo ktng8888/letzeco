@@ -127,10 +127,24 @@ const userActionModel = {
               a.calc_info, a.source,
               ac.name AS category_name,
               ac.tag_bg_colour_code,
-              ac.tag_text_colour_code
+              ac.tag_text_colour_code,
+              CASE
+                WHEN up.id IS NOT NULL THEN json_build_object(
+                  'id', up.id,
+                  'requirement', p.requirement,
+                  'bonus_xp', p.bonus_xp,
+                  'type', p.type,
+                  'status', up.status,
+                  'image', up.image,
+                  'date', up.date
+                )
+                ELSE NULL
+              END AS proof
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
        LEFT JOIN action_category ac ON a.action_category_id = ac.id
+       LEFT JOIN user_proof up ON up.user_action_id = ua.id
+       LEFT JOIN proof p ON up.proof_id = p.id
        WHERE ua.id = $1`,
       [id]
     );

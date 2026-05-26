@@ -58,8 +58,8 @@ const actionService = {
     return response.data;
   },
 
-  completeAction: async (userActionId) => {
-    const response = await api.put(`/user-actions/complete/${userActionId}`);
+  completeAction: async (userActionId, proofData = {}) => {
+    const response = await api.put(`/user-actions/complete/${userActionId}`, proofData);
     return response.data;
   },
 
@@ -99,8 +99,19 @@ const actionService = {
     return response.data;
   },
 
-  deleteProof: async (userActionId) => {
-    const response = await api.delete(`/proofs/delete/${userActionId}`);
+  validateProof: async (userActionId, imagePath) => {
+    const response = await api.post(
+      `/proofs/validate/${userActionId}`,
+      { imagePath },
+      { timeout: 30000 }
+    );
+    return response.data;
+  },
+
+  deleteProof: async (userActionId, imagePath = null) => {
+    const response = await api.delete(`/proofs/delete/${userActionId}`, {
+      data: imagePath ? { imagePath } : {},
+    });
     return response.data;
   },
 
