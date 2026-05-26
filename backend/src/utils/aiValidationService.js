@@ -35,11 +35,25 @@ Respond ONLY in this exact JSON format, no other text:
   "passed": true or false,
   "confidence": 0.0 to 1.0,
   "detected_objects": ["object1", "object2"],
-  "issue": "short reason if failed, empty string if passed",
-  "expected": "what we expected if failed, empty string if passed"
+  "issue": "if failed, one sentence in this style: The image shows [what is visible], not [the required proof]. If passed, empty string",
+  "expected": "if failed, rewrite the expected proof clearly. If passed, empty string"
 }
 
-Be strict but fair. If the image clearly matches the requirement, pass it.`,
+Rules:
+- Be strict but fair. If the image clearly matches the requirement, pass it.
+- If failed, do not only say the image does not meet the requirement.
+- If failed, first describe the main visible subject in the photo, then say why it is not the required proof.
+- Keep issue under 18 words.
+- Do not include "Expected:" inside issue because expected has its own JSON field.
+- The expected field should be concise and start with the required proof/action.
+
+Good failed examples:
+- requirement: "Photo inside the public transport"; image: calendar
+  issue: "The image shows a calendar, not inside a public transport."
+  expected: "Photo inside the public transport."
+- requirement: "Photo taken inside a bus, train, or similar public transport"; image: office chair
+  issue: "The image shows an office chair, not inside public transport."
+  expected: "Photo taken inside a bus, train, or similar public transport."`,
           },
         ],
       },

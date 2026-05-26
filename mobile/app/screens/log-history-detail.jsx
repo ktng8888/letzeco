@@ -5,6 +5,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import actionService from '../../services/actionService';
 import LoadingScreen from '../../components/common/LoadingScreen';
@@ -14,10 +15,12 @@ import colors from '../../constants/colors';
 
 export default function LogHistoryDetailScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { logId } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [log, setLog] = useState(null);
   const [showCalcModal, setShowCalcModal] = useState(false);
+  const [showProofPreview, setShowProofPreview] = useState(false);
 
   useEffect(() => { loadLog(); }, []);
 
@@ -36,6 +39,7 @@ export default function LogHistoryDetailScreen() {
   if (!log) return null;
 
   const imageUrl = getImageUrl(log.action_image);
+  const proofImageUrl = getImageUrl(log.proof?.image);
   const hasImpact = log.co2_saved || log.litre_saved || log.kwh_saved;
 
   return (
@@ -231,12 +235,22 @@ export default function LogHistoryDetailScreen() {
               </View>
 
               {/* Proof photo */}
-              {log.proof.image && (
-                <Image
-                  source={{ uri: getImageUrl(log.proof.image) }}
-                  style={styles.proofImage}
-                  resizeMode="cover"
-                />
+              {proofImageUrl && (
+                <TouchableOpacity
+                  style={styles.proofPreviewCard}
+                  activeOpacity={0.9}
+                  onPress={() => setShowProofPreview(true)}
+                >
+                  <Image
+                    source={{ uri: proofImageUrl }}
+                    style={styles.proofImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.proofPreviewOverlay}>
+                    <Ionicons name="expand-outline" size={16} color={colors.textWhite} />
+                    <Text style={styles.proofPreviewText}>Preview</Text>
+                  </View>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -280,6 +294,30 @@ export default function LogHistoryDetailScreen() {
               <Text style={styles.modalBtnText}>Got it!</Text>
             </TouchableOpacity>
           </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showProofPreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowProofPreview(false)}
+      >
+        <View style={styles.previewOverlay}>
+          <TouchableOpacity
+            style={[styles.previewCloseBtn, { top: insets.top + 14 }]}
+            onPress={() => setShowProofPreview(false)}
+          >
+            <Ionicons name="close" size={24} color={colors.textWhite} />
+          </TouchableOpacity>
+
+          {proofImageUrl && (
+            <Image
+              source={{ uri: proofImageUrl }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          )}
         </View>
       </Modal>
     </View>
@@ -581,9 +619,32 @@ const styles = StyleSheet.create({
   },
   proofImage: {
     width: '100%',
+    height: '100%',
+  },
+  proofPreviewCard: {
+    width: '100%',
     height: 200,
     borderRadius: 12,
     marginTop: 10,
+    overflow: 'hidden',
+    backgroundColor: colors.bgGrey,
+  },
+  proofPreviewOverlay: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 18,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  proofPreviewText: {
+    fontSize: 12,
+    color: colors.textWhite,
+    fontWeight: '600',
   },
 
   // ── Modal ──
@@ -625,5 +686,27 @@ const styles = StyleSheet.create({
   },
   modalBtnText: {
     fontSize: 15, fontWeight: '700', color: colors.textWhite,
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  previewCloseBtn: {
+    position: 'absolute',
+    right: 18,
+    zIndex: 2,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewImage: {
+    width: '100%',
+    height: '82%',
   },
 });

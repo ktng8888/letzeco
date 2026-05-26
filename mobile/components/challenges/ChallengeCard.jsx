@@ -16,6 +16,9 @@ export default function ChallengeCard({ challenge, onPress }) {
   const targetLabel = challenge.target_value
     ? `${challenge.target_value} ${challenge.unit || ''}`.trim()
     : null;
+  const progressValue = `${formatOneDecimal(challenge.progress_value || 0)}${
+    challenge.unit ? ` ${challenge.unit}` : ''
+  }`;
 
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.86}>
@@ -146,7 +149,7 @@ export default function ChallengeCard({ challenge, onPress }) {
               </Text>
             </View>
             <Text style={styles.progressValue}>
-              {challenge.progress_value || 0}{challenge.unit ? ` ${challenge.unit}` : ''}
+              {progressValue}
             </Text>
           </View>
         )}
@@ -169,6 +172,12 @@ function formatDate(dateString) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
     'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return `${d.getDate()} ${months[d.getMonth()]}`;
+}
+
+function formatOneDecimal(value) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0.0';
+  return num.toFixed(1);
 }
 
 const styles = StyleSheet.create({
