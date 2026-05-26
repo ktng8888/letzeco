@@ -153,6 +153,11 @@ const unlockSpecificActionAchievements = async (userId, actionId, progress) => {
 };
 
 const firstUnlocked = (unlocked) => unlocked[0] || null;
+const firstUnlockedWithAll = (unlocked) => {
+  const first = firstUnlocked(unlocked);
+  if (first) first.new_achievements = unlocked;
+  return first;
+};
 
 const xpService = {
   addXP: async (userId, xpToAdd) => {
@@ -211,7 +216,7 @@ const xpService = {
 
   checkLevelAchievement: async (userId, newLevel) => {
     try {
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(userId, 'reach_level', newLevel)
       );
     } catch (err) {
@@ -253,7 +258,7 @@ const xpService = {
         ),
       ];
 
-      return firstUnlocked(unlocked);
+      return firstUnlockedWithAll(unlocked);
     } catch (err) {
       console.error('Check log achievement error:', err);
       throw err;
@@ -270,7 +275,7 @@ const xpService = {
         [userId, actionId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockSpecificActionAchievements(
           userId,
           actionId,
@@ -285,7 +290,7 @@ const xpService = {
 
   checkStreakAchievement: async (userId, currentStreak) => {
     try {
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'maintain_streak',
@@ -300,7 +305,7 @@ const xpService = {
 
   checkTotalXpAchievement: async (userId, newTotalXp) => {
     try {
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(userId, 'earn_total_xp', newTotalXp)
       );
     } catch (err) {
@@ -318,7 +323,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'save_co2',
@@ -340,7 +345,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'save_litre',
@@ -362,7 +367,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'save_kwh',
@@ -385,7 +390,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'add_friends',
@@ -411,7 +416,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'complete_challenges',
@@ -437,7 +442,7 @@ const xpService = {
         [userId]
       );
 
-      return firstUnlocked(
+      return firstUnlockedWithAll(
         await unlockEligibleAchievements(
           userId,
           'complete_team_challenges',

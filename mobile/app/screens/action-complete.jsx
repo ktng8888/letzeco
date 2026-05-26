@@ -14,8 +14,8 @@ export default function ActionCompleteScreen() {
   const { updateUser } = useAuthStore();
 
   const [data, setData] = useState(null);
-  const [showLevelUp, setShowLevelUp] = useState(false);
-  const [showBadge, setShowBadge] = useState(false);
+  const [modalQueue, setModalQueue] = useState([]);
+  const [activeModalIndex, setActiveModalIndex] = useState(-1);
 
   // Animation
   const scaleAnim = useRef(new Animated.Value(0)).current;
@@ -44,27 +44,26 @@ export default function ActionCompleteScreen() {
         useNativeDriver: true,
       }).start();
 
-      // Show modals after short delay
+      const queue = buildModalQueue(parsed);
+
+      // Show reward modals after short delay, one at a time.
       setTimeout(() => {
-        if (parsed.level_up) {
-          setShowLevelUp(true);
-        } else if (parsed.badge_unlocked) {
-          setShowBadge(true);
-        }
+        setModalQueue(queue);
+        setActiveModalIndex(queue.length > 0 ? 0 : -1);
       }, 800);
     }
   }, [result]);
 
-  const handleLevelUpClose = () => {
-    setShowLevelUp(false);
-    if (data?.badge_unlocked) {
-      setTimeout(() => setShowBadge(true), 300);
-    }
+  const handleRewardModalClose = () => {
+    setActiveModalIndex((current) => {
+      const next = current + 1;
+      return next < modalQueue.length ? next : -1;
+    });
   };
 
   if (!data) return null;
 
-  const { user_action, xp, streak, streak_reward, new_badge } = data;
+  const { user_action, xp, streak, streak_reward } = data;
   
   const baseXp = user_action?.base_xp ?? 0;  
   const bonusXp = user_action?.bonus_xp_gained ?? 0;
@@ -76,6 +75,7 @@ export default function ActionCompleteScreen() {
   const todayCo2 = todayImpact.total_co2_saved ?? user_action?.co2_saved ?? 0;
   const todayLitre = todayImpact.total_litre_saved ?? user_action?.litre_saved ?? 0;
   const todayKwh = todayImpact.total_kwh_saved ?? user_action?.kwh_saved ?? 0;
+  const activeModal = activeModalIndex >= 0 ? modalQueue[activeModalIndex] : null;
 
   return (
     <View style={styles.container}>
@@ -183,18 +183,49 @@ export default function ActionCompleteScreen() {
       </ScrollView>
 
       <LevelUpModal
-        visible={showLevelUp}
-        level={data.new_level}
-        onClose={handleLevelUpClose}
+        visible={activeModal?.type === 'level-up'}
+        level={activeModal?.level}
+        onClose={handleRewardModalClose}
       />
 
       <BadgeUnlockedModal
-        visible={showBadge}
-        badge={new_badge}
-        onClose={() => setShowBadge(false)}
+        visible={activeModal?.type === 'badge'}
+        badge={activeModal?.badge}
+        onClose={handleRewardModalClose}
       />
     </View>
   );
+}
+
+function buildModalQueue(result) {
+  const queue = [];
+
+  if (result?.level_up) {
+    queue.push({ type: 'level-up', level: result.new_level });
+  }
+
+  getUnlockedBadges(result).forEach((badge) => {
+    queue.push({ type: 'badge', badge });
+  });
+
+  return queue;
+}
+
+function getUnlockedBadges(result) {
+  const badges = Array.isArray(result?.new_badges)
+    ? result.new_badges
+    : result?.new_badge
+      ? [result.new_badge]
+      : [];
+
+  const seen = new Set();
+  return badges.filter((badge) => {
+    if (!badge) return false;
+    const key = badge.id || `${badge.badge_name}:${badge.name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function ImpactRow({ label, value, icon }) {

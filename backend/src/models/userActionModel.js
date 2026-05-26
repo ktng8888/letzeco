@@ -181,6 +181,7 @@ const userActionModel = {
   },
 
   // Cancel an action (UPDATE status)
+  /*
   cancel: async (id) => {
     const result = await pool.query(
       `UPDATE user_action SET
@@ -192,16 +193,16 @@ const userActionModel = {
     );
     return result.rows[0];
   },
+  */
 
   // Cancel an action  (DELETE whole row)
-  /*
   cancel: async (id) => {
     await pool.query(
       `DELETE FROM user_action WHERE id = $1`,
       [id]
     );
   },
-  */
+
 
   // Get total completed actions count for user
   getTotalCompleted: async (userId) => {

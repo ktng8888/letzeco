@@ -58,8 +58,11 @@ export default function ComparisonCard({ data, period = 'this_week' }) {
 }
 
 function ComparisonRow({ label, current, previous, change, unit }) {
-  const isUp = change >= 0;
-  const isZero = change === 0;
+  const currentValue = Number(current) || 0;
+  const previousValue = Number(previous) || 0;
+  const isNew = previousValue === 0 && currentValue > 0;
+  const isZero = !isNew && change === 0;
+  const isUp = isNew || change >= 0;
   const [leftLabel = label, rightLabel = ''] = label.split(' vs ');
 
   return (
@@ -80,7 +83,7 @@ function ComparisonRow({ label, current, previous, change, unit }) {
         </View>
 
         <View style={styles.arrowContainer}>
-          {!isZero && (
+          {(!isZero || isNew) && (
             <Ionicons
               name={isUp ? 'arrow-up' : 'arrow-down'}
               size={14}
@@ -94,7 +97,7 @@ function ComparisonRow({ label, current, previous, change, unit }) {
               : isUp ? colors.success : colors.error
             }
           ]}>
-            {isZero ? '=' : `${Math.abs(change)}%`}
+            {isNew ? 'New' : isZero ? '=' : `${Math.abs(change)}%`}
           </Text>
         </View>
 

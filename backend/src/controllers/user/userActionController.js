@@ -18,6 +18,26 @@ const isProofUploadPath = (imagePath) => {
   return normalized.startsWith('uploads/proofs/') && !normalized.includes('..');
 };
 
+const dedupeAchievements = (achievements = []) => {
+  const seen = new Set();
+  return achievements.filter((achievement) => {
+    if (!achievement) return false;
+    const key = achievement.id || `${achievement.badge_name}:${achievement.name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+};
+
+const achievementItems = (achievement) => {
+  if (!achievement) return [];
+  if (Array.isArray(achievement)) return achievement;
+  if (Array.isArray(achievement.new_achievements)) {
+    return achievement.new_achievements;
+  }
+  return [achievement];
+};
+
 const userActionController = {
 
   // START LOGGING AN ACTION
@@ -238,12 +258,18 @@ const userActionController = {
         await notificationService.levelUp(userId, xpResult.new_level);
       }
 
-      const anyAchievement = logAchievement || impactAchievement ||
-        specificActionAchievement || challengeAchievement ||
-        streakResult.streak_achievement || xpResult.new_achievement;
+      const newBadges = dedupeAchievements([
+        ...achievementItems(logAchievement),
+        ...achievementItems(impactAchievement),
+        ...achievementItems(specificActionAchievement),
+        ...achievementItems(challengeAchievement),
+        ...achievementItems(streakResult.streak_achievement),
+        ...(xpResult.new_achievements || []),
+      ]);
+      const anyAchievement = newBadges[0] || null;
 
-      if (anyAchievement) {
-        await notificationService.badgeUnlocked(userId, anyAchievement.badge_name);
+      for (const achievement of newBadges) {
+        await notificationService.badgeUnlocked(userId, achievement.badge_name);
       }
 
       if (streakResult.streak_reward) {
@@ -287,8 +313,9 @@ const userActionController = {
             streak_continued: streakResult.streak_continued,
           },
           streak_reward:          streakResult.streak_reward,
-          badge_unlocked:         anyAchievement ? true : false,
+          badge_unlocked:         newBadges.length > 0,
           new_badge:              anyAchievement || null,
+          new_badges:             newBadges,
           completion_gift_earned: completionGiftEarned,
           total_actions_completed: updatedUser,
           today_impact: {
