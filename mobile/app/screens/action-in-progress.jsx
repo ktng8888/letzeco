@@ -30,6 +30,10 @@ export default function ActionInProgressScreen() {
   const [userAction, setUserAction] = useState(null);
   const [proofUploaded, setProofUploaded] = useState(false);
   const [proofImageUri, setProofImageUri] = useState(null);
+  const [proofImagePath, setProofImagePath] = useState(null);
+  const [validationStatus, setValidationStatus] = useState(null);
+  const [validationResult, setValidationResult] = useState(null);
+  const [validationToken, setValidationToken] = useState(null);
   const [showProofPreview, setShowProofPreview] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
@@ -59,10 +63,18 @@ export default function ActionInProgressScreen() {
     timeLimitSeconds
   );
 
-  const handleComplete = async () => {
+  const completeAction = async ({ includeProof } = { includeProof: true }) => {
     setIsCompleting(true);
     try {
-      const data = await actionService.completeAction(userActionId);
+      const proofData = includeProof && validationStatus === 'approved'
+        ? {
+            proof_image: proofImagePath,
+            proof_validation_token: validationToken,
+          }
+        : {
+            proof_image: proofImagePath,
+          };
+      const data = await actionService.completeAction(userActionId, proofData);
       clearCurrentAction();
 
       // Navigate to complete screen
@@ -88,9 +100,40 @@ export default function ActionInProgressScreen() {
     }
   };
 
+  const handleComplete = async () => {
+    if (validationStatus === 'rejected') {
+      Alert.alert(
+        'Proof Rejected',
+        'Please retake and validate a new proof photo before completing this action.'
+      );
+      return;
+    }
+
+    if (userAction.proof && validationStatus !== 'approved') {
+      Alert.alert(
+        'Complete Without Approved Proof?',
+        'No proof bonus XP will be given.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Complete',
+            style: 'destructive',
+            onPress: () => completeAction({ includeProof: false }),
+          },
+        ]
+      );
+      return;
+    }
+
+    completeAction({ includeProof: true });
+  };
+
   const handleCancel = async () => {
     setIsCancelling(true);
     try {
+      if (proofImagePath) {
+        await actionService.deleteProof(userActionId, proofImagePath);
+      }
       await actionService.cancelAction(userActionId);
       clearCurrentAction();
       router.back();
@@ -119,14 +162,44 @@ export default function ActionInProgressScreen() {
     setIsUploadingProof(true);
     try {
       const imageUri = result.assets[0].uri;
-      await actionService.uploadProof(userActionId, imageUri);
+      const uploadResult = await actionService.uploadProof(userActionId, imageUri);
       setProofUploaded(true);
       setProofImageUri(imageUri);
-      Alert.alert('Success!', 'Proof uploaded! Bonus XP will be added on completion.');
+      setProofImagePath(uploadResult.data?.proof_image || null);
+      setValidationStatus(null);
+      setValidationResult(null);
+      setValidationToken(null);
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Upload failed.');
     } finally {
       setIsUploadingProof(false);
+    }
+  };
+
+  const handleValidateProof = async () => {
+    if (!proofImagePath) return;
+
+    setValidationStatus('validating');
+    setValidationResult(null);
+    setValidationToken(null);
+
+    try {
+      const result = await actionService.validateProof(userActionId, proofImagePath);
+      const payload = result.data;
+      setValidationResult(payload);
+
+      if (payload.validation === 'passed') {
+        setValidationStatus('approved');
+        setValidationToken(payload.validation_token);
+      } else {
+        setValidationStatus('rejected');
+      }
+    } catch (err) {
+      setValidationStatus('rejected');
+      setValidationResult({
+        issue: err.response?.data?.message || 'Validation failed. Please try again.',
+        expected: '',
+      });
     }
   };
 
@@ -141,9 +214,13 @@ export default function ActionInProgressScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await actionService.deleteProof(userActionId);
+              await actionService.deleteProof(userActionId, proofImagePath);
               setProofUploaded(false);
               setProofImageUri(null);
+              setProofImagePath(null);
+              setValidationStatus(null);
+              setValidationResult(null);
+              setValidationToken(null);
             } catch (err) {
               Alert.alert('Error', err.response?.data?.message || 'Failed to remove proof.');
             }
@@ -311,17 +388,94 @@ export default function ActionInProgressScreen() {
 
                 <View style={styles.proofUploadedRow}>
                   <View style={styles.proofUploaded}>
-                    <Ionicons name="checkmark-circle" size={20} color={colors.success} />
-                    <Text style={styles.proofUploadedText}>Proof Uploaded!</Text>
+                    <Ionicons name="image" size={20} color={colors.primary} />
+                    <Text style={styles.proofUploadedText}>Proof Photo Ready</Text>
                   </View>
-                  <TouchableOpacity
-                    style={styles.retakeBtn}
-                    onPress={handleDeleteProof}
-                  >
-                    <Ionicons name="camera-outline" size={14} color={colors.error} />
-                    <Text style={styles.retakeBtnText}>Retake</Text>
-                  </TouchableOpacity>
+                  {validationStatus !== 'approved' && (
+                    <TouchableOpacity
+                      style={styles.retakeBtn}
+                      onPress={handleDeleteProof}
+                    >
+                      <Ionicons name="camera-outline" size={14} color={colors.error} />
+                      <Text style={styles.retakeBtnText}>Retake</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
+
+                {validationStatus !== 'approved' && (
+                  <TouchableOpacity
+                    style={[
+                      styles.validateBtn,
+                      validationStatus === 'validating' && styles.validateBtnDisabled,
+                    ]}
+                    onPress={handleValidateProof}
+                    disabled={validationStatus === 'validating'}
+                  >
+                    {validationStatus === 'validating' ? (
+                      <ActivityIndicator size="small" color={colors.textWhite} />
+                    ) : (
+                      <>
+                        <Ionicons name="sparkles" size={17} color={colors.textWhite} />
+                        <Text style={styles.validateBtnText}>Validate Proof</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+
+                {validationStatus && (
+                  <View style={[
+                    styles.validationCard,
+                    validationStatus === 'approved' && styles.validationApproved,
+                    validationStatus === 'rejected' && styles.validationRejected,
+                  ]}>
+                    <View style={styles.validationHeader}>
+                      <Ionicons
+                        name={
+                          validationStatus === 'approved'
+                            ? 'checkmark-circle'
+                            : validationStatus === 'rejected'
+                              ? 'close-circle'
+                              : 'sync-circle'
+                        }
+                        size={18}
+                        color={
+                          validationStatus === 'approved'
+                            ? colors.success
+                            : validationStatus === 'rejected'
+                              ? colors.error
+                              : colors.primary
+                        }
+                      />
+                      <Text style={[
+                        styles.validationTitle,
+                        validationStatus === 'approved' && { color: colors.success },
+                        validationStatus === 'rejected' && { color: colors.error },
+                      ]}>
+                        {validationStatus === 'approved'
+                          ? 'Proof Approved'
+                          : validationStatus === 'rejected'
+                            ? 'Proof Rejected'
+                            : 'Validating Proof'}
+                      </Text>
+                    </View>
+                    {validationStatus === 'approved' && (
+                      <Text style={styles.validationText}>
+                        Bonus XP will be recorded when you complete this action.
+                      </Text>
+                    )}
+                    {validationStatus === 'rejected' && (
+                      <Text style={styles.validationText}>
+                        {validationResult?.issue || 'This photo does not match the proof requirement.'}
+                        {validationResult?.expected ? ` Expected: ${validationResult.expected}` : ''}
+                      </Text>
+                    )}
+                    {validationStatus === 'validating' && (
+                      <Text style={styles.validationText}>
+                        Checking your proof photo...
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
             ) : (
               <TouchableOpacity
@@ -360,9 +514,12 @@ export default function ActionInProgressScreen() {
           <>
             {/* Complete */}
             <TouchableOpacity
-              style={[styles.completeBtn, isCompleting && styles.btnDisabled]}
+              style={[
+                styles.completeBtn,
+                (isCompleting || validationStatus === 'rejected') && styles.btnDisabled,
+              ]}
               onPress={handleComplete}
-              disabled={isCompleting}
+              disabled={isCompleting || validationStatus === 'rejected'}
             >
               {isCompleting
                 ? <ActivityIndicator color={colors.textWhite} />
@@ -776,7 +933,7 @@ const styles = StyleSheet.create({
   },
   proofUploadedText: {
     fontSize: 14,
-    color: colors.success,
+    color: colors.primary,
     fontWeight: '600',
   },
   photoBtn: {
@@ -848,6 +1005,56 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.error,
     fontWeight: '600',
+  },
+  validateBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    alignSelf: 'stretch',
+  },
+  validateBtnDisabled: {
+    opacity: 0.72,
+  },
+  validateBtnText: {
+    fontSize: 15,
+    color: colors.textWhite,
+    fontWeight: '800',
+  },
+  validationCard: {
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgGrey,
+    padding: 12,
+    gap: 6,
+  },
+  validationApproved: {
+    borderColor: colors.success,
+    backgroundColor: '#dcfce7',
+  },
+  validationRejected: {
+    borderColor: colors.error,
+    backgroundColor: '#fee2e2',
+  },
+  validationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  validationTitle: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '800',
+  },
+  validationText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
 
   footer: {
