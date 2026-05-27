@@ -5,6 +5,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useRouter, useSegments } from 'expo-router';
 import useAuthStore from '../store/authStore';
 import streakService from '../services/streakService';
+import { savePushTokenForCurrentUser } from '../utils/pushNotifications';
 
 
 export default function RootLayout() {
@@ -52,6 +53,14 @@ export default function RootLayout() {
 
     init();
   }, []);
+
+  useEffect(() => {
+    if (!isReady || !isAuthenticated) return;
+
+    savePushTokenForCurrentUser().catch((err) => {
+      console.warn('Push token registration failed:', err);
+    });
+  }, [isReady, isAuthenticated]);
 
   // show blank screen while checking token
   if (!isReady) {

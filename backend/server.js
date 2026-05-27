@@ -1,7 +1,10 @@
 const app = require('./src/app');
 require('dotenv').config();
+const { startCronJobs } = require('./src/utils/cronJobs');
 
 const PORT = process.env.PORT || 5000;
+
+startCronJobs();
 
 //localhost
 /*

@@ -116,10 +116,35 @@ const userModel = {
        FROM user_action ua
        LEFT JOIN action a ON ua.action_id = a.id
        LEFT JOIN "user" u ON ua.user_id = u.id
+       LEFT JOIN notification n
+         ON n.related_id = ua.id
+        AND n.type = 'action_deadline'
        WHERE ua.status = 'in_progress'
+       AND a.time_limit IS NOT NULL
+       AND a.time_limit > INTERVAL '2 minutes'
        AND u.push_token IS NOT NULL
-       AND (ua.start_time + a.time_limit)
-           BETWEEN NOW() AND NOW() + INTERVAL '2 minutes'`
+       AND n.id IS NULL
+       AND (ua.start_time + a.time_limit - INTERVAL '2 minutes')
+           BETWEEN NOW() - INTERVAL '30 seconds'
+               AND NOW() + INTERVAL '30 seconds'`
+    );
+    return result.rows;
+  },
+
+  // Get users who still need to log an action today to preserve their streak
+  getUsersForStreakReminder: async () => {
+    const result = await pool.query(
+      `SELECT u.id, u.streak, u.push_token
+       FROM "user" u
+       WHERE u.streak > 0
+       AND u.push_token IS NOT NULL
+       AND NOT EXISTS (
+         SELECT 1
+         FROM user_action ua
+         WHERE ua.user_id = u.id
+         AND ua.status = 'completed'
+         AND DATE(ua.end_time) = CURRENT_DATE
+       )`
     );
     return result.rows;
   },
@@ -164,6 +189,17 @@ const userModel = {
        WHERE id = $2
        RETURNING id, username, email, profile_image`,
       [imagePath, userId]
+    );
+    return result.rows[0];
+  },
+
+  // Save Expo push token for out-of-app notifications
+  updatePushToken: async (userId, pushToken) => {
+    const result = await pool.query(
+      `UPDATE "user" SET push_token = $1
+       WHERE id = $2
+       RETURNING id, push_token`,
+      [pushToken, userId]
     );
     return result.rows[0];
   },

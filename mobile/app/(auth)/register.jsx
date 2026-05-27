@@ -4,7 +4,7 @@ import {
   ActivityIndicator, Alert, ScrollView, Image
 } from 'react-native';
 import { useState } from 'react';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import useAuthStore from '../../store/authStore';
 import colors from '../../constants/colors';
 import images from '../../constants/images';
@@ -15,6 +15,7 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
   const { register, isLoading } = useAuthStore();
+  const router = useRouter();
 
   const handleRegister = async () => {
     if (!email || !password || !confirmPassword || !username) {
@@ -33,8 +34,14 @@ export default function RegisterScreen() {
     const result = await register(username.trim(), email.trim(), password);
     if (!result.success) {
       Alert.alert('Registration Failed', result.message);
+      return;
     }
-    // Success → _layout.jsx handles redirect
+
+    Alert.alert(
+      'Registration Successful',
+      'Please login with your new account.',
+      [{ text: 'OK', onPress: () => router.replace('/(auth)/login') }]
+    );
   };
 
   return (

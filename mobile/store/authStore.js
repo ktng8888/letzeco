@@ -42,15 +42,8 @@ const useAuthStore = create((set) => ({
   register: async (username, email, password) => {
     set({ isLoading: true });
     try {
-      const data = await authService.register(username, email, password);
-      await storage.setToken(data.token);
-      await storage.setUser(data.user);
-      set({
-        token: data.token,
-        user: data.user,
-        isAuthenticated: true,
-        isLoading: false
-      });
+      await authService.register(username, email, password);
+      set({ isLoading: false });
       return { success: true };
     } catch (err) {
       set({ isLoading: false });

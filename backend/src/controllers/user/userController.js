@@ -230,6 +230,28 @@ const userController = {
     }
   },
 
+  // SAVE PUSH TOKEN
+  savePushToken: async (req, res) => {
+    const userId = req.user.id;
+    const { push_token } = req.body;
+
+    try {
+      if (!push_token) {
+        return res.status(400).json({ message: 'Push token is required.' });
+      }
+
+      const updated = await userModel.updatePushToken(userId, push_token);
+
+      res.json({
+        message: 'Push token saved successfully.',
+        data: updated
+      });
+    } catch (err) {
+      console.error('Save push token error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
 };
 
 module.exports = userController;
