@@ -28,20 +28,23 @@ const startCronJobs = () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // DEADLINE REMINDER — every day at 9:00 AM
+  // ACTION DEADLINE REMINDER — every minute, for actions ending in about 2 minutes
   // ─────────────────────────────────────────────────────────────────────────
-  cron.schedule('0 9 * * *', async () => {
-    console.log('Running deadline reminder job...');
+  cron.schedule('* * * * *', async () => {
+    console.log('Running action deadline reminder job...');
     try {
-      const users = await userModel.getUsersForDeadlineReminder();
-      for (const user of users) {
-        await notificationService.deadlineReminder(
-          user.id, user.challenge_name, user.push_token
+      const expiringActions = await userModel.getUsersWithExpiringActions();
+      for (const action of expiringActions) {
+        await notificationService.actionDeadlineReminder(
+          action.user_id,
+          action.action_name,
+          action.push_token,
+          action.user_action_id
         );
       }
-      console.log('Deadline reminder job completed.');
+      console.log('Action deadline reminder job completed.');
     } catch (err) {
-      console.error('Deadline reminder job error:', err);
+      console.error('Action deadline reminder job error:', err);
     }
   });
 

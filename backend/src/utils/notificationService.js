@@ -58,21 +58,21 @@ const notificationService = {
   },
 
   // Action deadline reminder (cron job - when timer ending)
-  actionDeadlineReminder: async (userId, actionName, pushToken) => {
+  actionDeadlineReminder: async (userId, actionName, pushToken, userActionId) => {
     // Save to DB
     await notificationModel.create(
       userId,
       '⏰ Eco-action Ending Soon!',
       `Complete "${actionName}" now before time runs out!`,
       'action_deadline',
-      null
+      userActionId
     );
     // Push notification
     await notificationService.sendPush(
       pushToken,
       '⏰ Eco-action Ending in 2 min...',
       `Complete "${actionName}" now.`,
-      { type: 'action_deadline', action: actionName }
+      { type: 'action_deadline', action: actionName, user_action_id: userActionId }
     );
   },
 

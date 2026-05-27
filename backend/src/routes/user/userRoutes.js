@@ -15,5 +15,6 @@ router.put('/profile/picture', verifyToken,
   userController.uploadProfilePicture
 );
 router.put('/password', verifyToken, userController.changePassword);
+router.post('/push-token', verifyToken, userController.savePushToken);
 
 module.exports = router;
