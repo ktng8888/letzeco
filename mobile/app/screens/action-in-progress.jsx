@@ -20,12 +20,13 @@ export default function ActionInProgressScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { userActionId } = useLocalSearchParams();
-  const { clearCurrentAction } = useActionStore();
+  const { setCurrentAction, clearCurrentAction } = useActionStore();
   const { updateUser } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isCompleting, setIsCompleting] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isTryingAgain, setIsTryingAgain] = useState(false);
   const [isUploadingProof, setIsUploadingProof] = useState(false);
   const [userAction, setUserAction] = useState(null);
   const [proofUploaded, setProofUploaded] = useState(false);
@@ -36,6 +37,7 @@ export default function ActionInProgressScreen() {
   const [validationToken, setValidationToken] = useState(null);
   const [showProofPreview, setShowProofPreview] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [timeoutCancelled, setTimeoutCancelled] = useState(false);
 
   useEffect(() => { loadAction(); }, []);
 
@@ -62,6 +64,35 @@ export default function ActionInProgressScreen() {
     userAction?.start_time,
     timeLimitSeconds
   );
+
+  useEffect(() => {
+    if (!isExpired || !userAction || timeoutCancelled) return;
+
+    const cancelExpiredAction = async () => {
+      try {
+        if (proofImagePath) {
+          await actionService.deleteProof(userActionId, proofImagePath);
+        }
+        await actionService.cancelAction(userActionId);
+      } catch (err) {
+        const status = err.response?.status;
+        if (status !== 400 && status !== 404) {
+          console.error('Auto-cancel expired action error:', err);
+        }
+      } finally {
+        clearCurrentAction();
+        setTimeoutCancelled(true);
+      }
+    };
+
+    cancelExpiredAction();
+  }, [isExpired, userAction, timeoutCancelled, proofImagePath, userActionId]);
+
+  useEffect(() => {
+    if (!isExpired && timeoutCancelled) {
+      setTimeoutCancelled(false);
+    }
+  }, [isExpired, timeoutCancelled]);
 
   const completeAction = async ({ includeProof } = { includeProof: true }) => {
     setIsCompleting(true);
@@ -142,6 +173,40 @@ export default function ActionInProgressScreen() {
     } finally {
       setIsCancelling(false);
       setShowCancelConfirm(false);
+    }
+  };
+
+  const handleTryAgain = async () => {
+    if (!userAction?.action_id) return;
+
+    setIsTryingAgain(true);
+    try {
+      const data = await actionService.startAction(userAction.action_id);
+      const nextAction = {
+        ...userAction,
+        id: data.data.user_action_id,
+        start_time: data.data.start_time,
+        time_limit: data.data.time_limit,
+        xp_reward: data.data.xp_reward,
+      };
+
+      setProofUploaded(false);
+      setProofImageUri(null);
+      setProofImagePath(null);
+      setValidationStatus(null);
+      setValidationResult(null);
+      setValidationToken(null);
+      setUserAction(nextAction);
+      setCurrentAction(nextAction);
+
+      router.replace({
+        pathname: '/screens/action-in-progress',
+        params: { userActionId: data.data.user_action_id }
+      });
+    } catch (err) {
+      Alert.alert('Error', err.response?.data?.message || 'Failed to start action.');
+    } finally {
+      setIsTryingAgain(false);
     }
   };
 
@@ -503,13 +568,25 @@ export default function ActionInProgressScreen() {
         { paddingBottom: Math.max(insets.bottom, 18) + 12 }
       ]}>
         {isExpired ? (
-          // Time is over — show Try Again
-          <TouchableOpacity
-            style={styles.tryAgainBtn}
-            onPress={() => router.back()}
-          >
-            <Text style={styles.tryAgainText}>Try Again</Text>
-          </TouchableOpacity>
+          <View style={styles.expiredActions}>
+            <TouchableOpacity
+              style={[styles.backFooterBtn, isTryingAgain && styles.btnDisabled]}
+              onPress={() => router.back()}
+              disabled={isTryingAgain}
+            >
+              <Text style={styles.backFooterText}>Back</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tryAgainBtn, isTryingAgain && styles.btnDisabled]}
+              onPress={handleTryAgain}
+              disabled={isTryingAgain}
+            >
+              {isTryingAgain
+                ? <ActivityIndicator color={colors.textWhite} />
+                : <Text style={styles.tryAgainText}>Try Again</Text>
+              }
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             {/* Complete */}
@@ -1093,7 +1170,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  expiredActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  backFooterBtn: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: colors.textSecondary,
+    borderRadius: 14,
+    height: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backFooterText: {
+    color: colors.textSecondary,
+    fontSize: 16,
+    fontWeight: '700',
+  },
   tryAgainBtn: {
+    flex: 2,
     backgroundColor: colors.primary,
     borderRadius: 14,
     height: 50,

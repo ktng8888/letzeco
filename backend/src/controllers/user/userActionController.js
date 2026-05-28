@@ -51,6 +51,7 @@ const userActionController = {
         return res.status(404).json({ message: 'Action not found.' });
       }
 
+      await userActionModel.cancelExpiredInProgressForUser(userId);
       const inProgress = await userActionModel.getAnyInProgress(userId);
       if (inProgress) {
         return res.status(400).json({
@@ -365,6 +366,7 @@ const userActionController = {
     const userId = req.user.id;
     try {
       const actions    = await userActionModel.getTodayActions(userId);
+      await userActionModel.cancelExpiredInProgressForUser(userId);
       const inProgress = await userActionModel.getAnyInProgress(userId);
 
       res.json({

@@ -27,7 +27,8 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "package": "com.letzeco.app"
+      "package": "com.letzeco.app",
+      "googleServicesFile": "./google-services.json"
     },
     "scheme": "letzeco",
     "plugins": [

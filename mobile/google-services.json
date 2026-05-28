@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "934101181199",
+    "project_id": "letzeco-33b40",
+    "storage_bucket": "letzeco-33b40.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:934101181199:android:68794bb26b2d1cf56a147a",
+        "android_client_info": {
+          "package_name": "com.letzeco.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDa7fwd19UbuTvsSo9TL3ugofFtjtWwMnY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

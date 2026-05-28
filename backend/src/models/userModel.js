@@ -101,8 +101,8 @@ const userModel = {
     return result.rows[0];
   },
 
-  // Get users with action in progress ending in 2 minutes
-  getUsersWithExpiringActions: async () => {
+  // Get users with action in progress timing out in 2 minutes
+  getUsersWithTimingOutActions: async () => {
     const result = await pool.query(
       `SELECT
         ua.id AS user_action_id,
@@ -118,7 +118,7 @@ const userModel = {
        LEFT JOIN "user" u ON ua.user_id = u.id
        LEFT JOIN notification n
          ON n.related_id = ua.id
-        AND n.type = 'action_deadline'
+        AND n.type IN ('action_time_out', 'action_deadline')
        WHERE ua.status = 'in_progress'
        AND a.time_limit IS NOT NULL
        AND a.time_limit > INTERVAL '2 minutes'

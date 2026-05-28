@@ -151,60 +151,7 @@ const userActionModel = {
     return result.rows[0];
   },
 
-  // Start logging an action
-  create: async (userId, actionId) => {
-    const result = await pool.query(
-      `INSERT INTO user_action
-        (user_id, action_id, status, start_time)
-       VALUES ($1, $2, 'in_progress', NOW())
-       RETURNING *`,
-      [userId, actionId]
-    );
-    return result.rows[0];
-  },
-
-  // Complete an action (PUT - change status)
-  complete: async (id, xpGained, co2Saved, litreSaved, kwhSaved) => {
-    const result = await pool.query(
-      `UPDATE user_action SET
-        status = 'completed',
-        end_time = NOW(),
-        xp_gained = $1,
-        co2_saved = $2,
-        litre_saved = $3,
-        kwh_saved = $4
-       WHERE id = $5
-       RETURNING *`,
-      [xpGained, co2Saved, litreSaved, kwhSaved, id]
-    );
-    return result.rows[0];
-  },
-
-  // Cancel an action (UPDATE status)
-  /*
-  cancel: async (id) => {
-    const result = await pool.query(
-      `UPDATE user_action SET
-        status = 'cancelled',
-        end_time = NOW()
-       WHERE id = $1
-       RETURNING *`,
-      [id]
-    );
-    return result.rows[0];
-  },
-  */
-
-  // Cancel an action  (DELETE whole row)
-  cancel: async (id) => {
-    await pool.query(
-      `DELETE FROM user_action WHERE id = $1`,
-      [id]
-    );
-  },
-
-
-  // Get total completed actions count for user
+    // Get total completed actions count for user
   getTotalCompleted: async (userId) => {
     const result = await pool.query(
       `SELECT COUNT(*) FROM user_action
@@ -282,6 +229,110 @@ const userActionModel = {
         AND ua.end_time BETWEEN c.start_date AND c.end_date + INTERVAL '1 day'
       ORDER BY ua.end_time DESC`,
       [teamId, challengeId]
+    );
+    return result.rows;
+  },
+
+  // Start logging an action
+  create: async (userId, actionId) => {
+    const result = await pool.query(
+      `INSERT INTO user_action
+        (user_id, action_id, status, start_time)
+       VALUES ($1, $2, 'in_progress', NOW())
+       RETURNING *`,
+      [userId, actionId]
+    );
+    return result.rows[0];
+  },
+
+  // Complete an action
+  complete: async (id, xpGained, co2Saved, litreSaved, kwhSaved) => {
+    const result = await pool.query(
+      `UPDATE user_action SET
+        status = 'completed',
+        end_time = NOW(),
+        xp_gained = $1,
+        co2_saved = $2,
+        litre_saved = $3,
+        kwh_saved = $4
+       WHERE id = $5
+       RETURNING *`,
+      [xpGained, co2Saved, litreSaved, kwhSaved, id]
+    );
+    return result.rows[0];
+  },
+
+  cancel: async (id) => {
+    /*
+    await pool.query(
+      `UPDATE user_action SET
+        status = 'cancelled',
+        end_time = NOW()
+       WHERE id = $1`,
+      [id]
+    );
+    */
+
+    await pool.query(
+      `DELETE FROM user_action WHERE id = $1`,
+      [id]
+    );
+  },
+
+  cancelExpiredInProgressForUser: async (userId) => {
+    /*
+    const result = await pool.query(
+      `UPDATE user_action ua SET
+        status = 'cancelled',
+        end_time = NOW()
+       FROM action a
+       WHERE ua.action_id = a.id
+       AND ua.user_id = $1
+       AND ua.status = 'in_progress'
+       AND a.time_limit IS NOT NULL
+       AND ua.start_time + a.time_limit <= NOW()
+       RETURNING ua.*`,
+      [userId]
+    );
+    */
+
+    const result = await pool.query(
+      `DELETE FROM user_action ua
+       USING action a
+       WHERE ua.action_id = a.id
+       AND ua.user_id = $1
+       AND ua.status = 'in_progress'
+       AND a.time_limit IS NOT NULL
+       AND ua.start_time + a.time_limit <= NOW()
+       RETURNING ua.*`,
+      [userId]
+    );
+    return result.rows;
+  },
+
+  cancelExpiredInProgress: async () => {
+    /*
+    const result = await pool.query(
+      `UPDATE user_action ua SET
+        status = 'cancelled',
+        end_time = NOW()
+       FROM action a
+       WHERE ua.action_id = a.id
+       AND ua.status = 'in_progress'
+       AND a.time_limit IS NOT NULL
+       AND ua.start_time + a.time_limit <= NOW()
+       RETURNING ua.*`
+    );
+    */
+
+    const result = await pool.query(
+      `DELETE FROM user_action ua
+       USING action a
+       WHERE ua.action_id = a.id
+       AND ua.status = 'in_progress'
+       AND a.time_limit IS NOT NULL
+       AND ua.start_time + a.time_limit <= NOW()
+       RETURNING ua.*`
     );
     return result.rows;
   },

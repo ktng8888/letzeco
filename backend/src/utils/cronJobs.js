@@ -1,6 +1,7 @@
 // backend/src/utils/cronJobs.js  (FULL REPLACEMENT)
 const cron                     = require('node-cron');
 const userModel                = require('../models/userModel');
+const userActionModel          = require('../models/userActionModel');
 const challengeModel           = require('../models/challengeModel');
 const challengeRewardModel     = require('../models/challengeRewardModel');
 const userChallengeRewardModel = require('../models/userChallengeRewardModel');
@@ -31,20 +32,31 @@ const startCronJobs = () => {
   // ACTION DEADLINE REMINDER — every minute, for actions ending in about 2 minutes
   // ─────────────────────────────────────────────────────────────────────────
   cron.schedule('* * * * *', async () => {
-    console.log('Running action deadline reminder job...');
+    console.log('Running action time out reminder job...');
     try {
-      const expiringActions = await userModel.getUsersWithExpiringActions();
-      for (const action of expiringActions) {
-        await notificationService.actionDeadlineReminder(
+      const timingOutActions = await userModel.getUsersWithTimingOutActions();
+      for (const action of timingOutActions) {
+        await notificationService.actionTimeOutReminder(
           action.user_id,
           action.action_name,
           action.push_token,
           action.user_action_id
         );
       }
-      console.log('Action deadline reminder job completed.');
+      console.log('Action time out reminder job completed.');
     } catch (err) {
-      console.error('Action deadline reminder job error:', err);
+      console.error('Action time out reminder job error:', err);
+    }
+  });
+
+  cron.schedule('* * * * *', async () => {
+    try {
+      const cancelledActions = await userActionModel.cancelExpiredInProgress();
+      if (cancelledActions.length > 0) {
+        console.log(`Cancelled ${cancelledActions.length} expired action(s).`);
+      }
+    } catch (err) {
+      console.error('Expired action cancellation job error:', err);
     }
   });
 

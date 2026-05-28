@@ -6,7 +6,12 @@ export function useCountdown(startTime, timeLimitSeconds) {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    if (!startTime || !timeLimitSeconds) return;
+    setIsExpired(false);
+
+    if (!startTime || !timeLimitSeconds) {
+      setRemaining(0);
+      return;
+    }
 
     const endTime = new Date(startTime).getTime()
       + timeLimitSeconds * 1000;
@@ -24,6 +29,8 @@ export function useCountdown(startTime, timeLimitSeconds) {
       if (diff <= 0) {
         setIsExpired(true);
         clearInterval(intervalRef.current);
+      } else {
+        setIsExpired(false);
       }
     };
 

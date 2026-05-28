@@ -12,7 +12,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { logout } = useAuthStore();
   const [streakReminder, setStreakReminder] = useState(true);
-  const [deadlineReminder, setDeadlineReminder] = useState(true);
+  const [timeOutReminder, setTimeOutReminder] = useState(true);
 
   const handleLogout = () => {
     Alert.alert(
@@ -75,9 +75,9 @@ export default function SettingsScreen() {
           <View style={styles.divider} />
           <ToggleRow
             icon="time-outline"
-            label="Deadline Reminder"
-            value={deadlineReminder}
-            onToggle={setDeadlineReminder}
+            label="Time Out Reminder"
+            value={timeOutReminder}
+            onToggle={setTimeOutReminder}
           />
         </View>
 
