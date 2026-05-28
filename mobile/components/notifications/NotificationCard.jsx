@@ -95,6 +95,10 @@ function getNotifConfig(type) {
       emoji: '⏰',
       bgColor: '#fef2f2',
     },
+    action_time_out: {
+      emoji: '⏰',
+      bgColor: '#fef2f2',
+    },
     new_challenge: {
       emoji: '🌟',
       bgColor: '#f0fdf4',
