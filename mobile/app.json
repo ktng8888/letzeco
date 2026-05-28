@@ -4,7 +4,7 @@
     "slug": "letzeco",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app_logo.png",
     "userInterfaceStyle": "light",
     "updates": {
       "enabled": false
@@ -23,9 +23,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "foregroundImage": "./assets/app_logo.png",
+        "backgroundColor": "#ffffff"
       },
       "package": "com.letzeco.app",
       "googleServicesFile": "./google-services.json"
@@ -36,7 +35,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/app_logo.png",
           "color": "#22c55e"
         }
       ],

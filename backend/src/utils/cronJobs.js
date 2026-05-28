@@ -32,9 +32,10 @@ const startCronJobs = () => {
   // ACTION DEADLINE REMINDER — every minute, for actions ending in about 2 minutes
   // ─────────────────────────────────────────────────────────────────────────
   cron.schedule('* * * * *', async () => {
-    console.log('Running action time out reminder job...');
     try {
       const timingOutActions = await userModel.getUsersWithTimingOutActions();
+      if (timingOutActions.length === 0) return;
+
       for (const action of timingOutActions) {
         await notificationService.actionTimeOutReminder(
           action.user_id,
@@ -43,7 +44,7 @@ const startCronJobs = () => {
           action.user_action_id
         );
       }
-      console.log('Action time out reminder job completed.');
+      console.log(`Sent ${timingOutActions.length} action time out reminder(s).`);
     } catch (err) {
       console.error('Action time out reminder job error:', err);
     }

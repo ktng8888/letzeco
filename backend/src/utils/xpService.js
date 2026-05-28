@@ -155,7 +155,12 @@ const unlockSpecificActionAchievements = async (userId, actionId, progress) => {
 const firstUnlocked = (unlocked) => unlocked[0] || null;
 const firstUnlockedWithAll = (unlocked) => {
   const first = firstUnlocked(unlocked);
-  if (first) first.new_achievements = unlocked;
+  if (first) {
+    return {
+      ...first,
+      new_achievements: unlocked.map((achievement) => ({ ...achievement })),
+    };
+  }
   return first;
 };
 

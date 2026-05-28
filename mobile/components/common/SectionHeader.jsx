@@ -1,4 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import SoundTouchableOpacity from './SoundTouchableOpacity';
 import colors from '../../constants/colors';
 
 export default function SectionHeader({ title, linkText, onPress }) {
@@ -6,9 +7,9 @@ export default function SectionHeader({ title, linkText, onPress }) {
     <View style={styles.container}>
       <Text style={styles.title}>{title}</Text>
       {linkText && onPress && (
-        <TouchableOpacity onPress={onPress}>
+        <SoundTouchableOpacity onPress={onPress}>
           <Text style={styles.link}>{linkText}</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       )}
     </View>
   );

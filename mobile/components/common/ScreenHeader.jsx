@@ -1,6 +1,7 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import SoundTouchableOpacity from './SoundTouchableOpacity';
 import colors from '../../constants/colors';
 
 export default function ScreenHeader({ title, subtitle, showBell, unreadCount }) {
@@ -15,7 +16,7 @@ export default function ScreenHeader({ title, subtitle, showBell, unreadCount })
         )}
       </View>
       {showBell && (
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.bellBtn}
           onPress={() => router.push('/screens/notifications')}
         >
@@ -31,7 +32,7 @@ export default function ScreenHeader({ title, subtitle, showBell, unreadCount })
               </Text>
             </View>
           )}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       )}
     </View>
   );

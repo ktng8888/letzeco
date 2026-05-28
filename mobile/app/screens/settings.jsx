@@ -6,11 +6,19 @@ import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../store/authStore';
+import useAudioStore from '../../store/audioStore';
+import { playClickSound } from '../../services/audioService';
 import colors from '../../constants/colors';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { logout } = useAuthStore();
+  const {
+    bgmEnabled,
+    sfxEnabled,
+    setBgmEnabled,
+    setSfxEnabled,
+  } = useAudioStore();
   const [streakReminder, setStreakReminder] = useState(true);
   const [timeOutReminder, setTimeOutReminder] = useState(true);
 
@@ -58,6 +66,25 @@ export default function SettingsScreen() {
             icon="lock-closed-outline"
             label="Reset Password"
             onPress={() => router.push('/screens/reset-password')}
+          />
+        </View>
+
+        <Text style={styles.sectionLabel}>
+          Audio Preferences
+        </Text>
+        <View style={styles.card}>
+          <ToggleRow
+            icon="musical-notes-outline"
+            label="Background Music"
+            value={bgmEnabled}
+            onToggle={setBgmEnabled}
+          />
+          <View style={styles.divider} />
+          <ToggleRow
+            icon="volume-medium-outline"
+            label="Click Sounds"
+            value={sfxEnabled}
+            onToggle={setSfxEnabled}
           />
         </View>
 
@@ -112,6 +139,11 @@ function SettingRow({ icon, label, onPress }) {
 }
 
 function ToggleRow({ icon, label, value, onToggle }) {
+  const handleToggle = (nextValue) => {
+    playClickSound();
+    onToggle(nextValue);
+  };
+
   return (
     <View style={styles.row}>
       <View style={styles.rowLeft}>
@@ -120,7 +152,7 @@ function ToggleRow({ icon, label, value, onToggle }) {
       </View>
       <Switch
         value={value}
-        onValueChange={onToggle}
+        onValueChange={handleToggle}
         trackColor={{
           false: colors.bgGrey,
           true: colors.primaryLight

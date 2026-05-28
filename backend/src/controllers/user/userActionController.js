@@ -38,6 +38,12 @@ const achievementItems = (achievement) => {
   return [achievement];
 };
 
+const serializeAchievement = (achievement) => {
+  if (!achievement) return null;
+  const { new_achievements, ...serializable } = achievement;
+  return serializable;
+};
+
 const userActionController = {
 
   // START LOGGING AN ACTION
@@ -266,7 +272,7 @@ const userActionController = {
         ...achievementItems(challengeAchievement),
         ...achievementItems(streakResult.streak_achievement),
         ...(xpResult.new_achievements || []),
-      ]);
+      ]).map(serializeAchievement);
       const anyAchievement = newBadges[0] || null;
 
       for (const achievement of newBadges) {

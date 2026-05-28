@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../constants/colors';
+import { playClickSound } from '../../services/audioService';
 
 function TabIcon({ name, focused, label }) {
   return (
@@ -42,6 +43,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="home"
+        listeners={{ tabPress: () => playClickSound() }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} label="Home" />
@@ -50,6 +52,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="log-action"
+        listeners={{ tabPress: () => playClickSound() }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'leaf' : 'leaf-outline'} focused={focused} label="Log Action" />
@@ -58,6 +61,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="progress"
+        listeners={{ tabPress: () => playClickSound() }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'bar-chart' : 'bar-chart-outline'} focused={focused} label="Progress" />
@@ -66,6 +70,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="leaderboard"
+        listeners={{ tabPress: () => playClickSound() }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} label="Leaderboard" />
@@ -74,6 +79,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile"
+        listeners={{ tabPress: () => playClickSound() }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} label="Profile" />
