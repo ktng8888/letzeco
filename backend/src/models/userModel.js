@@ -118,7 +118,7 @@ const userModel = {
        LEFT JOIN "user" u ON ua.user_id = u.id
        LEFT JOIN notification n
          ON n.related_id = ua.id
-        AND n.type IN ('action_time_out', 'action_deadline')
+        AND n.type = 'action_time_out'
        WHERE ua.status = 'in_progress'
        AND a.time_limit IS NOT NULL
        AND a.time_limit > INTERVAL '2 minutes'

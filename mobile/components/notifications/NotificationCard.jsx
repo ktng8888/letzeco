@@ -91,10 +91,6 @@ function getNotifConfig(type) {
       emoji: '🏆',
       bgColor: '#fef3c7',
     },
-    action_deadline: {
-      emoji: '⏰',
-      bgColor: '#fef2f2',
-    },
     action_time_out: {
       emoji: '⏰',
       bgColor: '#fef2f2',
