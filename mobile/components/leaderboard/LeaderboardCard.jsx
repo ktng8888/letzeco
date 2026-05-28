@@ -35,7 +35,7 @@ export default function LeaderboardCard({ item, myId }) {
           <Text style={styles.medal}>{medal}</Text>
         ) : (
           <Text style={[styles.rank, isMe && styles.rankMe]}>
-            #{item.rank}
+            {item.rank}
           </Text>
         )}
       </View>

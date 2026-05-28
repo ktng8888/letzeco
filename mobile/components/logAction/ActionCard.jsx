@@ -3,8 +3,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Badge from '../common/Badge';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import { playClickSound } from '../../services/audioService';
 
 export default function ActionCard({
   action,
@@ -24,13 +26,14 @@ export default function ActionCard({
   const imageUrl = getImageUrl(imageSourcePath);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <SoundTouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.top}>
 
         {/* Favourite button - top right */}
         <TouchableOpacity
           onPress={(e) => {
             e.stopPropagation();
+            playClickSound();
             onFavouriteToggle && onFavouriteToggle(action);
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -100,7 +103,7 @@ export default function ActionCard({
         </View>
 
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

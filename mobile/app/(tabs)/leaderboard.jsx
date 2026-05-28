@@ -78,7 +78,7 @@ export default function LeaderboardScreen() {
           <Text style={styles.yourRankEmoji}>{getRankEmoji(yourRank)}</Text>
           <View>
             <Text style={styles.yourRankLabel}>Your Rank</Text>
-            <Text style={styles.yourRankValue}>#{yourRank}</Text>
+            <Text style={styles.yourRankValue}>Rank {yourRank}</Text>
           </View>
         </View>
         <View style={styles.yourRankRight}>

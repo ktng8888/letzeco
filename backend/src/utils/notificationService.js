@@ -43,7 +43,7 @@ const notificationService = {
     // Save to DB
     await notificationModel.create(
       userId,
-      '⚠️ Don\'t Break Your Streak!',
+      'Don\'t Break Your Streak!',
       `Log an eco-action now to keep your ${currentStreak}-day streak alive!`,
       'streak_reminder',
       currentStreak
@@ -51,7 +51,7 @@ const notificationService = {
     // Push notification
     await notificationService.sendPush(
       pushToken,
-      '⚠️ Don\'t Break Your Streak!',
+      'Don\'t Break Your Streak!',
       `Log an eco-action now to keep your ${currentStreak}-day streak alive! 🌿`,
       { type: 'streak_reminder', streak: currentStreak }
     );
@@ -62,7 +62,7 @@ const notificationService = {
     // Save to DB
     await notificationModel.create(
       userId,
-      '⏰ Eco-action Ending Soon!',
+      'Eco-action Ending Soon!',
       `Complete "${actionName}" now before time runs out!`,
       'action_time_out',
       userActionId
@@ -70,7 +70,7 @@ const notificationService = {
     // Push notification
     await notificationService.sendPush(
       pushToken,
-      '⏰ Eco-action Ending in 2 min...',
+      'Eco-action Ending Soon!',
       `Complete "${actionName}" now.`,
       { type: 'action_time_out', action: actionName, user_action_id: userActionId }
     );
@@ -81,7 +81,7 @@ const notificationService = {
     // Save to DB
     await notificationModel.create(
       userId,
-      '✅ Friend Request Accepted',
+      'Friend Request Accepted',
       `${approverUsername} accepted your friend request!`,
       'friend_approved',
       null
@@ -89,7 +89,7 @@ const notificationService = {
     // Push notification
     await notificationService.sendPush(
       pushToken,
-      '✅ Friend Request Accepted',
+      'Friend Request Accepted',
       `${approverUsername} accepted your friend request!`,
       { type: 'friend_approved' }
     );
@@ -103,7 +103,7 @@ const notificationService = {
   levelUp: async (userId, newLevel) => {
     await notificationModel.create(
       userId,
-      '🎉 Level Up!',
+      'Level Up!',
       `Congratulations! You reached Level ${newLevel}!`,
       'level_up',
       newLevel
@@ -115,7 +115,7 @@ const notificationService = {
   badgeUnlocked: async (userId, badgeName) => {
     await notificationModel.create(
       userId,
-      '🏅 Badge Unlocked!',
+      'Badge Unlocked!',
       `You unlocked the "${badgeName}" badge!`,
       'badge_unlocked',
       null
@@ -131,7 +131,7 @@ const notificationService = {
   friendRequest: async (userId, senderUsername) => {
     await notificationModel.create(
       userId,
-      '👫 Friend Request',
+      'Friend Request',
       `${senderUsername} sent you a friend request.`,
       'friend_request',
       null
@@ -143,7 +143,7 @@ const notificationService = {
   streakReward: async (userId, day, xpReward) => {
     await notificationModel.create(
       userId,
-      `🔥 ${day} Day Streak!`,
+      `${day} Day Streak!`,
       `${xpReward} XP reward for your ${day}-day streak!`,
       'streak_reward',
       day
@@ -155,7 +155,7 @@ const notificationService = {
   challengeCompleted: async (userId, challengeName) => {
     await notificationModel.create(
       userId,
-      '🏆 Challenge Completed!',
+      'Challenge Completed!',
       `You completed the "${challengeName}" challenge!`,
       'challenge_completed',
       null

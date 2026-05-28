@@ -1,4 +1,5 @@
-import { TouchableOpacity, Text, View, Image, StyleSheet } from 'react-native';
+import { Text, View, Image, StyleSheet } from 'react-native';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
 
@@ -6,7 +7,7 @@ export default function CategoryCard({ category, onPress }) {
   const imageUrl = getImageUrl(category.image);
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress}>
+    <SoundTouchableOpacity style={styles.card} onPress={onPress}>
       <View style={styles.iconContainer}>
         {imageUrl ? (
           <Image
@@ -24,7 +25,7 @@ export default function CategoryCard({ category, onPress }) {
       <Text style={styles.count}>
         {category.action_count} Actions
       </Text>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

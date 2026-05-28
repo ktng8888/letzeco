@@ -6,6 +6,7 @@ import { useRouter, useSegments } from 'expo-router';
 import useAuthStore from '../store/authStore';
 import streakService from '../services/streakService';
 import { savePushTokenForCurrentUser } from '../utils/pushNotifications';
+import { disposeAudio, initAudio } from '../services/audioService';
 
 
 export default function RootLayout() {
@@ -39,6 +40,7 @@ export default function RootLayout() {
   useEffect(() => {
     const init = async () => {
       await initialize();
+      await initAudio();
 
       if (isAuthenticated) {
         try {
@@ -52,6 +54,8 @@ export default function RootLayout() {
     };
 
     init();
+
+    return () => disposeAudio();
   }, []);
 
   useEffect(() => {
