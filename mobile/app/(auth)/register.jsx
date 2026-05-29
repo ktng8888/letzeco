@@ -159,6 +159,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 72,
     height: 72,
+    borderRadius: 16,
   },
   appName: {
     fontSize: 22,
