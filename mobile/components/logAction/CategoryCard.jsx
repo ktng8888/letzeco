@@ -1,4 +1,5 @@
 import { Text, View, Image, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
@@ -16,7 +17,7 @@ export default function CategoryCard({ category, onPress }) {
             resizeMode="contain"
           />
         ) : (
-          <Text style={styles.fallbackIcon}>🌍</Text>
+          <Ionicons name="earth-outline" size={28} color={colors.primary} />
         )}
       </View>
       <Text style={styles.name} numberOfLines={2}>
@@ -57,9 +58,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-  },
-  fallbackIcon: {
-    fontSize: 26,
   },
   name: {
     fontSize: 13,

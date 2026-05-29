@@ -1,4 +1,5 @@
 import { View, Text, Image, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { formatProgress } from '../../../utils/challengeHelpers';
 import useAuthStore from '../../../store/authStore';
 import { BASE_URL } from '../../../constants/api';
@@ -44,7 +45,7 @@ export default function ActivityTab({
 
         {feed.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>📋</Text>
+            <Ionicons name="clipboard-outline" size={38} color={colors.borderDark} />
             <Text style={styles.emptyTitle}>No activity yet.</Text>
             <Text style={styles.emptySub}>
               Be the first to log an eligible action!
@@ -67,7 +68,7 @@ export default function ActivityTab({
       <Text style={styles.sectionTitle}>Your Activity</Text>
       {!hasData ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>📋</Text>
+          <Ionicons name="clipboard-outline" size={38} color={colors.borderDark} />
           <Text style={styles.emptyTitle}>No eligible actions logged yet.</Text>
           <Text style={styles.emptySub}>
             Log eligible actions to see your activity here.
@@ -123,14 +124,18 @@ function MemberContributionChart({ members, targetType, unit }) {
 
               {/* Name */}
               <View style={styles.chartName}>
-                <Text style={styles.chartNameText} numberOfLines={1}>
-                  {member.username}
-                  {isLeader ? ' 👑' : ''}
+                <View style={styles.chartNameRow}>
+                  <Text style={styles.chartNameText} numberOfLines={1}>
+                    {member.username}
+                  </Text>
+                  {isLeader && (
+                    <Ionicons name="trophy-outline" size={12} color={colors.xpColor} />
+                  )}
                   {isYou
                     ? <Text style={styles.youTag}> (You)</Text>
                     : null
                   }
-                </Text>
+                </View>
               </View>
 
               {/* Bar track */}
@@ -344,10 +349,16 @@ const styles = StyleSheet.create({
     width: 80,
     flexShrink: 0,
   },
+  chartNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+  },
   chartNameText: {
     fontSize: 12,
     fontWeight: '600',
     color: colors.textPrimary,
+    flexShrink: 1,
   },
   youTag: {
     fontSize: 11,
@@ -391,7 +402,6 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     gap: 8,
   },
-  emptyIcon: { fontSize: 36 },
   emptyTitle: {
     fontSize: 15,
     fontWeight: '600',

@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../store/authStore';
 import { BadgeUnlockedModal, LevelUpModal } from '../../components/modals';
 import colors from '../../constants/colors';
@@ -115,32 +116,37 @@ export default function ActionCompleteScreen() {
             <ImpactRow
               label="Actions Logged"
               value={`${todayActions} Actions`}
-              icon="✅"
+              icon="checkmark-circle-outline"
+              iconColor={colors.success}
             />
             <ImpactRow
               label="Total XP Earned"
               value={`${todayXp} XP`}
-              icon="⭐"
+              icon="star-outline"
+              iconColor={colors.xpColor}
             />
             {parseFloat(todayCo2) > 0 && (
               <ImpactRow
                 label="CO₂ Saved"
                 value={`${todayCo2} Kg`}
-                icon="🌿"
+                icon="leaf-outline"
+                iconColor={colors.primary}
               />
             )}
             {parseFloat(todayLitre) > 0 && (
               <ImpactRow
                 label="Water Saved"
                 value={`${todayLitre} L`}
-                icon="💧"
+                icon="water-outline"
+                iconColor={colors.info}
               />
             )}
             {parseFloat(todayKwh) > 0 && (
               <ImpactRow
                 label="Energy Saved"
                 value={`${todayKwh} kWh`}
-                icon="⚡"
+                icon="flash-outline"
+                iconColor={colors.xpColor}
               />
             )}
           </View>
@@ -149,7 +155,7 @@ export default function ActionCompleteScreen() {
         {/* Streak Reward */}
         {streak_reward && (
           <View style={styles.streakCard}>
-            <Text style={styles.streakCardIcon}>🔥</Text>
+            <Ionicons name="flame-outline" size={30} color={colors.streakColor} />
             <Text style={styles.streakCardTitle}>
               Day {streak_reward.day} Streak Reward Unlocked!
             </Text>
@@ -161,7 +167,7 @@ export default function ActionCompleteScreen() {
 
         {/* Motivational Message */}
         <Text style={styles.motivation}>
-          Keep Going! Let's make the world better by logging one more action 🌍
+          Keep Going! Let's make the world better by logging one more action.
         </Text>
 
         {/* Buttons */}
@@ -228,11 +234,11 @@ function getUnlockedBadges(result) {
   });
 }
 
-function ImpactRow({ label, value, icon }) {
+function ImpactRow({ label, value, icon, iconColor }) {
   return (
     <View style={styles.impactRow}>
       <View style={styles.impactRowLeft}>
-        <Text style={styles.impactRowIcon}>{icon}</Text>
+        <Ionicons name={icon} size={18} color={iconColor} />
         <Text style={styles.impactRowLabel}>{label}</Text>
       </View>
       <Text style={styles.impactRowValue}>{value}</Text>
@@ -314,7 +320,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  impactRowIcon: { fontSize: 18 },
   impactRowLabel: {
     fontSize: 14,
     color: colors.textSecondary,
@@ -331,7 +336,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  streakCardIcon: { fontSize: 28, marginBottom: 4 },
   streakCardTitle: {
     fontSize: 18,
     fontWeight: '700',

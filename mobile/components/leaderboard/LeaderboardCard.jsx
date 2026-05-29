@@ -11,10 +11,7 @@ export default function LeaderboardCard({ item, myId }) {
   const isMe = item.id === myId;
   const isTop3 = item.rank <= 3;
 
-  const medal = item.rank === 1
-    ? '🥇' : item.rank === 2
-    ? '🥈' : item.rank === 3
-    ? '🥉' : null;
+  const medal = getMedalMeta(item.rank);
 
   return (
     <TouchableOpacity
@@ -32,7 +29,7 @@ export default function LeaderboardCard({ item, myId }) {
       {/* Rank */}
       <View style={styles.rankContainer}>
         {medal ? (
-          <Text style={styles.medal}>{medal}</Text>
+          <Ionicons name={medal.icon} size={22} color={medal.color} />
         ) : (
           <Text style={[styles.rank, isMe && styles.rankMe]}>
             {item.rank}
@@ -67,9 +64,14 @@ export default function LeaderboardCard({ item, myId }) {
         <View style={styles.metaRow}>
           <Text style={styles.meta}>Lv.{item.level}</Text>
           <Text style={styles.metaDot}>•</Text>
-          <Text style={styles.meta}>
-            {item.streak > 0 ? `🔥 ${item.streak}` : 'No streak'}
-          </Text>
+          {item.streak > 0 ? (
+            <View style={styles.streakMeta}>
+              <Ionicons name="flame-outline" size={12} color={colors.streakColor} />
+              <Text style={styles.meta}>{item.streak}</Text>
+            </View>
+          ) : (
+            <Text style={styles.meta}>No streak</Text>
+          )}
         </View>
       </View>
 
@@ -82,6 +84,13 @@ export default function LeaderboardCard({ item, myId }) {
       </View>
     </TouchableOpacity>
   );
+}
+
+function getMedalMeta(rank) {
+  if (rank === 1) return { icon: 'trophy', color: colors.xpColor };
+  if (rank === 2) return { icon: 'medal-outline', color: colors.textLight };
+  if (rank === 3) return { icon: 'ribbon-outline', color: '#c2763b' };
+  return null;
 }
 
 const styles = StyleSheet.create({
@@ -108,7 +117,6 @@ const styles = StyleSheet.create({
     width: 36,
     alignItems: 'center',
   },
-  medal: { fontSize: 22 },
   rank: {
     fontSize: 14,
     fontWeight: '700',
@@ -154,6 +162,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     marginTop: 2,
+  },
+  streakMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
   },
   meta: {
     fontSize: 12,

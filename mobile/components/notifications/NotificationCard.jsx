@@ -26,7 +26,7 @@ export default function NotificationCard({
         styles.iconContainer,
         { backgroundColor: config.bgColor }
       ]}>
-        <Text style={styles.iconEmoji}>{config.emoji}</Text>
+        <Ionicons name={config.icon} size={22} color={config.color} />
       </View>
 
       {/* Content */}
@@ -64,43 +64,56 @@ export default function NotificationCard({
 function getNotifConfig(type) {
   const configs = {
     level_up: {
-      emoji: '🎉',
+      icon: 'sparkles-outline',
+      color: colors.xpColor,
       bgColor: '#fef3c7',
     },
     badge_unlocked: {
-      emoji: '🏅',
+      icon: 'ribbon-outline',
+      color: colors.xpColor,
       bgColor: '#fef3c7',
     },
     streak_reward: {
-      emoji: '🔥',
+      icon: 'flame-outline',
+      color: colors.streakColor,
       bgColor: '#fff7ed',
     },
     streak_reminder: {
-      emoji: '⚠️',
+      icon: 'alert-circle-outline',
+      color: colors.warning,
       bgColor: '#fff7ed',
     },
     friend_request: {
-      emoji: '👫',
+      icon: 'people-outline',
+      color: colors.info,
       bgColor: '#eff6ff',
     },
     friend_approved: {
-      emoji: '✅',
+      icon: 'checkmark-circle-outline',
+      color: colors.success,
       bgColor: '#f0fdf4',
     },
     challenge_completed: {
-      emoji: '🏆',
+      icon: 'trophy-outline',
+      color: colors.xpColor,
       bgColor: '#fef3c7',
     },
     action_time_out: {
-      emoji: '⏰',
+      icon: 'time-outline',
+      color: colors.error,
       bgColor: '#fef2f2',
     },
     new_challenge: {
-      emoji: '🌟',
+      icon: 'flag-outline',
+      color: colors.primary,
       bgColor: '#f0fdf4',
     },
   };
-  return configs[type] || { emoji: '🔔', bgColor: colors.bgGrey };
+  return configs[type] || {
+    icon: 'notifications-outline',
+    color: colors.textSecondary,
+    bgColor: colors.bgGrey,
+  };
 }
 
 function formatTime(dateString) {
@@ -160,7 +173,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
-  iconEmoji: { fontSize: 22 },
   content: { flex: 1 },
   title: {
     fontSize: 14,

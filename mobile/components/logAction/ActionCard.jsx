@@ -56,7 +56,7 @@ export default function ActionCard({
                 resizeMode="contain"
               />
             ) : (
-              <Text style={styles.fallbackIcon}>🌿</Text>
+              <Ionicons name="leaf-outline" size={26} color={colors.primary} />
             )}
           </View>
 
@@ -149,9 +149,6 @@ const styles = StyleSheet.create({
   actionImage: {
     width: 56,
     height: 56,
-  },
-  fallbackIcon: {
-    fontSize: 26,
   },
   textCol: {
     flex: 1,

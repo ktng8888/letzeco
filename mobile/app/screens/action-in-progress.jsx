@@ -391,17 +391,14 @@ export default function ActionInProgressScreen() {
             <ImpactBox
               value={formatImpactValue(userAction.co2_saved)}
               unit="Kg CO₂"
-              icon="🌿"
             />
             <ImpactBox
               value={formatImpactValue(userAction.litre_saved)}
               unit="L Water"
-              icon="💧"
             />
             <ImpactBox
               value={formatImpactValue(userAction.kwh_saved)}
               unit="kWh"
-              icon="⚡"
             />
           </View>
         </View>
@@ -677,7 +674,7 @@ export default function ActionInProgressScreen() {
   );
 }
 
-function ImpactBox({ value, unit, icon }) {
+function ImpactBox({ value, unit }) {
   const active = value !== '-' && Number(value) > 0;
   const meta = getImpactMeta(unit);
   return (

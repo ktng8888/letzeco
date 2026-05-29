@@ -2,6 +2,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { BASE_URL } from '../../constants/api';
 import { getRankBorderColor } from '../../utils/rankUtils';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 
 export default function TopThreePodium({ top3, myId, isFriends }) {
@@ -39,12 +40,12 @@ export default function TopThreePodium({ top3, myId, isFriends }) {
 
 function PodiumItem({ user, rank, height, isMe, isFriends }) {
   const router = useRouter();
-  const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+  const medal = getMedalMeta(rank);
 
   if (!user) {
     return (
       <View style={styles.podiumSlot}>
-        <Text style={styles.medal}>{medal}</Text>
+        <Ionicons name={medal.icon} size={25} color={medal.color} style={styles.medal} />
         <TouchableOpacity
           style={[styles.avatar, styles.avatarEmpty]}
           onPress={() => isFriends && router.push('/screens/friends')}
@@ -76,7 +77,7 @@ function PodiumItem({ user, rank, height, isMe, isFriends }) {
       disabled={isMe}
     >
       {/* Medal */}
-      <Text style={styles.medal}>{medal}</Text>
+      <Ionicons name={medal.icon} size={25} color={medal.color} style={styles.medal} />
 
       {/* Avatar */}
       <View style={[
@@ -116,6 +117,12 @@ function PodiumItem({ user, rank, height, isMe, isFriends }) {
   );
 }
 
+function getMedalMeta(rank) {
+  if (rank === 1) return { icon: 'trophy', color: colors.xpColor };
+  if (rank === 2) return { icon: 'medal-outline', color: colors.textLight };
+  return { icon: 'ribbon-outline', color: '#c2763b' };
+}
+
 const styles = StyleSheet.create({
   podium: {
     flexDirection: 'row',
@@ -130,7 +137,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
   },
-  medal: { fontSize: 24, marginBottom: 4 },
+  medal: { marginBottom: 4 },
   avatar: {
     width: 44,
     height: 44,

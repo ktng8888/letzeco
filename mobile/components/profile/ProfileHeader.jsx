@@ -70,6 +70,9 @@ export default function ProfileHeader({
             ]}
             onPress={onFriendPress}
           >
+            {friendshipStatus === 'friends' && (
+              <Ionicons name="checkmark" size={14} color={colors.primary} />
+            )}
             <Text style={[
               styles.friendBtnText,
               friendshipStatus === 'friends' && styles.friendBtnTextGreen
@@ -122,7 +125,7 @@ function getXpPercent(user) {
 
 function getFriendBtnText(status) {
   switch (status) {
-    case 'friends': return '✓ Friends';
+    case 'friends': return 'Friends';
     case 'request_sent': return 'Request Sent';
     case 'request_received': return 'Accept Request';
     default: return 'Send Friend Request';
@@ -225,6 +228,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   friendBtnText: {
     fontSize: 14,

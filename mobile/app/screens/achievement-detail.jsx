@@ -94,9 +94,11 @@ export default function AchievementDetailScreen() {
                 styles.badgeImgFallback,
                 !current.is_unlocked && styles.badgeImgFallbackLocked,
               ]}>
-                <Text style={styles.badgeFallbackEmoji}>
-                  {current.is_unlocked ? '🏅' : '🔒'}
-                </Text>
+                <Ionicons
+                  name={current.is_unlocked ? 'ribbon-outline' : 'lock-closed-outline'}
+                  size={72}
+                  color={current.is_unlocked ? tierColor.accent : colors.textLight}
+                />
               </View>
             )}
 
@@ -188,9 +190,7 @@ export default function AchievementDetailScreen() {
                         resizeMode="contain"
                       />
                     ) : (
-                      <Text style={styles.tierEmoji}>
-                        {getTierEmoji(ach.badge_name)}
-                      </Text>
+                      <TierIcon name={ach.badge_name} size={30} />
                     )}
 
                     {/* Unlocked checkmark */}
@@ -222,11 +222,17 @@ function getTierColor(name = '') {
   return { bg: colors.primaryBg, text: colors.primary, accent: colors.primary };
 }
 
-function getTierEmoji(name = '') {
-  if (name.includes('Gold'))   return '🥇';
-  if (name.includes('Silver')) return '🥈';
-  if (name.includes('Bronze')) return '🥉';
-  return '🏅';
+function TierIcon({ name = '', size = 28 }) {
+  const tier = getTierColor(name);
+  const icon = name.includes('Gold')
+    ? 'trophy'
+    : name.includes('Silver')
+      ? 'medal-outline'
+      : name.includes('Bronze')
+        ? 'ribbon-outline'
+        : 'ribbon-outline';
+
+  return <Ionicons name={icon} size={size} color={tier.accent} />;
 }
 
 const styles = StyleSheet.create({
@@ -288,8 +294,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgGrey,
     opacity: 0.5,
   },
-  badgeFallbackEmoji: { fontSize: 64 },
-
   notObtainedOverlay: {
     position: 'absolute',
     bottom: 8,
@@ -442,7 +446,6 @@ const styles = StyleSheet.create({
   tierImgLocked: {
     opacity: 0.3,
   },
-  tierEmoji: { fontSize: 28 },
   tierCheck: {
     position: 'absolute',
     top: -5,

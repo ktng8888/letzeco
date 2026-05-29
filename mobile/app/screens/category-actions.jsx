@@ -194,7 +194,10 @@ export default function CategoryActionsScreen() {
           onPress={() => setShowBlocked(false)}
         >
           <View style={styles.blockedPopup}>
-            <Text style={styles.blockedTitle}>Whoa there, speedy! 🚀</Text>
+            <View style={styles.blockedTitleRow}>
+              <Ionicons name="flash-outline" size={22} color={colors.warning} />
+              <Text style={styles.blockedTitle}>Whoa there, speedy!</Text>
+            </View>
             <Text style={styles.blockedText}>
               You're already logging an action.{'\n'}
               Let's finish that one first before starting a new one.
@@ -292,11 +295,16 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  blockedTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 10,
+  },
   blockedTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 10,
     textAlign: 'center',
   },
   blockedText: {

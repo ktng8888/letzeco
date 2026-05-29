@@ -4,6 +4,7 @@ import {
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 import leaderboardService from '../../services/leaderboardService';
 import useAuthStore from '../../store/authStore';
@@ -68,14 +69,17 @@ export default function LeaderboardScreen() {
       <View style={styles.periodRow}>
         <Text style={styles.periodText}>Period: {weekRange}</Text>
         <TouchableOpacity onPress={() => setShowInfo(true)}>
-          <Text style={styles.rankingInfoBtn}>About Ranking ⓘ</Text>
+          <View style={styles.rankingInfoBtn}>
+            <Text style={styles.rankingInfoText}>About Ranking</Text>
+            <Ionicons name="information-circle-outline" size={13} color={colors.primary} />
+          </View>
         </TouchableOpacity>
       </View>
 
       {/* Your Rank Banner */}
       <View style={styles.yourRankBanner}>
         <View style={styles.yourRankLeft}>
-          <Text style={styles.yourRankEmoji}>{getRankEmoji(yourRank)}</Text>
+          <RankIcon rank={yourRank} size={30} color={colors.textWhite} />
           <View>
             <Text style={styles.yourRankLabel}>Your Rank</Text>
             <Text style={styles.yourRankValue}>Rank {yourRank}</Text>
@@ -93,17 +97,31 @@ export default function LeaderboardScreen() {
           style={[styles.tab, activeTab === 'global' && styles.tabActive]}
           onPress={() => setActiveTab('global')}
         >
-          <Text style={[styles.tabText, activeTab === 'global' && styles.tabTextActive]}>
-            🌍 Global
-          </Text>
+          <View style={styles.tabContent}>
+            <Ionicons
+              name="earth-outline"
+              size={16}
+              color={activeTab === 'global' ? colors.primary : colors.textSecondary}
+            />
+            <Text style={[styles.tabText, activeTab === 'global' && styles.tabTextActive]}>
+              Global
+            </Text>
+          </View>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'friends' && styles.tabActive]}
           onPress={() => setActiveTab('friends')}
         >
-          <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
-            👫 Friends
-          </Text>
+          <View style={styles.tabContent}>
+            <Ionicons
+              name="people-outline"
+              size={16}
+              color={activeTab === 'friends' ? colors.primary : colors.textSecondary}
+            />
+            <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
+              Friends
+            </Text>
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -119,7 +137,7 @@ export default function LeaderboardScreen() {
       >
         {leaderboard.length === 0 && activeTab === 'global' ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🏆</Text>
+            <Ionicons name="trophy-outline" size={54} color={colors.borderDark} />
             <Text style={styles.emptyText}>No data yet. Start logging actions!</Text>
           </View>
         ) : (
@@ -159,7 +177,10 @@ export default function LeaderboardScreen() {
           onPress={() => setShowInfo(false)}
         >
           <View style={styles.infoModal}>
-            <Text style={styles.infoTitle}>🏆 Ranking Formula</Text>
+            <View style={styles.infoTitleRow}>
+              <Ionicons name="trophy-outline" size={22} color={colors.xpColor} />
+              <Text style={styles.infoTitle}>Ranking Formula</Text>
+            </View>
             <Text style={styles.infoText}>
               Weekly XP {'>'} Level {'>'} Total XP {'>'} Streak
             </Text>
@@ -201,13 +222,24 @@ function getWeekRange() {
     `${sunday.getDate()} ${months[sunday.getMonth()]} ${sunday.getFullYear()}`;
 }
 
-function getRankEmoji(rank) {
-  if (rank === 1) return '🥇';
-  if (rank === 2) return '🥈';
-  if (rank === 3) return '🥉';
-  if (rank <= 10) return '🏅';
-  if (rank <= 50) return '⭐';
-  return '🌱';
+function RankIcon({ rank, size = 24, color }) {
+  const meta = getRankIconMeta(rank);
+  return (
+    <Ionicons
+      name={meta.name}
+      size={size}
+      color={color || meta.color}
+    />
+  );
+}
+
+function getRankIconMeta(rank) {
+  if (rank === 1) return { name: 'trophy', color: colors.xpColor };
+  if (rank === 2) return { name: 'medal-outline', color: colors.textLight };
+  if (rank === 3) return { name: 'ribbon-outline', color: '#c2763b' };
+  if (rank <= 10) return { name: 'medal-outline', color: colors.xpColor };
+  if (rank <= 50) return { name: 'star-outline', color: colors.xpColor };
+  return { name: 'leaf-outline', color: colors.primary };
 }
 
 // ─────────────────────────────────────────
@@ -233,6 +265,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   rankingInfoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  rankingInfoText: {
     fontSize: 12,
     color: colors.primary,
     fontWeight: '500',
@@ -250,7 +287,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  yourRankEmoji: { fontSize: 28 },
   yourRankLabel: {
     fontSize: 12,
     color: 'rgba(255,255,255,0.8)',
@@ -286,6 +322,11 @@ const styles = StyleSheet.create({
   tabActive: {
     borderBottomColor: colors.primary,
   },
+  tabContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   tabText: {
     fontSize: 14,
     fontWeight: '500',
@@ -309,7 +350,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     gap: 12,
   },
-  emptyIcon: { fontSize: 48 },
   emptyText: {
     fontSize: 15,
     color: colors.textSecondary,
@@ -330,11 +370,16 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
+  infoTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
   infoTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 8,
   },
   infoText: {
     fontSize: 15,

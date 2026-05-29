@@ -23,7 +23,10 @@ export default function StreakRewardsCard({
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>🔥 {streak} Day Streak</Text>
+      <View style={styles.sectionTitleRow}>
+        <Ionicons name="flame-outline" size={17} color={colors.streakColor} />
+        <Text style={styles.sectionTitle}>{streak} Day Streak</Text>
+      </View>
       <Text style={styles.streakMotiv}>{getMotivation(streak)}</Text>
 
       {hasUnclaimed && todayLoggedCount === 0 && (
@@ -90,7 +93,7 @@ function StreakRewardDay({ reward, streak, todayLoggedCount, onPress }) {
         ) : reward.badge_image ? (
           <Image source={{ uri: getImageUrl(reward.badge_image) ?? undefined }} style={styles.dayImg} />
         ) : earned ? (
-          <Text style={styles.fallbackReward}>⭐</Text>
+          <Ionicons name="star-outline" size={15} color={colors.xpColor} />
         ) : null}
       </View>
       <Text style={[styles.dayXp, claimed && styles.claimedXp]}>
@@ -103,9 +106,9 @@ function StreakRewardDay({ reward, streak, todayLoggedCount, onPress }) {
 function getMotivation(streak) {
   if (!streak) return 'Start today!';
   if (streak < 3) return 'Great start! Keep going!';
-  if (streak < 7) return "You're on fire! 🔥";
+  if (streak < 7) return "You're on fire!";
   if (streak < 14) return 'Keep it up! Amazing!';
-  return 'Eco legend! 🌍';
+  return 'Eco legend!';
 }
 
 const styles = StyleSheet.create({
@@ -120,6 +123,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+  },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   streakMotiv: {
@@ -171,7 +179,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
   },
   dayImg: { width: 24, height: 24, borderRadius: 12 },
-  fallbackReward: { fontSize: 12 },
   dayXp: { fontSize: 9, color: colors.textSecondary, fontWeight: '600' },
   claimedXp: { color: colors.primary },
 });
