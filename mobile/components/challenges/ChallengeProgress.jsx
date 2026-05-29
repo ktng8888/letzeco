@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 
 export default function ChallengeProgress({
@@ -51,7 +52,8 @@ export default function ChallengeProgress({
 
       {isComplete && (
         <View style={styles.completeBadge}>
-          <Text style={styles.completeText}>🎉 Goal Reached!</Text>
+          <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} />
+          <Text style={styles.completeText}>Goal Reached!</Text>
         </View>
       )}
     </View>
@@ -112,6 +114,9 @@ const styles = StyleSheet.create({
   targetValue:  { fontSize: 13, color: colors.textSecondary },
   remaining:    { fontSize: 12, color: colors.primary, fontWeight: '500' },
   completeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     backgroundColor: '#f0fdf4',
     borderRadius: 8,
     paddingHorizontal: 10,

@@ -70,7 +70,7 @@ export default function LogHistoryDetailScreen() {
               <Image source={{ uri: imageUrl }} style={styles.actionIcon} />
             ) : (
               <View style={[styles.actionIcon, styles.actionIconFallback]}>
-                <Text style={{ fontSize: 26 }}>🌿</Text>
+                <Ionicons name="leaf-outline" size={28} color={colors.primary} />
               </View>
             )}
             <Text style={styles.actionName}>{log.action_name}</Text>
@@ -156,7 +156,7 @@ export default function LogHistoryDetailScreen() {
         {hasImpact && (
           <View style={[styles.section, styles.impactSection]}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 16 }}>🌿</Text>
+              <Ionicons name="leaf-outline" size={16} color={colors.primary} />
               <Text style={styles.sectionTitle}>Environmental Impact</Text>
             </View>
             <View style={styles.impactRow}>
@@ -207,9 +207,12 @@ export default function LogHistoryDetailScreen() {
                 <Text style={styles.sectionTitle}>Proof Submitted</Text>
               </View>
 
-              <Text style={styles.proofRequirement}>
-                📋 {log.proof.requirement}
-              </Text>
+              <View style={styles.proofRequirementRow}>
+                <Ionicons name="clipboard-outline" size={15} color={colors.textSecondary} />
+                <Text style={styles.proofRequirement}>
+                  {log.proof.requirement}
+                </Text>
+              </View>
 
               {/* Status badge */}
               <View style={[
@@ -589,7 +592,13 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 20,
     textAlign: 'center',
+    flex: 1,
+  },
+  proofRequirementRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     alignSelf: 'center',
+    gap: 6,
   },
   proofStatusBadge: {
     flexDirection: 'row',

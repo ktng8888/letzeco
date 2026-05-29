@@ -199,7 +199,7 @@ export default function ActionDetailScreen() {
         {hasImpact && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Text style={{ fontSize: 16 }}>🌿</Text>
+              <Ionicons name="leaf-outline" size={16} color={colors.primary} />
               <Text style={styles.sectionTitle}>Environmental Impact</Text>
             </View>
 

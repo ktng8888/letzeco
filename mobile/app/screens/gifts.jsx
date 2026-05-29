@@ -70,13 +70,16 @@ export default function GiftsScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>🎁 Gifts</Text>
+        <View style={styles.headerTitleRow}>
+          <Ionicons name="gift-outline" size={19} color={colors.primary} />
+          <Text style={styles.headerTitle}>Gifts</Text>
+        </View>
         <View style={{ width: 24 }} />
       </View>
 
       {gifts.length === 0 ? (
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🎁</Text>
+          <Ionicons name="gift-outline" size={56} color={colors.borderDark} />
           <Text style={styles.emptyTitle}>No gifts yet</Text>
           <Text style={styles.emptySub}>
             Complete challenges or rank high to earn rewards!
@@ -104,7 +107,7 @@ export default function GiftsScreen() {
                 />
               ) : (
                 <View style={styles.badgePlaceholder}>
-                  <Text style={{ fontSize: 28 }}>🏅</Text>
+                  <Ionicons name="ribbon-outline" size={30} color={colors.primary} />
                 </View>
               )}
 
@@ -112,12 +115,19 @@ export default function GiftsScreen() {
                 <Text style={styles.challengeName} numberOfLines={1}>
                   {gift.challenge_name}
                 </Text>
-                <Text style={styles.rewardType}>
-                  {gift.type === 'completion'
-                    ? '✅ Completion Reward'
-                    : `🏆 Top ${gift.top_value} Ranking Reward`
-                  }
-                </Text>
+                <View style={styles.rewardTypeRow}>
+                  <Ionicons
+                    name={gift.type === 'completion' ? 'checkmark-circle-outline' : 'trophy-outline'}
+                    size={13}
+                    color={gift.type === 'completion' ? colors.success : colors.xpColor}
+                  />
+                  <Text style={styles.rewardType}>
+                    {gift.type === 'completion'
+                      ? 'Completion Reward'
+                      : `Top ${gift.top_value} Ranking Reward`
+                    }
+                  </Text>
+                </View>
                 <View style={styles.pills}>
                   {gift.xp_reward > 0 && (
                     <View style={styles.pill}>
@@ -126,9 +136,8 @@ export default function GiftsScreen() {
                   )}
                   {gift.badge_name && (
                     <View style={[styles.pill, styles.pillBadge]}>
-                      <Text style={styles.pillText}>
-                        🏅 {gift.badge_name}
-                      </Text>
+                      <Ionicons name="ribbon-outline" size={11} color={colors.xpColor} />
+                      <Text style={styles.pillText}>{gift.badge_name}</Text>
                     </View>
                   )}
                 </View>
@@ -178,6 +187,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17, fontWeight: '700', color: colors.textPrimary,
   },
+  headerTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
 
   list: { padding: 16, gap: 12 },
 
@@ -197,11 +211,13 @@ const styles = StyleSheet.create({
   challengeName: {
     fontSize: 14, fontWeight: '700', color: colors.textPrimary,
   },
+  rewardTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   rewardType: { fontSize: 12, color: colors.textSecondary },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
   pill: {
     backgroundColor: colors.primaryBg, borderRadius: 20,
     paddingHorizontal: 8, paddingVertical: 3,
+    flexDirection: 'row', alignItems: 'center', gap: 3,
   },
   pillBadge: { backgroundColor: '#fef3c7' },
   pillText: { fontSize: 11, fontWeight: '600', color: colors.primary },
@@ -218,7 +234,6 @@ const styles = StyleSheet.create({
     flex: 1, alignItems: 'center', justifyContent: 'center',
     padding: 40, gap: 12,
   },
-  emptyIcon: { fontSize: 52 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.textPrimary },
   emptySub: {
     fontSize: 14, color: colors.textSecondary,

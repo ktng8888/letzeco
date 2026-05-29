@@ -492,7 +492,11 @@ function SearchResultCard({ user, onViewPress, onActionPress }) {
 function EmptyFriends({ message }) {
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>👫</Text>
+      <Ionicons
+        name="people-circle-outline"
+        size={64}
+        color="#D1D5DB"
+      />
       <Text style={styles.emptyText}>{message}</Text>
     </View>
   );
@@ -686,7 +690,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     gap: 10,
   },
-  emptyIcon: { fontSize: 40 },
   emptyText: {
     fontSize: 14,
     color: colors.textSecondary,

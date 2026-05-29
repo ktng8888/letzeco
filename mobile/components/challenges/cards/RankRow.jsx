@@ -1,23 +1,22 @@
 import { View, Text, Image, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../../constants/api';
 import { formatProgress } from '../../../utils/challengeHelpers';
 import colors from '../../../constants/colors';
 
 export default function RankRow({ item, index, type, isYou, targetType, unit }) {
-  const medals = ['🥇', '🥈', '🥉'];
-  const medal = medals[index];
+  const medal = getMedalMeta(index);
 
   return (
     <View style={styles.row}>
       {/* Rank number or medal */}
-      <Text style={[
-        styles.rankNum,
-        index === 0 && styles.rankFirst,
-        index === 1 && styles.rankSecond,
-        index === 2 && styles.rankThird,
-      ]}>
-        {medal || `#${item.rank}`}
-      </Text>
+      <View style={styles.rankNum}>
+        {medal ? (
+          <Ionicons name={medal.icon} size={18} color={medal.color} />
+        ) : (
+          <Text style={styles.rankText}>#{item.rank}</Text>
+        )}
+      </View>
 
       {/* Avatar */}
       {type === 'solo' ? (
@@ -37,7 +36,7 @@ export default function RankRow({ item, index, type, isYou, targetType, unit }) 
         </View>
       ) : (
         <View style={[styles.avatar, styles.teamAvatarBg]}>
-          <Text style={{ fontSize: 16 }}>👥</Text>
+          <Ionicons name="people-outline" size={17} color={colors.primary} />
         </View>
       )}
 
@@ -63,6 +62,13 @@ export default function RankRow({ item, index, type, isYou, targetType, unit }) 
   );
 }
 
+function getMedalMeta(index) {
+  if (index === 0) return { icon: 'trophy', color: colors.xpColor };
+  if (index === 1) return { icon: 'medal-outline', color: colors.textLight };
+  if (index === 2) return { icon: 'ribbon-outline', color: '#c2763b' };
+  return null;
+}
+
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
@@ -74,6 +80,9 @@ const styles = StyleSheet.create({
   },
   rankNum: {
     width: 32,
+    alignItems: 'center',
+  },
+  rankText: {
     fontSize: 14,
     fontWeight: '700',
     color: colors.textSecondary,

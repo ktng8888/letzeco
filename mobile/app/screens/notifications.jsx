@@ -214,7 +214,7 @@ export default function NotificationsScreen() {
       >
         {notifications.length === 0 ? (
           <View style={styles.empty}>
-            <Text style={styles.emptyIcon}>🔔</Text>
+            <Ionicons name="notifications-outline" size={56} color={colors.borderDark} />
             <Text style={styles.emptyTitle}>No notifications yet</Text>
             <Text style={styles.emptySubtitle}>
               Complete eco-actions to earn rewards and see notifications here!
@@ -363,7 +363,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     gap: 12,
   },
-  emptyIcon: { fontSize: 52 },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '700',

@@ -79,7 +79,7 @@ export default function ChallengeCarousel({
 function JoinChallengeCard({ onPress }) {
   return (
     <TouchableOpacity style={[styles.challengeCard, styles.joinCard]} onPress={onPress}>
-      <Text style={styles.joinIcon}>🌿</Text>
+      <Ionicons name="leaf-outline" size={40} color={colors.primary} />
       <Text style={styles.joinTitle}>Join a Challenge!</Text>
       <Text style={styles.joinSub}>
         Start your eco-journey by joining a community challenge
@@ -126,9 +126,12 @@ function ChallengeCard({ challenge, index, onPress }) {
           <Ionicons name="leaf" size={38} color="#fff" />
         )}
         <View style={styles.cTypeBadge}>
-          <Text style={styles.cTypeText}>
-            {isTeam ? '👥 Team' : '🎯 Solo'}
-          </Text>
+          <Ionicons
+            name={isTeam ? 'people-outline' : 'radio-button-on-outline'}
+            size={12}
+            color="#fff"
+          />
+          <Text style={styles.cTypeText}>{isTeam ? 'Team' : 'Solo'}</Text>
         </View>
       </View>
       <View style={styles.challengeBody}>
@@ -184,7 +187,6 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 20,
   },
-  joinIcon: { fontSize: 32 },
   joinTitle: { fontSize: 17, fontWeight: '700', color: colors.primary },
   joinSub: { fontSize: 12, color: colors.textSecondary, textAlign: 'center' },
   joinBtn: {

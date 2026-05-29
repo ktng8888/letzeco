@@ -84,9 +84,12 @@ export default function EcoImpactDetailScreen() {
 
           {/* Eco Equivalents */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              What this means 🌍
-            </Text>
+            <View style={styles.sectionTitleRow}>
+              <Ionicons name="earth-outline" size={18} color={colors.primary} />
+              <Text style={styles.sectionTitle}>
+                What this means
+              </Text>
+            </View>
             <View style={styles.equivalentsGrid}>
               {Object.entries(data.eco_equivalents || {}).map(
                 ([key, value]) => (
@@ -157,7 +160,9 @@ export default function EcoImpactDetailScreen() {
 function EquivalentCard({ label, value, icon }) {
   return (
     <View style={styles.equivCard}>
-      <Text style={styles.equivIcon}>{icon}</Text>
+      <View style={[styles.equivIconWrap, { backgroundColor: icon.bgColor }]}>
+        <Ionicons name={icon.name} size={23} color={icon.color} />
+      </View>
       <Text style={styles.equivValue}>{value}</Text>
       <Text style={styles.equivLabel}>{label}</Text>
     </View>
@@ -248,18 +253,18 @@ function formatEquivalentLabel(key) {
 
 function getEquivalentIcon(key) {
   const icons = {
-    young_trees: '🌱',
-    car_km_avoided: '🚗',
-    showers_worth: '🚿',
-    household_energy_days: '🏠',
-    smartphone_charges: '📱',
-    toilet_flushes: '🚽',
-    drinking_days: '🥤',
-    washing_machine_loads: '👕',
-    led_bulb_hours: '💡',
-    laptop_hours: '💻',
+    young_trees: { name: 'leaf-outline', color: colors.primary, bgColor: colors.primaryBg },
+    car_km_avoided: { name: 'car-outline', color: colors.textSecondary, bgColor: colors.bgWhite },
+    showers_worth: { name: 'rainy-outline', color: colors.info, bgColor: '#eff6ff' },
+    household_energy_days: { name: 'home-outline', color: colors.primary, bgColor: colors.primaryBg },
+    smartphone_charges: { name: 'phone-portrait-outline', color: colors.info, bgColor: '#eff6ff' },
+    toilet_flushes: { name: 'water-outline', color: colors.info, bgColor: '#eff6ff' },
+    drinking_days: { name: 'cafe-outline', color: colors.info, bgColor: '#eff6ff' },
+    washing_machine_loads: { name: 'shirt-outline', color: colors.textSecondary, bgColor: colors.bgWhite },
+    led_bulb_hours: { name: 'bulb-outline', color: colors.xpColor, bgColor: colors.xpBg },
+    laptop_hours: { name: 'laptop-outline', color: colors.textSecondary, bgColor: colors.bgWhite },
   };
-  return icons[key] || '✅';
+  return icons[key] || { name: 'checkmark-circle-outline', color: colors.success, bgColor: colors.primaryBg };
 }
 
 const styles = StyleSheet.create({
@@ -337,11 +342,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   section: { marginBottom: 24 },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 12,
   },
   equivalentsGrid: {
     flexDirection: 'row',
@@ -356,7 +366,15 @@ const styles = StyleSheet.create({
     width: '47%',
     gap: 4,
   },
-  equivIcon: { fontSize: 24 },
+  equivIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   equivValue: {
     fontSize: 18,
     fontWeight: '700',

@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
@@ -12,7 +13,10 @@ export default function TodayActionsSection({
   return (
     <View style={styles.card}>
       <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>⚡ Today's Actions</Text>
+        <View style={styles.sectionTitleRow}>
+          <Ionicons name="flash-outline" size={16} color={colors.xpColor} />
+          <Text style={styles.sectionTitle}>Today's Actions</Text>
+        </View>
         <TouchableOpacity onPress={onLogMorePress}>
           <Text style={styles.logMore}>Log More</Text>
         </TouchableOpacity>
@@ -20,7 +24,7 @@ export default function TodayActionsSection({
 
       {actions.length === 0 ? (
         <TouchableOpacity style={styles.emptyBox} onPress={onLogMorePress}>
-          <Text style={styles.emptyIcon}>🌱</Text>
+          <Ionicons name="leaf-outline" size={34} color={colors.primary} />
           <Text style={styles.emptyTitle}>Start logging today!</Text>
           <Text style={styles.emptySub}>Tap to log your first eco-action</Text>
         </TouchableOpacity>
@@ -63,7 +67,11 @@ function TodayActionRow({ action, onPress }) {
             { backgroundColor: action.tag_bg_colour_code || colors.primaryBg },
           ]}
         >
-          <Text style={styles.actionFallbackIcon}>🌿</Text>
+          <Ionicons
+            name="leaf-outline"
+            size={20}
+            color={action.tag_text_colour_code || colors.primary}
+          />
         </View>
       )}
       <View style={styles.actionInfo}>
@@ -139,6 +147,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  sectionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   logMore: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   actionCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 10 },
@@ -149,7 +162,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primaryBg,
     borderRadius: 14,
   },
-  emptyIcon: { fontSize: 32 },
   emptyTitle: { fontSize: 14, fontWeight: '700', color: colors.primary },
   emptySub: { fontSize: 12, color: colors.textSecondary },
   actionRow: {
@@ -166,7 +178,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionFallbackIcon: { fontSize: 18 },
   actionInfo: { flex: 1, gap: 4 },
   actionName: { fontSize: 14, fontWeight: '600', color: colors.textPrimary },
   actionTime: { fontSize: 11, color: colors.textSecondary, marginTop: -1 },
