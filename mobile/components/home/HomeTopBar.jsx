@@ -1,8 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { BASE_URL } from '../../constants/api';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function HomeTopBar({
   user,
@@ -18,7 +24,7 @@ export default function HomeTopBar({
 
   return (
     <View style={styles.topBar}>
-      <TouchableOpacity style={styles.topLeft} onPress={onProfilePress}>
+      <SoundTouchableOpacity style={styles.topLeft} onPress={onProfilePress}>
         <View style={styles.avatarWrap}>
           <View style={styles.avatarRing}>
             {avatarUri ? (
@@ -45,7 +51,7 @@ export default function HomeTopBar({
             {user?.level_xp} / {xpToNextLevel} XP
           </Text>
         </View>
-      </TouchableOpacity>
+      </SoundTouchableOpacity>
 
       <View style={styles.topRight}>
         <View style={styles.xpStack}>
@@ -59,15 +65,15 @@ export default function HomeTopBar({
           </View>
         </View>
 
-        <TouchableOpacity style={styles.bellBtn} onPress={onGiftsPress}>
+        <SoundTouchableOpacity style={styles.bellBtn} onPress={onGiftsPress}>
           <Ionicons name="gift-outline" size={22} color={colors.textPrimary} />
           {giftCount > 0 && <View style={styles.bellDot} />}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
-        <TouchableOpacity style={styles.bellBtn} onPress={onNotificationsPress}>
+        <SoundTouchableOpacity style={styles.bellBtn} onPress={onNotificationsPress}>
           <Ionicons name="notifications-outline" size={20} color={colors.textPrimary} />
           {unreadCount > 0 && <View style={styles.bellDot} />}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
     </View>
   );

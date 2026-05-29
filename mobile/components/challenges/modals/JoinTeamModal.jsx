@@ -1,11 +1,17 @@
 import {
-  View, Text, Modal, TouchableOpacity,
-  TextInput, ScrollView, ActivityIndicator, StyleSheet,
+  View,
+  Text,
+  Modal,
+  TextInput,
+  ScrollView,
+  ActivityIndicator,
+  StyleSheet
 } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import TeamCard from '../TeamCard';
 import colors from '../../../constants/colors';
+import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
 
 export default function JoinTeamModal({
   visible,
@@ -36,23 +42,24 @@ export default function JoinTeamModal({
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Join Team</Text>
-            <TouchableOpacity onPress={onClose}>
+            <SoundTouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={22} color={colors.textPrimary} />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
 
           {/* Tabs */}
           <View style={styles.tabs}>
             {['public', 'code'].map((t) => (
-              <TouchableOpacity
+              <SoundTouchableOpacity
                 key={t}
                 style={[styles.tab, joinTab === t && styles.tabActive]}
                 onPress={() => setJoinTab(t)}
+              soundType="tab"
               >
                 <Text style={[styles.tabText, joinTab === t && styles.tabTextActive]}>
                   {t === 'public' ? 'Public Team' : 'Enter Code'}
                 </Text>
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             ))}
           </View>
 
@@ -88,12 +95,12 @@ export default function JoinTeamModal({
                   autoCapitalize="characters"
                   maxLength={6}
                 />
-                <TouchableOpacity
+                <SoundTouchableOpacity
                   style={styles.joinBtn}
                   onPress={handleJoinByCode}
                 >
                   <Text style={styles.joinBtnText}>Join Team</Text>
-                </TouchableOpacity>
+                </SoundTouchableOpacity>
               </View>
             )}
           </ScrollView>

@@ -1,6 +1,9 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -19,6 +22,7 @@ import ActivityChart from '../../components/progress/ActivityChart';
 import ComparisonCard from '../../components/progress/ComparisonCard';
 import TrendChart from '../../components/progress/TrendChart';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 const PERIODS = [
   { key: 'today', label: 'Today' },
@@ -118,13 +122,14 @@ export default function ProgressScreen() {
           contentContainerStyle={styles.periodScroll}
         >
           {PERIODS.map((p) => (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={p.key}
               style={[
                 styles.periodBtn,
                 period === p.key && styles.periodBtnActive
               ]}
               onPress={() => setPeriod(p.key)}
+              soundType="tab"
             >
               <Text style={[
                 styles.periodText,
@@ -132,7 +137,7 @@ export default function ProgressScreen() {
               ]}>
                 {p.label}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           ))}
         </ScrollView>
       </View>
@@ -204,13 +209,13 @@ export default function ProgressScreen() {
               <Text style={styles.activityTitle}>{activityConfig.title}</Text>
               <Text style={styles.activitySubtitle}>{activityConfig.subtitle}</Text>
             </View>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.historyBtn}
               onPress={() => router.push('/screens/log-history')}
             >
               <Ionicons name="time-outline" size={15} color={colors.primary} />
               <Text style={styles.historyBtnText}>History</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
           <View style={styles.card}>
             <ActivityChart

@@ -1,12 +1,14 @@
-import { useState, useCallback } from 'react';
 import {
-  ScrollView,
-  View,
-  Text,
-  StyleSheet,
-  RefreshControl,
-  TouchableOpacity,
+  useState,
+  useCallback
+} from 'react';
+import {
   Alert,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,6 +27,7 @@ import StreakRewardsCard from '../../components/home/StreakRewardsCard';
 import TodayActionsSection from '../../components/home/TodayActionsSection';
 import { ClaimRewardModal } from '../../components/modals';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -203,13 +206,13 @@ export default function HomeScreen() {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
-      <TouchableOpacity
+      <SoundTouchableOpacity
         style={styles.fab}
         onPress={() => router.push('/(tabs)/log-action')}
       >
         <Ionicons name="add" size={26} color="#fff" />
         <Text style={styles.fabText}>Log</Text>
-      </TouchableOpacity>
+      </SoundTouchableOpacity>
 
       <ClaimRewardModal
         visible={claimModal}

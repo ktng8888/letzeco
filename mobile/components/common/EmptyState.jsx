@@ -1,7 +1,10 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  StyleSheet
 } from 'react-native';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from './SoundTouchableOpacity';
 
 export default function EmptyState({
   title,
@@ -16,9 +19,9 @@ export default function EmptyState({
         <Text style={styles.subtitle}>{subtitle}</Text>
       )}
       {buttonText && onButtonPress && (
-        <TouchableOpacity style={styles.btn} onPress={onButtonPress}>
+        <SoundTouchableOpacity style={styles.btn} onPress={onButtonPress}>
           <Text style={styles.btnText}>{buttonText}</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       )}
     </View>
   );

@@ -1,10 +1,16 @@
-import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../constants/api';
 import { getRankBorderColor } from '../../utils/rankUtils';
 import images from '../../constants/images';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function LeaderboardCard({ item, myId }) {
   const router = useRouter();
@@ -14,7 +20,7 @@ export default function LeaderboardCard({ item, myId }) {
   const medal = getMedalMeta(item.rank);
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={[styles.card, isMe && styles.cardMe]}
       onPress={() => {
         if (!isMe) {
@@ -82,7 +88,7 @@ export default function LeaderboardCard({ item, myId }) {
         </Text>
         <Text style={styles.xpLabel}>WXP</Text>
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

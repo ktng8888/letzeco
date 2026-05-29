@@ -1,6 +1,9 @@
 import {
-  View, Text, Image, ScrollView,
-  TouchableOpacity, StyleSheet
+  View,
+  Text,
+  Image,
+  ScrollView,
+  StyleSheet
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -10,6 +13,7 @@ import profileService from '../../services/profileService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function AchievementDetailScreen() {
   const router = useRouter();
@@ -62,9 +66,9 @@ export default function AchievementDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {current.badge_name}
         </Text>
@@ -159,7 +163,7 @@ export default function AchievementDetailScreen() {
                 const isActive  = ach.id === current.id;
                 const tc        = getTierColor(ach.badge_name);
                 return (
-                  <TouchableOpacity
+                  <SoundTouchableOpacity
                     key={ach.id}
                     style={[
                       styles.tierChip,
@@ -199,7 +203,7 @@ export default function AchievementDetailScreen() {
                         <Ionicons name="checkmark" size={10} color="#fff" />
                       </View>
                     )}
-                  </TouchableOpacity>
+                  </SoundTouchableOpacity>
                 );
               })}
             </View>

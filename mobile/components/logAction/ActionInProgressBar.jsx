@@ -1,9 +1,12 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  StyleSheet
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useCountdown, timeLimitToSeconds } from '../../hooks/useCountdown';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ActionInProgressBar({ currentAction }) {
   const router = useRouter();
@@ -16,7 +19,7 @@ export default function ActionInProgressBar({ currentAction }) {
   if (!currentAction) return null;
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={styles.bar}
       onPress={() => router.push({
         pathname: '/screens/action-in-progress',
@@ -41,7 +44,7 @@ export default function ActionInProgressBar({ currentAction }) {
         </Text>
         <Text style={styles.tapText}>Tap to view</Text>
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

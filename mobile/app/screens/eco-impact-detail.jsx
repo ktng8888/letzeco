@@ -1,12 +1,16 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  ActivityIndicator
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import progressService from '../../services/progressService';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function EcoImpactDetailScreen() {
   const router = useRouter();
@@ -43,9 +47,9 @@ export default function EcoImpactDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="close" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>{config.title}</Text>
         <View style={{ width: 24 }} />
       </View>

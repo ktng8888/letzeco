@@ -1,6 +1,9 @@
 import {
-  View, Text, Image, TouchableOpacity,
-  StyleSheet, Alert
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Alert
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
@@ -8,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../../constants/api';
 import useAuthStore from '../../../store/authStore';
 import colors from '../../../constants/colors';
+import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
 
 export default function TeamTab({ team }) {
   const { user } = useAuthStore();
@@ -47,7 +51,7 @@ function MemberRow({ member, isYou, currentUserId }) {
   };
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={[styles.memberRow, isYou && styles.memberRowYou]}
       onPress={handlePress}
       activeOpacity={0.7}
@@ -80,7 +84,7 @@ function MemberRow({ member, isYou, currentUserId }) {
         size={16}
         color={colors.textLight}
       />
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 
@@ -95,7 +99,7 @@ function CodeCard({ code }) {
     <View style={styles.codeCard}>
       <Text style={styles.codeLabel}>Share Code with Friends</Text>
 
-      <TouchableOpacity
+      <SoundTouchableOpacity
         style={styles.codeRow}
         onPress={handleCopy}
         activeOpacity={0.7}
@@ -105,7 +109,7 @@ function CodeCard({ code }) {
           <Ionicons name="copy-outline" size={18} color={colors.primary} />
           <Text style={styles.copyText}>Copy</Text>
         </View>
-      </TouchableOpacity>
+      </SoundTouchableOpacity>
 
       <Text style={styles.codeHint}>
         Tap the code to copy · Members can use this to join your team

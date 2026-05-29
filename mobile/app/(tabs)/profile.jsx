@@ -1,6 +1,9 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -18,6 +21,7 @@ import StatsSummary from '../../components/profile/StatsSummary';
 import colors from '../../constants/colors';
 import progressService from '../../services/progressService';
 import leaderboardService from '../../services/leaderboardService';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 const TABS = ['Badge', 'Impact', 'Stat'];
 
@@ -77,7 +81,7 @@ export default function ProfileScreen() {
           {user?.username}
         </Text>
         <View style={styles.topBarRight}>
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={styles.iconBtn}
             onPress={() => router.push('/screens/friends')}
           >
@@ -86,8 +90,8 @@ export default function ProfileScreen() {
               size={22}
               color={colors.textPrimary}
             />
-          </TouchableOpacity>
-          <TouchableOpacity
+          </SoundTouchableOpacity>
+          <SoundTouchableOpacity
             style={styles.iconBtn}
             onPress={() => router.push('/screens/settings')}
           >
@@ -96,7 +100,7 @@ export default function ProfileScreen() {
               size={22}
               color={colors.textPrimary}
             />
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         </View>
       </View>
 
@@ -123,13 +127,14 @@ export default function ProfileScreen() {
         {/* Tabs */}
         <View style={styles.tabs}>
           {TABS.map((tab) => (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={tab}
               style={[
                 styles.tab,
                 activeTab === tab && styles.tabActive
               ]}
               onPress={() => setActiveTab(tab)}
+            soundType="tab"
             >
               <Text style={[
                 styles.tabText,
@@ -137,7 +142,7 @@ export default function ProfileScreen() {
               ]}>
                 {tab}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           ))}
         </View>
 

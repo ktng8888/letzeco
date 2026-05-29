@@ -1,7 +1,12 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
-  ScrollView, Image
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  Image
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -13,6 +18,7 @@ import profileService from '../../services/profileService';
 import useAuthStore from '../../store/authStore';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function EditProfileScreen() {
   const router = useRouter();
@@ -94,17 +100,17 @@ export default function EditProfileScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Edit Profile</Text>
-        <TouchableOpacity onPress={handleSave} disabled={isSaving}>
+        <SoundTouchableOpacity onPress={handleSave} disabled={isSaving}>
           {isSaving ? (
             <ActivityIndicator size="small" color={colors.primary} />
           ) : (
             <Text style={styles.saveBtn}>Save</Text>
           )}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -130,7 +136,7 @@ export default function EditProfileScreen() {
               </View>
             )}
           </View>
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={styles.changePhotoBtn}
             onPress={handlePickImage}
             disabled={isUploadingPic}
@@ -138,7 +144,7 @@ export default function EditProfileScreen() {
             <Text style={styles.changePhotoText}>
               Change Photo
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           {/* Level bar (display only) */}
           <Text style={styles.levelDisplay}>

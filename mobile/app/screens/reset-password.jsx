@@ -1,13 +1,19 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
-  KeyboardAvoidingView, Platform
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import profileService from '../../services/profileService';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
@@ -53,9 +59,9 @@ export default function ResetPasswordScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Reset Password</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -91,7 +97,7 @@ export default function ResetPasswordScreen() {
           secureTextEntry
         />
 
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[styles.btn, isLoading && styles.btnDisabled]}
           onPress={handleReset}
           disabled={isLoading}
@@ -101,7 +107,7 @@ export default function ResetPasswordScreen() {
           ) : (
             <Text style={styles.btnText}>Reset</Text>
           )}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
     </KeyboardAvoidingView>
   );

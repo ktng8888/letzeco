@@ -1,9 +1,15 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image
+} from 'react-native';
 import { BASE_URL } from '../../constants/api';
 import { getRankBorderColor } from '../../utils/rankUtils';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function TopThreePodium({ top3, myId, isFriends }) {
   const [first, second, third] = top3 || [];
@@ -46,12 +52,12 @@ function PodiumItem({ user, rank, height, isMe, isFriends }) {
     return (
       <View style={styles.podiumSlot}>
         <Ionicons name={medal.icon} size={25} color={medal.color} style={styles.medal} />
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[styles.avatar, styles.avatarEmpty]}
           onPress={() => isFriends && router.push('/screens/friends')}
         >
           <Text style={styles.avatarEmptyIcon}>+</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.usernameEmpty}>
           {isFriends ? 'Add Friend' : '---'}
         </Text>
@@ -64,7 +70,7 @@ function PodiumItem({ user, rank, height, isMe, isFriends }) {
   }
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={styles.podiumSlot}
       onPress={() => {
         if (!isMe) {
@@ -113,7 +119,7 @@ function PodiumItem({ user, rank, height, isMe, isFriends }) {
       <View style={[styles.block, { height }, rank === 1 && styles.blockFirst]} >
         <Text style={styles.rankText}>#{rank}</Text>
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

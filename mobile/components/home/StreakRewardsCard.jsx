@@ -2,14 +2,14 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
-  ScrollView,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function StreakRewardsCard({
   streak,
@@ -70,7 +70,7 @@ function StreakRewardDay({ reward, streak, todayLoggedCount, onPress }) {
   const canUnlockToday = !earned && reward.day === streak + 1 && todayLoggedCount === 0;
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={styles.dayCol}
       onPress={onPress}
       disabled={!(earned && !claimed) && !canUnlockToday}
@@ -99,7 +99,7 @@ function StreakRewardDay({ reward, streak, todayLoggedCount, onPress }) {
       <Text style={[styles.dayXp, claimed && styles.claimedXp]}>
         {reward.xp_reward}XP
       </Text>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

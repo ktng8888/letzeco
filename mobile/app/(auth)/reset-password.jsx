@@ -1,13 +1,20 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, Image
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+  Image
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import authService from '../../services/authService';
 import colors from '../../constants/colors';
 import images from '../../constants/images';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState('');
@@ -87,7 +94,7 @@ export default function ResetPasswordScreen() {
           secureTextEntry
         />
 
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[styles.btn, isLoading && styles.btnDisabled]}
           onPress={handleReset}
           disabled={isLoading}
@@ -96,7 +103,7 @@ export default function ResetPasswordScreen() {
             ? <ActivityIndicator color={colors.textWhite} />
             : <Text style={styles.btnText}>Reset</Text>
           }
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
       </View>
     </KeyboardAvoidingView>

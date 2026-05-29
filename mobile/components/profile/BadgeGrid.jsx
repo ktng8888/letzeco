@@ -1,11 +1,15 @@
 import {
-  View, Text, Image, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  Image,
+  StyleSheet
 } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 const BADGE_TYPES = [
   { key: 'achievement', label: 'Achievement' },
@@ -160,7 +164,7 @@ export default function BadgeGrid({
       : `${badge.current_progress || 0} / ${badge.target_value}`;
 
     return (
-      <TouchableOpacity
+      <SoundTouchableOpacity
         key={badge.id}
         style={styles.badgeCard}
         onPress={() => goToDetail(badge.id)}
@@ -222,7 +226,7 @@ export default function BadgeGrid({
         ]}>
           {progressLabel}
         </Text>
-      </TouchableOpacity>
+      </SoundTouchableOpacity>
     );
   };
 
@@ -287,16 +291,17 @@ export default function BadgeGrid({
         {BADGE_TYPES.map((item) => {
           const active = activeBadgeType === item.key;
           return (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={item.key}
               style={[styles.typeTab, active && styles.typeTabActive]}
               onPress={() => setActiveBadgeType(item.key)}
               activeOpacity={0.75}
+              soundType="tab"
             >
               <Text style={[styles.typeTabText, active && styles.typeTabTextActive]}>
                 {item.label}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           );
         })}
       </View>
@@ -333,7 +338,7 @@ export default function BadgeGrid({
         {FILTERS.map((item) => {
           const active = filters.includes(item.key);
           return (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={item.key}
               style={[
                 styles.filterOption,
@@ -360,7 +365,7 @@ export default function BadgeGrid({
               ]}>
                 {getFilterCount(item.key)}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           );
         })}
       </View>

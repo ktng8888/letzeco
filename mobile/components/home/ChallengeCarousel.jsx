@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   Image,
   FlatList,
   Dimensions,
@@ -12,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const CARD_W = SCREEN_W - 48;
@@ -78,8 +78,8 @@ export default function ChallengeCarousel({
 
 function JoinChallengeCard({ onPress }) {
   return (
-    <TouchableOpacity style={[styles.challengeCard, styles.joinCard]} onPress={onPress}>
-      <Ionicons name="leaf-outline" size={40} color={colors.primary} />
+    <SoundTouchableOpacity style={[styles.challengeCard, styles.joinCard]} onPress={onPress}>
+      <Ionicons name="flag-outline" size={40} color={colors.primary} />
       <Text style={styles.joinTitle}>Join a Challenge!</Text>
       <Text style={styles.joinSub}>
         Start your eco-journey by joining a community challenge
@@ -87,7 +87,7 @@ function JoinChallengeCard({ onPress }) {
       <View style={styles.joinBtn}>
         <Text style={styles.joinBtnText}>Browse Challenges</Text>
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 
@@ -109,7 +109,7 @@ function ChallengeCard({ challenge, index, onPress }) {
     : '?';
 
   return (
-    <TouchableOpacity style={styles.challengeCard} onPress={onPress} activeOpacity={0.88}>
+    <SoundTouchableOpacity style={styles.challengeCard} onPress={onPress} activeOpacity={0.88}>
       <View
         style={[
           styles.challengeImageBg,
@@ -156,7 +156,7 @@ function ChallengeCard({ challenge, index, onPress }) {
           {progressValue} / {targetValue}
         </Text>
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

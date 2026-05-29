@@ -1,6 +1,9 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Animated
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Animated
 } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -8,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../../store/authStore';
 import { BadgeUnlockedModal, LevelUpModal } from '../../components/modals';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
+import { playClickSound } from '../../services/audioService';
 
 export default function ActionCompleteScreen() {
   const router = useRouter();
@@ -23,6 +28,7 @@ export default function ActionCompleteScreen() {
 
   useEffect(() => {
     if (result) {
+      playClickSound('actionComplete');
       const parsed = JSON.parse(result);
       setData(parsed);
 
@@ -171,19 +177,19 @@ export default function ActionCompleteScreen() {
         </Text>
 
         {/* Buttons */}
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.logAnotherBtn}
           onPress={() => router.replace('/(tabs)/log-action')}
         >
           <Text style={styles.logAnotherText}>Log Another Action</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.homeBtn}
           onPress={() => router.replace('/(tabs)/home')}
         >
           <Text style={styles.homeBtnText}>Back to Home</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
         <View style={{ height: 20 }} />
       </ScrollView>

@@ -1,7 +1,15 @@
-import { Modal, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet
+} from 'react-native';
+import { useEffect, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
+import { playClickSound } from '../../services/audioService';
 
 export default function RewardModal({
   visible,
@@ -16,7 +24,17 @@ export default function RewardModal({
   secondaryText,
   onSecondary,
   onRequestClose,
+  celebrationSound = true,
 }) {
+  const wasVisible = useRef(false);
+
+  useEffect(() => {
+    if (visible && !wasVisible.current && celebrationSound) {
+      playClickSound('congrats');
+    }
+    wasVisible.current = visible;
+  }, [visible, celebrationSound]);
+
   return (
     <Modal
       visible={visible}
@@ -47,7 +65,7 @@ export default function RewardModal({
           {children}
 
           {!!primaryText && (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={[
                 styles.primaryBtn,
                 primaryDisabled && styles.primaryBtnDisabled,
@@ -57,13 +75,13 @@ export default function RewardModal({
               activeOpacity={0.8}
             >
               <Text style={styles.primaryText}>{primaryText}</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
 
           {!!secondaryText && (
-            <TouchableOpacity onPress={onSecondary} activeOpacity={0.75}>
+            <SoundTouchableOpacity onPress={onSecondary} activeOpacity={0.75}>
               <Text style={styles.secondaryText}>{secondaryText}</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
         </View>
       </View>

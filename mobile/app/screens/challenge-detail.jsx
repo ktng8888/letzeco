@@ -1,6 +1,11 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, RefreshControl,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -9,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import challengeService   from '../../services/challengeService';
 import LoadingScreen      from '../../components/common/LoadingScreen';
 import ChallengeProgress  from '../../components/challenges/ChallengeProgress';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 // Tabs
 import OverviewTab  from '../../components/challenges/tabs/OverviewTab';
@@ -199,9 +205,9 @@ export default function ChallengeDetailScreen() {
 
       {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <View style={styles.headerBadges}>
           <View style={[
             styles.typeBadge,
@@ -287,7 +293,7 @@ export default function ChallengeDetailScreen() {
         {/* ── Action buttons ── */}
         {isParticipating ? (
           <View style={styles.actionButtons}>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.leaveBtn}
               onPress={handleLeave}
               disabled={isLeaving}
@@ -296,8 +302,8 @@ export default function ChallengeDetailScreen() {
                 ? <ActivityIndicator size="small" color={colors.error} />
                 : <Text style={styles.leaveBtnText}>Leave Challenge</Text>
               }
-            </TouchableOpacity>
-            <TouchableOpacity
+            </SoundTouchableOpacity>
+            <SoundTouchableOpacity
               style={styles.logBtn}
               onPress={() => router.push({
                 pathname: '/screens/challenge-actions',
@@ -308,27 +314,27 @@ export default function ChallengeDetailScreen() {
               })}
             >
               <Text style={styles.logBtnText}>Log Eligible Action</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         ) : (
           <View style={styles.actionButtons}>
             {isTeamChallenge ? (
               <>
-                <TouchableOpacity
+                <SoundTouchableOpacity
                   style={styles.joinTeamBtn}
                   onPress={() => { setShowJoinTeam(true); loadPublicTeams(); }}
                 >
                   <Text style={styles.joinTeamBtnText}>Join Team</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </SoundTouchableOpacity>
+                <SoundTouchableOpacity
                   style={styles.createTeamBtn}
                   onPress={() => setShowCreateTeam(true)}
                 >
                   <Text style={styles.createTeamBtnText}>Create Team</Text>
-                </TouchableOpacity>
+                </SoundTouchableOpacity>
               </>
             ) : (
-              <TouchableOpacity
+              <SoundTouchableOpacity
                 style={[styles.joinBtn, isJoining && styles.btnDisabled]}
                 onPress={handleJoinSolo}
                 disabled={isJoining}
@@ -337,7 +343,7 @@ export default function ChallengeDetailScreen() {
                   ? <ActivityIndicator color="#fff" />
                   : <Text style={styles.joinBtnText}>Join Challenge</Text>
                 }
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             )}
           </View>
         )}
@@ -345,10 +351,11 @@ export default function ChallengeDetailScreen() {
         {/* ── Tab bar ── */}
         <View style={styles.tabs}>
           {tabs.map((tab) => (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
+            soundType="tab"
             >
               <Text style={[
                 styles.tabText,
@@ -356,7 +363,7 @@ export default function ChallengeDetailScreen() {
               ]}>
                 {tab}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           ))}
         </View>
 
