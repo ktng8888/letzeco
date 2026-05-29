@@ -24,7 +24,9 @@ export default function RankingTab({ ranking, isLoading, challenge }) {
       {/* Your rank banner */}
       {(your_rank || your_team_rank) && (
         <View style={styles.yourRankBanner}>
-          <Text style={styles.yourRankLabel}>Your Rank</Text>
+          <Text style={styles.yourRankLabel}>
+            {type === 'team' ? 'Team Rank' : 'Your Rank'}
+          </Text>
           <Text style={styles.yourRankValue}>
             #{your_rank || your_team_rank}
           </Text>

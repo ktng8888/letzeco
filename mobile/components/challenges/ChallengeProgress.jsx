@@ -8,6 +8,11 @@ export default function ChallengeProgress({
   targetType,
   unit,
   label,
+  showPercent = true,
+  showValues = true,
+  showTargetValue = true,
+  showRemaining = true,
+  showCompleteBadge = true,
 }) {
   const percent = target > 0
     ? Math.min((current / target) * 100, 100)
@@ -19,12 +24,14 @@ export default function ChallengeProgress({
     <View style={styles.container}>
       <View style={styles.labelRow}>
         <Text style={styles.label}>{label || 'Progress'}</Text>
-        <Text style={[
-          styles.percent,
-          isComplete && styles.percentComplete
-        ]}>
-          {Math.round(percent)}%
-        </Text>
+        {showPercent && (
+          <Text style={[
+            styles.percent,
+            isComplete && styles.percentComplete
+          ]}>
+            {Math.round(percent)}%
+          </Text>
+        )}
       </View>
 
       <View style={styles.barBg}>
@@ -35,22 +42,28 @@ export default function ChallengeProgress({
         ]} />
       </View>
 
-      <View style={styles.valueRow}>
-        <Text style={styles.currentValue}>
-          {formatValue(current, targetType, unit)}
-        </Text>
-        <Text style={styles.separator}>/</Text>
-        <Text style={styles.targetValue}>
-          {formatValue(target, targetType, unit)}
-        </Text>
-        {target > current && (
-          <Text style={styles.remaining}>
-            ({formatValue(target - current, targetType, unit)} left)
+      {showValues && (
+        <View style={styles.valueRow}>
+          <Text style={styles.currentValue}>
+            {formatValue(current, targetType, unit)}
           </Text>
-        )}
-      </View>
+          {showTargetValue && (
+            <>
+              <Text style={styles.separator}>/</Text>
+              <Text style={styles.targetValue}>
+                {formatValue(target, targetType, unit)}
+              </Text>
+            </>
+          )}
+          {showTargetValue && showRemaining && target > current && (
+            <Text style={styles.remaining}>
+              ({formatValue(target - current, targetType, unit)} left)
+            </Text>
+          )}
+        </View>
+      )}
 
-      {isComplete && (
+      {showCompleteBadge && isComplete && (
         <View style={styles.completeBadge}>
           <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} />
           <Text style={styles.completeText}>Goal Reached!</Text>

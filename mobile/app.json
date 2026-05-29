@@ -4,7 +4,7 @@
     "slug": "letzeco",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/app_logo.png",
+    "icon": "./assets/app-icon-padded.png",
     "userInterfaceStyle": "light",
     "updates": {
       "enabled": false
@@ -23,8 +23,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/app_logo.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon-foreground-padded.png",
+        "backgroundColor": "#f0fcd7"
       },
       "package": "com.letzeco.app",
       "googleServicesFile": "./google-services.json"

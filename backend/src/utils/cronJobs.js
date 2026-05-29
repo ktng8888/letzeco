@@ -124,10 +124,17 @@ const startCronJobs = () => {
 
                 const user = await userModel.findById(participant.user_id);
                 if (user?.push_token) {
+                  const title = challenge.type === 'team'
+                    ? 'Team Ranking Reward Unlocked!'
+                    : 'Ranking Reward Unlocked!';
+                  const body = challenge.type === 'team'
+                    ? `Your team ranked Top ${reward.top_value} in "${challenge.name}"! Claim your reward in Gifts.`
+                    : `You ranked Top ${reward.top_value} in "${challenge.name}"! Claim your reward in Gifts.`;
+
                   await notificationService.sendPush(
                     user.push_token,
-                    '🏆 Ranking Reward Unlocked!',
-                    `You ranked Top ${reward.top_value} in "${challenge.name}"! Claim your reward in Gifts.`,
+                    title,
+                    body,
                     { type: 'ranking_reward', challenge_id: challenge.id }
                   );
                 }

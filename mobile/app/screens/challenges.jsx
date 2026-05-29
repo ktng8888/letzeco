@@ -62,12 +62,14 @@ export default function ChallengesScreen() {
   if (isLoading) return <LoadingScreen />;
 
   // Split challenges into tabs
-  const participating = allChallenges.filter(c => c.is_participating);
+  const participating = allChallenges.filter(
+    c => c.is_participating && (c.user_challenge_status || 'active') !== 'completed'
+  );
   const available = allChallenges.filter(
     c => !c.is_participating && c.status === 'active'
   );
   const completed = myChallenges.filter(
-    c => c.challenge_status === 'completed'
+    c => c.status === 'completed' || c.challenge_status === 'completed'
   );
 
   const getTabData = () => {
