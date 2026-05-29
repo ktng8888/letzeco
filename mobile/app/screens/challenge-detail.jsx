@@ -27,7 +27,7 @@ import JoinTeamModal    from '../../components/challenges/modals/JoinTeamModal';
 import CreateTeamModal  from '../../components/challenges/modals/CreateTeamModal';
 
 // Helpers
-import { getDaysLeft, formatDate, getTargetLabel } from '../../utils/challengeHelpers';
+import { getDaysLeft, formatDate, getTargetLabel, formatProgress } from '../../utils/challengeHelpers';
 
 import colors from '../../constants/colors';
 
@@ -197,6 +197,10 @@ export default function ChallengeDetailScreen() {
 
   const isTeamChallenge = challenge.type === 'team';
   const isParticipating = challenge.is_participating;
+  const targetValue      = parseFloat(challenge.target_value) || 0;
+  const userChallengeStatus = challenge.user_challenge_status || 'active';
+  const hasCompletedChallenge = userChallengeStatus === 'completed'
+    || (targetValue > 0 && parseFloat(challenge.progress_value || 0) >= targetValue);
   const daysLeft        = getDaysLeft(challenge.end_date);
   const tabs            = isTeamChallenge && isParticipating ? TEAM_TABS : OVERVIEW_TABS;
 
@@ -247,7 +251,7 @@ export default function ChallengeDetailScreen() {
           </View>
 
           {/* Solo progress */}
-          {isParticipating && (
+          {isParticipating && !isTeamChallenge && (
             <View style={styles.progressSection}>
               <View style={styles.progressHeader}>
                 <Text style={styles.progressTitle}>Your Progress</Text>
@@ -257,7 +261,7 @@ export default function ChallengeDetailScreen() {
               </View>
               <ChallengeProgress
                 current={challenge.progress_value || 0}
-                target={parseFloat(challenge.target_value) || 0}
+                target={targetValue}
                 targetType={challenge.target_type}
                 unit={challenge.unit}
                 label={`Min: ${challenge.target_value} ${
@@ -269,29 +273,74 @@ export default function ChallengeDetailScreen() {
 
           {/* Team progress */}
           {isTeamChallenge && isParticipating && challenge.team && (
-            <View style={styles.teamSection}>
-              <View style={styles.teamHeader}>
-                <View>
-                  <Text style={styles.teamName}>{challenge.team.name}</Text>
-                  <Text style={styles.teamCode}>Code: {challenge.team.code}</Text>
+            <>
+              <View style={styles.teamSection}>
+                <View style={styles.teamHeader}>
+                  <View style={styles.teamTitleBlock}>
+                    <View style={styles.teamTitleRow}>
+                      <Ionicons name="people-outline" size={18} color="#3b82f6" />
+                      <Text style={styles.teamName}>{challenge.team.name}</Text>
+                    </View>
+                    <Text style={styles.teamCode}>Code: {challenge.team.code}</Text>
+                  </View>
+                  <View style={styles.teamRankPill}>
+                    <Ionicons name="trophy-outline" size={13} color={colors.primary} />
+                    <Text style={styles.teamRank}>
+                      Team Rank #{challenge.team_rank || '-'}
+                    </Text>
+                  </View>
                 </View>
-                <Text style={styles.teamRank}>
-                  Rank #{challenge.team_rank || '-'}
-                </Text>
+
+                <ChallengeProgress
+                  current={challenge.team.team_progress || 0}
+                  target={targetValue}
+                  targetType={challenge.target_type}
+                  unit={challenge.unit}
+                  label={`Team Goal: ${challenge.target_value} ${
+                    challenge.unit || getTargetLabel(challenge.target_type)
+                  }`}
+                />
               </View>
-              <ChallengeProgress
-                current={challenge.team.team_progress || 0}
-                target={parseFloat(challenge.target_value) || 0}
-                targetType={challenge.target_type}
-                unit={challenge.unit}
-                label="Team Progress"
-              />
-            </View>
+
+              <View style={styles.contributionSection}>
+                <View style={styles.contributionHeader}>
+                  <View style={styles.contributionTitleRow}>
+                    <Ionicons name="person-outline" size={17} color={colors.primary} />
+                    <Text style={styles.contributionTitle}>Your Contribution</Text>
+                  </View>
+                  <Text style={styles.contributionValue}>
+                    {formatProgress(
+                      challenge.progress_value || 0,
+                      challenge.target_type,
+                      challenge.unit
+                    )}
+                  </Text>
+                </View>
+
+                <ChallengeProgress
+                  current={challenge.progress_value || 0}
+                  target={targetValue}
+                  targetType={challenge.target_type}
+                  unit={challenge.unit}
+                  label="Contribution toward team goal"
+                  showPercent={false}
+                  showValues={false}
+                  showCompleteBadge={false}
+                />
+              </View>
+            </>
           )}
         </View>
 
         {/* ── Action buttons ── */}
-        {isParticipating ? (
+        {isParticipating && hasCompletedChallenge ? (
+          <View style={styles.actionButtons}>
+            <View style={styles.completedBtn}>
+              <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+              <Text style={styles.completedBtnText}>Challenge Completed</Text>
+            </View>
+          </View>
+        ) : isParticipating ? (
           <View style={styles.actionButtons}>
             <SoundTouchableOpacity
               style={styles.leaveBtn}
@@ -458,7 +507,9 @@ const styles = StyleSheet.create({
   rankText: { fontSize: 13, fontWeight: '600', color: colors.primary },
 
   teamSection: {
-    backgroundColor: colors.bgGrey,
+    backgroundColor: colors.primaryBg,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
     borderRadius: 12,
     padding: 14,
     gap: 12,
@@ -468,9 +519,53 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
+  teamTitleBlock: { flex: 1, minWidth: 0, gap: 3 },
+  teamTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
   teamName: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
   teamCode: { fontSize: 12, color: colors.primary, fontWeight: '500' },
-  teamRank: { fontSize: 14, fontWeight: '700', color: colors.primary },
+  teamRankPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  teamRank: { fontSize: 12, fontWeight: '800', color: colors.primary },
+  contributionSection: {
+    backgroundColor: colors.bgGrey,
+    borderRadius: 12,
+    padding: 14,
+    gap: 10,
+  },
+  contributionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  contributionTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    flex: 1,
+    minWidth: 0,
+  },
+  contributionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  contributionValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: colors.primary,
+  },
 
   actionButtons: {
     padding: 16,
@@ -522,6 +617,22 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  completedBtn: {
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#f0fdf4',
+    borderWidth: 1,
+    borderColor: '#bbf7d0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  completedBtnText: {
+    color: colors.success,
+    fontSize: 15,
+    fontWeight: '700',
+  },
   btnDisabled: { backgroundColor: colors.primaryLight },
 
   tabs: {

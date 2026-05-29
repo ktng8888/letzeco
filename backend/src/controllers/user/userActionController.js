@@ -224,33 +224,89 @@ const userActionController = {
           if (uc.target_type === 'kwh')    increment = parseFloat(action.kwh_saved    || 0);
 
           const prevProgress = parseFloat(uc.progress_value || 0);
-          const newProgress  = prevProgress + increment;
+          const newProgress  = Math.round((prevProgress + increment + Number.EPSILON) * 100) / 100;
           const targetValue  = parseFloat(uc.target_value);
+          await userChallengeModel.updateProgress(
+            userId,
+            uc.challenge_id,
+            newProgress,
+            'active'
+          );
 
-          await userChallengeModel.updateProgress(userId, uc.challenge_id, newProgress);
+          let completedChallenge = false;
+          let rewardRecipients = [userId];
 
-          if (newProgress >= targetValue && prevProgress < targetValue) {
+          if (uc.type === 'team' && uc.team_id) {
+            const teamProgress = await userChallengeModel.getTeamProgress(
+              uc.team_id,
+              uc.challenge_id
+            );
+
+            completedChallenge = Number.isFinite(targetValue)
+              && targetValue > 0
+              && teamProgress >= targetValue;
+
+            if (completedChallenge) {
+              const teamMembers = await userChallengeModel.updateTeamStatus(
+                uc.team_id,
+                uc.challenge_id,
+                'completed'
+              );
+              rewardRecipients = teamMembers.map(member => member.user_id);
+            }
+          } else {
+            completedChallenge = Number.isFinite(targetValue)
+              && targetValue > 0
+              && newProgress >= targetValue;
+
+            if (completedChallenge) {
+              await userChallengeModel.updateStatus(
+                userId,
+                uc.challenge_id,
+                'completed'
+              );
+            }
+          }
+
+          if (completedChallenge) {
             const completionReward = await challengeRewardModel
               .getCompletionReward(uc.challenge_id);
 
             if (completionReward) {
-              const alreadyAwarded = await userChallengeRewardModel
-                .checkExists(userId, completionReward.id);
+              for (const recipientId of rewardRecipients) {
+                const alreadyAwarded = await userChallengeRewardModel
+                  .checkExists(recipientId, completionReward.id);
 
-              if (!alreadyAwarded) {
-                await userChallengeRewardModel.create(userId, completionReward.id);
-                completionGiftEarned = true;
-                await notificationService.challengeCompleted(
-                  userId, uc.challenge_name || 'Challenge'
-                );
+                if (!alreadyAwarded) {
+                  await userChallengeRewardModel.create(
+                    recipientId,
+                    completionReward.id
+                  );
 
-                // ── NEW: check challenge completion achievement ──
-                if (uc.type === 'solo') {
-                  challengeAchievement = await xpService
-                    .checkChallengeAchievement(userId);
-                } else {
-                  challengeAchievement = await xpService
-                    .checkTeamChallengeAchievement(userId);
+                  if (recipientId === userId) {
+                    completionGiftEarned = true;
+                  }
+
+                  await notificationService.challengeCompleted(
+                    recipientId,
+                    uc.challenge_name || 'Challenge'
+                  );
+
+                  if (uc.type === 'solo') {
+                    const achievement = await xpService
+                      .checkChallengeAchievement(recipientId);
+
+                    if (recipientId === userId) {
+                      challengeAchievement = achievement;
+                    }
+                  } else {
+                    const achievement = await xpService
+                      .checkTeamChallengeAchievement(recipientId);
+
+                    if (recipientId === userId) {
+                      challengeAchievement = achievement;
+                    }
+                  }
                 }
               }
             }

@@ -37,6 +37,8 @@ const challengeController = {
           return {
             ...challenge,
             is_participating: participating ? true : false,
+            user_challenge_status: participating
+              ? participating.status || 'active' : null,
             progress_value: participating
               ? participating.progress_value : 0,
             eligible_actions: eligibleActions,
@@ -81,6 +83,9 @@ const challengeController = {
 
       // Get team details if team challenge and user is participating
       let teamDetails = null;
+      let userRank = null;
+      let teamRank = null;
+
       if (challenge.type === 'team' && participating && participating.team_id) {
         const team = await teamModel.getById(participating.team_id);
         const members = await teamMemberModel.getByTeamId(
@@ -92,6 +97,9 @@ const challengeController = {
         const teamProgress = await userChallengeModel.getTeamProgress(
           participating.team_id, id
         );
+        teamRank = await userChallengeModel.getTeamRank(
+          participating.team_id, id
+        );
 
         teamDetails = {
           ...team,
@@ -99,6 +107,8 @@ const challengeController = {
           member_count: memberCount,
           team_progress: teamProgress
         };
+      } else if (challenge.type === 'solo' && participating) {
+        userRank = await userChallengeModel.getUserRank(userId, id);
       }
 
       res.json({
@@ -106,8 +116,12 @@ const challengeController = {
         data: {
           ...challenge,
           is_participating: participating ? true : false,
+          user_challenge_status: participating
+            ? participating.status || 'active' : null,
           progress_value: participating
             ? participating.progress_value : 0,
+          your_rank: userRank,
+          team_rank: teamRank,
           eligible_actions: eligibleActions,
           participants_count: participantsCount,
           rewards,

@@ -81,11 +81,11 @@ const challengeModel = {
     await pool.query('DELETE FROM challenge WHERE id = $1', [id]);
   },
 
-  // Get active challenges whose end_date has passed
+  // Get active challenges that should be closed by the nightly completion job.
   getExpiredActive: async () => {
     const result = await pool.query(
       `SELECT * FROM challenge
-       WHERE status = 'active' AND end_date < CURRENT_DATE`
+       WHERE status = 'active' AND end_date <= CURRENT_DATE`
     );
     return result.rows;
   },
@@ -93,10 +93,20 @@ const challengeModel = {
   // Solo challenge rankings
   getSoloRankings: async (challengeId) => {
     const result = await pool.query(
-      `SELECT user_id, progress_value,
-              ROW_NUMBER() OVER (ORDER BY progress_value DESC) AS rank
-       FROM user_challenge
-       WHERE challenge_id = $1`,
+      `SELECT user_id, progress_value, completion_time,
+              ROW_NUMBER() OVER (
+                ORDER BY progress_value DESC, completion_time ASC NULLS LAST
+              ) AS rank
+       FROM user_challenge uc
+       JOIN challenge c ON c.id = uc.challenge_id
+       WHERE uc.challenge_id = $1
+         AND COALESCE(
+               uc.status,
+               CASE
+                 WHEN uc.progress_value >= c.target_value THEN 'completed'
+                 ELSE 'active'
+               END
+             ) = 'completed'`,
       [challengeId]
     );
     return result.rows;
@@ -105,13 +115,34 @@ const challengeModel = {
   // Team challenge rankings
   getTeamRankings: async (challengeId) => {
     const result = await pool.query(
-      `SELECT uc.user_id, uc.team_id,
-              SUM(uc.progress_value) OVER (PARTITION BY uc.team_id) AS team_progress,
-              DENSE_RANK() OVER (
-                ORDER BY SUM(uc.progress_value) OVER (PARTITION BY uc.team_id) DESC
-              ) AS rank
-       FROM user_challenge uc
-       WHERE uc.challenge_id = $1`,
+      `WITH completed_teams AS (
+         SELECT
+           uc.team_id,
+           SUM(uc.progress_value) AS team_progress,
+           MIN(uc.completion_time) AS team_completion_time,
+           ROW_NUMBER() OVER (
+             ORDER BY SUM(uc.progress_value) DESC,
+                      MIN(uc.completion_time) ASC NULLS LAST
+           ) AS rank
+         FROM user_challenge uc
+         JOIN challenge c ON c.id = uc.challenge_id
+         WHERE uc.challenge_id = $1
+           AND uc.team_id IS NOT NULL
+         GROUP BY uc.team_id, c.target_value
+         HAVING SUM(uc.progress_value) >= c.target_value
+       )
+       SELECT
+         uc.user_id,
+         uc.team_id,
+         ct.team_progress,
+         ct.team_completion_time,
+         ct.rank
+       FROM completed_teams ct
+       JOIN user_challenge uc
+         ON uc.team_id = ct.team_id
+        AND uc.challenge_id = $1
+       ORDER BY ct.rank ASC, ct.team_progress DESC,
+                ct.team_completion_time ASC NULLS LAST, uc.user_id ASC`,
       [challengeId]
     );
     return result.rows;

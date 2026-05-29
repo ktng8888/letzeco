@@ -597,14 +597,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     lineHeight: 20,
-    textAlign: 'center',
-    flex: 1,
+    textAlign: 'left',
+    flexShrink: 1,
   },
   proofRequirementRow: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
+    justifyContent: 'center',
     gap: 6,
+    maxWidth: '100%',
   },
   proofStatusBadge: {
     flexDirection: 'row',
