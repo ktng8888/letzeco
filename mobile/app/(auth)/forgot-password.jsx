@@ -1,13 +1,20 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, Image
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+  Image
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import authService from '../../services/authService';
 import colors from '../../constants/colors';
 import images from '../../constants/images';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
@@ -87,7 +94,7 @@ export default function ForgotPasswordScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={[styles.btn, isLoading && styles.btnDisabled]}
               onPress={handleSendOtp}
               disabled={isLoading}
@@ -96,7 +103,7 @@ export default function ForgotPasswordScreen() {
                 ? <ActivityIndicator color={colors.textWhite} />
                 : <Text style={styles.btnText}>Send OTP</Text>
               }
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </>
         ) : (
           <>
@@ -113,7 +120,7 @@ export default function ForgotPasswordScreen() {
               keyboardType="number-pad"
               maxLength={6}
             />
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={[styles.btn, isLoading && styles.btnDisabled]}
               onPress={handleValidateOtp}
               disabled={isLoading}
@@ -122,24 +129,25 @@ export default function ForgotPasswordScreen() {
                 ? <ActivityIndicator color={colors.textWhite} />
                 : <Text style={styles.btnText}>Validate OTP</Text>
               }
-            </TouchableOpacity>
-            <TouchableOpacity
+            </SoundTouchableOpacity>
+            <SoundTouchableOpacity
               style={styles.resendBtn}
               onPress={handleSendOtp}
               disabled={isLoading}
             >
               <Text style={styles.resendText}>Resend OTP</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </>
         )}
 
         {/* Back to Login */}
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.backBtn}
           onPress={() => router.back()}
+        soundType="back"
         >
           <Text style={styles.backText}>← Back to Login</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
       </View>
     </KeyboardAvoidingView>

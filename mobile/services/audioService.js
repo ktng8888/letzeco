@@ -7,10 +7,17 @@ import {
 
 import useAudioStore from '../store/audioStore';
 
-const clickSource = require('../assets/audio/ui-click.wav');
+const sfxSources = {
+  ui: require('../assets/audio/ui-click.wav'),
+  nav: require('../assets/audio/nav-bar-click.wav'),
+  tab: require('../assets/audio/tab-click.wav'),
+  back: require('../assets/audio/back-click.wav'),
+  actionComplete: require('../assets/audio/action-complete.wav'),
+  congrats: require('../assets/audio/congrats.wav'),
+};
 const bgmSource = require('../assets/audio/eco-ambient-loop.wav');
 
-let clickPlayer = null;
+let sfxPlayers = {};
 let bgmPlayer = null;
 let initialized = false;
 let appStateSubscription = null;
@@ -27,9 +34,9 @@ const safely = async (task) => {
 const syncSettings = () => {
   const { bgmEnabled, bgmVolume, sfxVolume } = useAudioStore.getState();
 
-  if (clickPlayer) {
-    clickPlayer.volume = sfxVolume;
-  }
+  Object.values(sfxPlayers).forEach((player) => {
+    player.volume = sfxVolume;
+  });
 
   if (bgmPlayer) {
     bgmPlayer.volume = bgmVolume;
@@ -56,7 +63,10 @@ export const initAudio = async () => {
       interruptionMode: 'mixWithOthers',
     });
 
-    clickPlayer = createAudioPlayer(clickSource);
+    sfxPlayers = Object.entries(sfxSources).reduce((players, [key, source]) => {
+      players[key] = createAudioPlayer(source);
+      return players;
+    }, {});
     bgmPlayer = createAudioPlayer(bgmSource);
     bgmPlayer.loop = true;
 
@@ -76,12 +86,13 @@ export const initAudio = async () => {
   });
 };
 
-export const playClickSound = () => {
+export const playClickSound = (type = 'ui') => {
   const { sfxEnabled } = useAudioStore.getState();
-  if (!sfxEnabled || !clickPlayer) return;
+  const player = sfxPlayers[type] || sfxPlayers.ui;
+  if (!sfxEnabled || !player) return;
 
   try {
-    clickPlayer.seekTo(0).finally(() => clickPlayer.play());
+    player.seekTo(0).finally(() => player.play());
   } catch (err) {
     console.warn('Click sound failed:', err?.message || err);
   }
@@ -90,11 +101,11 @@ export const playClickSound = () => {
 export const disposeAudio = () => {
   appStateSubscription?.remove?.();
   storeSubscription?.();
-  clickPlayer?.release?.();
+  Object.values(sfxPlayers).forEach((player) => player?.release?.());
   bgmPlayer?.release?.();
   appStateSubscription = null;
   storeSubscription = null;
-  clickPlayer = null;
+  sfxPlayers = {};
   bgmPlayer = null;
   initialized = false;
 };

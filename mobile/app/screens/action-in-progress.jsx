@@ -1,6 +1,12 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal, Image
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  Image
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -15,6 +21,7 @@ import Badge from '../../components/common/Badge';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import { useCountdown, timeLimitToSeconds } from '../../hooks/useCountdown';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ActionInProgressScreen() {
   const router = useRouter();
@@ -431,7 +438,7 @@ export default function ActionInProgressScreen() {
             {proofUploaded ? (
               <View style={styles.proofUploadedWrap}>
                 {proofImageUri && (
-                  <TouchableOpacity
+                  <SoundTouchableOpacity
                     style={styles.proofPreviewCard}
                     activeOpacity={0.9}
                     onPress={() => setShowProofPreview(true)}
@@ -445,7 +452,7 @@ export default function ActionInProgressScreen() {
                       <Ionicons name="expand-outline" size={16} color={colors.textWhite} />
                       <Text style={styles.proofPreviewText}>Preview</Text>
                     </View>
-                  </TouchableOpacity>
+                  </SoundTouchableOpacity>
                 )}
 
                 <View style={styles.proofUploadedRow}>
@@ -454,18 +461,18 @@ export default function ActionInProgressScreen() {
                     <Text style={styles.proofUploadedText}>Proof Photo Ready</Text>
                   </View>
                   {validationStatus !== 'approved' && (
-                    <TouchableOpacity
+                    <SoundTouchableOpacity
                       style={styles.retakeBtn}
                       onPress={handleDeleteProof}
                     >
                       <Ionicons name="camera-outline" size={14} color={colors.error} />
                       <Text style={styles.retakeBtnText}>Retake</Text>
-                    </TouchableOpacity>
+                    </SoundTouchableOpacity>
                   )}
                 </View>
 
                 {validationStatus !== 'approved' && (
-                  <TouchableOpacity
+                  <SoundTouchableOpacity
                     style={[
                       styles.validateBtn,
                       validationStatus === 'validating' && styles.validateBtnDisabled,
@@ -481,7 +488,7 @@ export default function ActionInProgressScreen() {
                         <Text style={styles.validateBtnText}>Validate Proof</Text>
                       </>
                     )}
-                  </TouchableOpacity>
+                  </SoundTouchableOpacity>
                 )}
 
                 {validationStatus && (
@@ -540,7 +547,7 @@ export default function ActionInProgressScreen() {
                 )}
               </View>
             ) : (
-              <TouchableOpacity
+              <SoundTouchableOpacity
                 style={styles.photoBtn}
                 onPress={handleUploadProof}
                 disabled={isUploadingProof}
@@ -553,7 +560,7 @@ export default function ActionInProgressScreen() {
                     <Text style={styles.photoBtnText}>Take Photo</Text>
                   </>
                 )}
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             )}
           </View>
         )}
@@ -566,14 +573,15 @@ export default function ActionInProgressScreen() {
       ]}>
         {isExpired ? (
           <View style={styles.expiredActions}>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={[styles.backFooterBtn, isTryingAgain && styles.btnDisabled]}
               onPress={() => router.back()}
               disabled={isTryingAgain}
+            soundType="back"
             >
               <Text style={styles.backFooterText}>Back</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </SoundTouchableOpacity>
+            <SoundTouchableOpacity
               style={[styles.tryAgainBtn, isTryingAgain && styles.btnDisabled]}
               onPress={handleTryAgain}
               disabled={isTryingAgain}
@@ -582,12 +590,12 @@ export default function ActionInProgressScreen() {
                 ? <ActivityIndicator color={colors.textWhite} />
                 : <Text style={styles.tryAgainText}>Try Again</Text>
               }
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         ) : (
           <>
             {/* Complete */}
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={[
                 styles.completeBtn,
                 (isCompleting || validationStatus === 'rejected') && styles.btnDisabled,
@@ -599,15 +607,15 @@ export default function ActionInProgressScreen() {
                 ? <ActivityIndicator color={colors.textWhite} />
                 : <Text style={styles.completeBtnText}>Complete Action</Text>
               }
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
 
             {/* Cancel */}
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.cancelBtn}
               onPress={() => setShowCancelConfirm(true)}
             >
               <Text style={styles.cancelBtnText}>Cancel Action</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </>
         )}
       </View>
@@ -625,7 +633,7 @@ export default function ActionInProgressScreen() {
             <Text style={styles.modalText}>
               Are you sure? Your progress will be lost.
             </Text>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.modalBtnDanger}
               onPress={handleCancel}
               disabled={isCancelling}
@@ -634,13 +642,13 @@ export default function ActionInProgressScreen() {
                 ? <ActivityIndicator color={colors.textWhite} />
                 : <Text style={styles.modalBtnText}>Yes, Cancel</Text>
               }
-            </TouchableOpacity>
-            <TouchableOpacity
+            </SoundTouchableOpacity>
+            <SoundTouchableOpacity
               style={styles.modalBtnSecondary}
               onPress={() => setShowCancelConfirm(false)}
             >
               <Text style={styles.modalBtnSecondaryText}>Keep Going</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -653,12 +661,12 @@ export default function ActionInProgressScreen() {
         onRequestClose={() => setShowProofPreview(false)}
       >
         <View style={styles.previewOverlay}>
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[styles.previewCloseBtn, { top: insets.top + 14 }]}
             onPress={() => setShowProofPreview(false)}
           >
             <Ionicons name="close" size={24} color={colors.textWhite} />
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           {proofImageUri && (
             <Image

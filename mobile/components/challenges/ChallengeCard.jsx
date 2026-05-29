@@ -1,9 +1,13 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, Image
+  View,
+  Text,
+  StyleSheet,
+  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ChallengeCard({ challenge, onPress }) {
   const isTeam = challenge.type === 'team';
@@ -21,7 +25,7 @@ export default function ChallengeCard({ challenge, onPress }) {
   }`;
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.86}>
+    <SoundTouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.86}>
       <View style={styles.imageWrap}>
         {imageUrl ? (
           <Image
@@ -154,7 +158,7 @@ export default function ChallengeCard({ challenge, onPress }) {
           </View>
         )}
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

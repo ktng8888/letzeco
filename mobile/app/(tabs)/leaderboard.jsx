@@ -1,6 +1,10 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl, Modal
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Modal
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,6 +18,7 @@ import ScreenHeader from '../../components/common/ScreenHeader';
 import TopThreePodium from '../../components/leaderboard/TopThreePodium';
 import LeaderboardCard from '../../components/leaderboard/LeaderboardCard';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function LeaderboardScreen() {
   const { user } = useAuthStore();
@@ -68,12 +73,12 @@ export default function LeaderboardScreen() {
       {/* Period Info */}
       <View style={styles.periodRow}>
         <Text style={styles.periodText}>Period: {weekRange}</Text>
-        <TouchableOpacity onPress={() => setShowInfo(true)}>
+        <SoundTouchableOpacity onPress={() => setShowInfo(true)}>
           <View style={styles.rankingInfoBtn}>
             <Text style={styles.rankingInfoText}>About Ranking</Text>
             <Ionicons name="information-circle-outline" size={13} color={colors.primary} />
           </View>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       {/* Your Rank Banner */}
@@ -93,9 +98,10 @@ export default function LeaderboardScreen() {
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[styles.tab, activeTab === 'global' && styles.tabActive]}
           onPress={() => setActiveTab('global')}
+        soundType="tab"
         >
           <View style={styles.tabContent}>
             <Ionicons
@@ -107,10 +113,11 @@ export default function LeaderboardScreen() {
               Global
             </Text>
           </View>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </SoundTouchableOpacity>
+        <SoundTouchableOpacity
           style={[styles.tab, activeTab === 'friends' && styles.tabActive]}
           onPress={() => setActiveTab('friends')}
+        soundType="tab"
         >
           <View style={styles.tabContent}>
             <Ionicons
@@ -122,7 +129,7 @@ export default function LeaderboardScreen() {
               Friends
             </Text>
           </View>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       <ScrollView
@@ -172,7 +179,7 @@ export default function LeaderboardScreen() {
         animationType="fade"
         onRequestClose={() => setShowInfo(false)}
       >
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.modalOverlay}
           onPress={() => setShowInfo(false)}
         >
@@ -190,14 +197,14 @@ export default function LeaderboardScreen() {
               Focus on earning XP this week by logging as many eco-actions as possible!{'\n\n'}
               The more you log, the higher you rank.
             </Text>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.infoBtn}
               onPress={() => setShowInfo(false)}
             >
               <Text style={styles.infoBtnText}>Got it!</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </Modal>
 
     </View>

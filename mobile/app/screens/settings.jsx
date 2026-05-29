@@ -1,6 +1,9 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet,
-  Switch, Alert
+  View,
+  Text,
+  StyleSheet,
+  Switch,
+  Alert
 } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
@@ -9,6 +12,7 @@ import useAuthStore from '../../store/authStore';
 import useAudioStore from '../../store/audioStore';
 import { playClickSound } from '../../services/audioService';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -44,9 +48,9 @@ export default function SettingsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Settings</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -109,13 +113,13 @@ export default function SettingsScreen() {
         </View>
 
         {/* Logout */}
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.logoutBtn}
           onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={20} color={colors.error} />
           <Text style={styles.logoutText}>LOGOUT</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
       </View>
     </View>
@@ -124,7 +128,7 @@ export default function SettingsScreen() {
 
 function SettingRow({ icon, label, onPress }) {
   return (
-    <TouchableOpacity style={styles.row} onPress={onPress}>
+    <SoundTouchableOpacity style={styles.row} onPress={onPress}>
       <View style={styles.rowLeft}>
         <Ionicons name={icon} size={20} color={colors.textSecondary} />
         <Text style={styles.rowLabel}>{label}</Text>
@@ -134,7 +138,7 @@ function SettingRow({ icon, label, onPress }) {
         size={18}
         color={colors.textLight}
       />
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

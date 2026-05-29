@@ -1,9 +1,13 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, Image
+  View,
+  Text,
+  StyleSheet,
+  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../constants/api';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ProfileHeader({
   user,
@@ -34,12 +38,12 @@ export default function ProfileHeader({
             </View>
           )}
           {isOwnProfile && (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.editAvatarBtn}
               onPress={onEditPress}
             >
               <Ionicons name="camera" size={14} color={colors.textWhite} />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
         </View>
 
@@ -63,7 +67,7 @@ export default function ProfileHeader({
 
         {/* Friend button (other profiles) */}
         {!isOwnProfile && (
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[
               styles.friendBtn,
               getFriendBtnStyle(friendshipStatus)
@@ -79,7 +83,7 @@ export default function ProfileHeader({
             ]}>
               {getFriendBtnText(friendshipStatus)}
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         )}
       </View>
 

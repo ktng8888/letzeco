@@ -1,13 +1,21 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView, Platform,
-  ActivityIndicator, Alert, ScrollView, Image
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  Image
 } from 'react-native';
 import { useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import useAuthStore from '../../store/authStore';
 import colors from '../../constants/colors';
 import images from '../../constants/images';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function RegisterScreen() {
   const [email, setEmail] = useState('');
@@ -113,7 +121,7 @@ export default function RegisterScreen() {
           />
 
           {/* Register Button */}
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[styles.btn, isLoading && styles.btnDisabled]}
             onPress={handleRegister}
             disabled={isLoading}
@@ -123,16 +131,16 @@ export default function RegisterScreen() {
             ) : (
               <Text style={styles.btnText}>Register</Text>
             )}
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         </View>
 
         {/* Login Link */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Already have an account? </Text>
           <Link href="/(auth)/login" asChild>
-            <TouchableOpacity>
+            <SoundTouchableOpacity>
               <Text style={styles.footerLink}>Login</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </Link>
         </View>
 

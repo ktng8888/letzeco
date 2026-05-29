@@ -1,7 +1,13 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator, Modal,
-  Image, Linking
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Modal,
+  Image,
+  Linking
 } from 'react-native';
 import { useState, useEffect, useCallback} from 'react';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
@@ -13,6 +19,7 @@ import Badge from '../../components/common/Badge';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ActionDetailScreen() {
   const router = useRouter();
@@ -106,9 +113,9 @@ export default function ActionDetailScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <SoundTouchableOpacity style={styles.backBtn} onPress={() => router.back()} soundType="back">
           <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
         {timeLimitText && (
           <View style={styles.timeLimitBadge}>
@@ -117,13 +124,13 @@ export default function ActionDetailScreen() {
           </View>
         )}
 
-        <TouchableOpacity onPress={handleFavouriteToggle} style={styles.heartBtn}>
+        <SoundTouchableOpacity onPress={handleFavouriteToggle} style={styles.heartBtn}>
           <Ionicons
             name={isFavourite ? 'heart' : 'heart-outline'}
             size={24}
             color={isFavourite ? colors.error : colors.textLight}
           />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -228,13 +235,13 @@ export default function ActionDetailScreen() {
             </View>
 
             {(action.calc_info || action.source) && (
-              <TouchableOpacity
+              <SoundTouchableOpacity
                 style={styles.calcBtn}
                 onPress={() => setShowCalcModal(true)}
               >
                 <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
                 <Text style={styles.calcBtnText}>How is this calculated?</Text>
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             )}
           </View>
         )}
@@ -272,7 +279,7 @@ export default function ActionDetailScreen() {
 
       {/* Log Action Button */}
       <View style={styles.footer}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[
             styles.logBtn,
             isCurrentlyLogging && styles.logBtnActive,
@@ -294,7 +301,7 @@ export default function ActionDetailScreen() {
               {isCurrentlyLogging ? 'View Action In Progress' : 'Log Action'}
             </Text>
           )}
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       {/* How is this calculated Modal */}
@@ -325,12 +332,12 @@ export default function ActionDetailScreen() {
               </View>
             )}
 
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.modalBtn}
               onPress={() => setShowCalcModal(false)}
             >
               <Text style={styles.modalBtnText}>Got it!</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         </View>
       </Modal>

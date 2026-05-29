@@ -1,6 +1,10 @@
 import {
-  View, Text, ScrollView, StyleSheet,
-  RefreshControl, Modal, TouchableOpacity,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Modal,
   Alert
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
@@ -15,6 +19,7 @@ import ActionCard from '../../components/logAction/ActionCard';
 import ActionInProgressBar from '../../components/logAction/ActionInProgressBar';
 import { useCountdown, timeLimitToSeconds } from '../../hooks/useCountdown';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function CategoryActionsScreen() {
   const router = useRouter();
@@ -124,12 +129,13 @@ export default function CategoryActionsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.backBtn}
           onPress={() => router.back()}
+        soundType="back"
         >
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>{categoryName}</Text>
         <View style={{ width: 36 }} />
       </View>
@@ -189,7 +195,7 @@ export default function CategoryActionsScreen() {
         animationType="fade"
         onRequestClose={() => setShowBlocked(false)}
       >
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.modalOverlay}
           onPress={() => setShowBlocked(false)}
         >
@@ -202,7 +208,7 @@ export default function CategoryActionsScreen() {
               You're already logging an action.{'\n'}
               Let's finish that one first before starting a new one.
             </Text>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.blockedBtn}
               onPress={() => {
                 setShowBlocked(false);
@@ -215,15 +221,15 @@ export default function CategoryActionsScreen() {
               <Text style={styles.blockedBtnText}>
                 View Current Action
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </SoundTouchableOpacity>
+            <SoundTouchableOpacity
               style={styles.blockedBtnSecondary}
               onPress={() => setShowBlocked(false)}
             >
               <Text style={styles.blockedBtnSecondaryText}>OK</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </Modal>
 
     </View>

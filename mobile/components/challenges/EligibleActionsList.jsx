@@ -1,11 +1,16 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView, Image
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Badge from '../common/Badge';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function EligibleActionsList({
   actions,
@@ -29,7 +34,7 @@ export default function EligibleActionsList({
         const xpReward = action.xp_reward || 10;
 
         return (
-          <TouchableOpacity
+          <SoundTouchableOpacity
             key={action.id}
             style={styles.actionRow}
             activeOpacity={0.75}
@@ -69,7 +74,7 @@ export default function EligibleActionsList({
                 color={colors.textLight}
               />
             </View>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         );
       })}
     </View>

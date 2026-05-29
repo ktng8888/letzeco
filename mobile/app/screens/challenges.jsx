@@ -1,6 +1,9 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -12,6 +15,7 @@ import LoadingScreen from '../../components/common/LoadingScreen';
 import EmptyState from '../../components/common/EmptyState';
 import ChallengeCard from '../../components/challenges/ChallengeCard';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 const TABS = ['Participating', 'Available', 'Completed'];
 const TYPE_FILTERS = [
@@ -91,9 +95,9 @@ export default function ChallengesScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Challenge</Text>
         <Text style={styles.headerSub}>
           Complete challenges
@@ -110,13 +114,14 @@ export default function ChallengesScreen() {
             : completed.length;
 
           return (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={tab}
               style={[
                 styles.tab,
                 activeTab === tab && styles.tabActive
               ]}
               onPress={() => setActiveTab(tab)}
+            soundType="tab"
             >
               <Text style={[
                 styles.tabText,
@@ -124,7 +129,7 @@ export default function ChallengesScreen() {
               ]}>
                 {tab} ({count})
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           );
         })}
       </View>
@@ -133,7 +138,7 @@ export default function ChallengesScreen() {
         {TYPE_FILTERS.map((filter) => {
           const active = activeType === filter.key;
           return (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={filter.key}
               style={[
                 styles.typeFilter,
@@ -141,6 +146,7 @@ export default function ChallengesScreen() {
               ]}
               onPress={() => setActiveType(filter.key)}
               activeOpacity={0.75}
+            soundType="tab"
             >
               <Ionicons
                 name={filter.icon}
@@ -159,7 +165,7 @@ export default function ChallengesScreen() {
               ]}>
                 {typeCounts[filter.key]}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           );
         })}
       </View>

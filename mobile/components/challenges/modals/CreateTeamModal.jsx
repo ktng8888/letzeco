@@ -1,10 +1,14 @@
 import {
-  View, Text, Modal, TouchableOpacity,
-  TextInput, StyleSheet,
+  View,
+  Text,
+  Modal,
+  TextInput,
+  StyleSheet
 } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../../constants/colors';
+import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
 
 export default function CreateTeamModal({ visible, onClose, onSubmit }) {
   const [teamName, setTeamName]     = useState('');
@@ -29,9 +33,9 @@ export default function CreateTeamModal({ visible, onClose, onSubmit }) {
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Create Team</Text>
-            <TouchableOpacity onPress={onClose}>
+            <SoundTouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={22} color={colors.textPrimary} />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
 
           <View style={styles.form}>
@@ -45,7 +49,7 @@ export default function CreateTeamModal({ visible, onClose, onSubmit }) {
             />
 
             {/* Private toggle */}
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.toggle}
               onPress={() => setIsPrivate(!isPrivate)}
             >
@@ -58,11 +62,11 @@ export default function CreateTeamModal({ visible, onClose, onSubmit }) {
                 <Text style={styles.toggleLabel}>Private Team</Text>
                 <Text style={styles.toggleHint}>Only people with code can join</Text>
               </View>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
 
-            <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+            <SoundTouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
               <Text style={styles.submitText}>Create Team & Participate</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         </View>
       </View>

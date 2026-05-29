@@ -1,8 +1,14 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function TodayActionsSection({
   actions,
@@ -17,17 +23,17 @@ export default function TodayActionsSection({
           <Ionicons name="flash-outline" size={16} color={colors.xpColor} />
           <Text style={styles.sectionTitle}>Today's Actions</Text>
         </View>
-        <TouchableOpacity onPress={onLogMorePress}>
+        <SoundTouchableOpacity onPress={onLogMorePress}>
           <Text style={styles.logMore}>Log More</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       {actions.length === 0 ? (
-        <TouchableOpacity style={styles.emptyBox} onPress={onLogMorePress}>
+        <SoundTouchableOpacity style={styles.emptyBox} onPress={onLogMorePress}>
           <Ionicons name="leaf-outline" size={34} color={colors.primary} />
           <Text style={styles.emptyTitle}>Start logging today!</Text>
           <Text style={styles.emptySub}>Tap to log your first eco-action</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       ) : (
         <>
           <Text style={styles.actionCount}>{loggedCount} logged today</Text>
@@ -48,7 +54,7 @@ function TodayActionRow({ action, onPress }) {
   const canOpenLogDetail = action?.status === 'completed' && !!action?.id;
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={styles.actionRow}
       activeOpacity={canOpenLogDetail ? 0.75 : 1}
       disabled={!canOpenLogDetail}
@@ -106,7 +112,7 @@ function TodayActionRow({ action, onPress }) {
           </Text>
         )}
       </View>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

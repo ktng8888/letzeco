@@ -1,8 +1,11 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  StyleSheet
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ImpactCard({ icon, value, unit, label, onPress }) { 
   const getIcon = () => {
@@ -27,7 +30,7 @@ export default function ImpactCard({ icon, value, unit, label, onPress }) {
   const color = getColor();
 
 return (
-  <TouchableOpacity
+  <SoundTouchableOpacity
     style={styles.impactCard}
     onPress={onPress}
   >
@@ -38,7 +41,7 @@ return (
     <Text style={styles.impactUnit}>{unit}</Text>
     <Text style={styles.impactLabel}>{label}</Text>
     <Text style={styles.tapHint}>Tap for details</Text>
-  </TouchableOpacity>
+  </SoundTouchableOpacity>
 );
 }
 

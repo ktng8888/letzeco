@@ -1,6 +1,10 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl, Modal,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Modal,
   ActivityIndicator
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
@@ -19,6 +23,7 @@ import CategoryCard from '../../components/logAction/CategoryCard';
 import ActionCard from '../../components/logAction/ActionCard';
 import ActionInProgressBar from '../../components/logAction/ActionInProgressBar';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function LogActionScreen() {
   const router = useRouter();
@@ -167,13 +172,13 @@ export default function LogActionScreen() {
         }
       >
         {/* History Button */}
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.historyBtn}
           onPress={() => router.push('/screens/log-history')}
         >
           <Ionicons name="time-outline" size={16} color={colors.primary} />
           <Text style={styles.historyText}>History</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
         {/* Content */}
         {activeTab === 'categories' && (
@@ -257,15 +262,16 @@ export default function LogActionScreen() {
 
 function TabButton({ label, count, active, onPress }) {
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={[styles.tab, active && styles.tabActive]}
       onPress={onPress}
+      soundType="tab"
     >
       <Text style={[styles.tabText, active && styles.tabTextActive]}>
         {label}
         {count !== null && ` (${count})`}
       </Text>
-    </TouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

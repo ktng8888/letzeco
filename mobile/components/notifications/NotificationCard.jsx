@@ -1,8 +1,11 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  StyleSheet
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function NotificationCard({
   notification,
@@ -13,7 +16,7 @@ export default function NotificationCard({
   const config = getNotifConfig(notification.type);
 
   return (
-    <TouchableOpacity
+    <SoundTouchableOpacity
       style={[styles.card, isUnread && styles.cardUnread]}
       onPress={onPress}
       activeOpacity={0.7}
@@ -46,7 +49,7 @@ export default function NotificationCard({
       </View>
 
       {/* Delete Button */}
-      <TouchableOpacity
+      <SoundTouchableOpacity
         style={styles.deleteBtn}
         onPress={onDelete}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -56,8 +59,8 @@ export default function NotificationCard({
           size={16}
           color={colors.textLight}
         />
-      </TouchableOpacity>
-    </TouchableOpacity>
+      </SoundTouchableOpacity>
+    </SoundTouchableOpacity>
   );
 }
 

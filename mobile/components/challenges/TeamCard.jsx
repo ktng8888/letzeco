@@ -1,8 +1,11 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet
+  View,
+  Text,
+  StyleSheet
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function TeamCard({ team, onJoin, showJoinBtn }) {
   const memberCount = parseInt(team.member_count) || 0;
@@ -19,7 +22,7 @@ export default function TeamCard({ team, onJoin, showJoinBtn }) {
           </Text>
         </View>
         {showJoinBtn && (
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[
               styles.joinBtn,
               isFull && styles.joinBtnDisabled
@@ -33,7 +36,7 @@ export default function TeamCard({ team, onJoin, showJoinBtn }) {
             ]}>
               {isFull ? 'Full' : 'Join Team'}
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         )}
       </View>
 

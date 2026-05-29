@@ -1,7 +1,12 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, ActivityIndicator,
-  Image, RefreshControl,
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  ActivityIndicator,
+  Image,
+  RefreshControl
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -12,6 +17,7 @@ import LoadingScreen from '../../components/common/LoadingScreen';
 import { RewardClaimedModal } from '../../components/modals';
 import colors from '../../constants/colors';
 import { BASE_URL } from '../../constants/api';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function GiftsScreen() {
   const router = useRouter();
@@ -67,9 +73,9 @@ export default function GiftsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <View style={styles.headerTitleRow}>
           <Ionicons name="gift-outline" size={19} color={colors.primary} />
           <Text style={styles.headerTitle}>Gifts</Text>
@@ -143,7 +149,7 @@ export default function GiftsScreen() {
                 </View>
               </View>
 
-              <TouchableOpacity
+              <SoundTouchableOpacity
                 style={[
                   styles.claimBtn,
                   claimingId === gift.user_challenge_reward_id
@@ -157,7 +163,7 @@ export default function GiftsScreen() {
                 ) : (
                   <Text style={styles.claimBtnText}>Claim</Text>
                 )}
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             </View>
           ))}
           <View style={{ height: 40 }} />

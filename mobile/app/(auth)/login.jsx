@@ -1,13 +1,20 @@
 import {
-  View, Text, TextInput, TouchableOpacity,
-  StyleSheet, KeyboardAvoidingView,
-  Platform, ActivityIndicator, Alert, Image
+  View,
+  Text,
+  TextInput,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  Alert,
+  Image
 } from 'react-native';
 import { useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import useAuthStore from '../../store/authStore';
 import colors from '../../constants/colors';
 import images from '../../constants/images';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function LoginScreen() {
     const router = useRouter();
@@ -77,13 +84,13 @@ export default function LoginScreen() {
 
           {/* Forgot Password */}
           <Link href="/(auth)/forgot-password" asChild>
-            <TouchableOpacity style={styles.forgotBtn}>
+            <SoundTouchableOpacity style={styles.forgotBtn}>
               <Text style={styles.forgotText}>Forgot Password?</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </Link>
 
           {/* Login Button */}
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[styles.btn, isLoading && styles.btnDisabled]}
             onPress={handleLogin}
             disabled={isLoading}
@@ -93,16 +100,16 @@ export default function LoginScreen() {
             ) : (
               <Text style={styles.btnText}>Login</Text>
             )}
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         </View>
 
         {/* Register Link */}
         <View style={styles.footer}>
           <Text style={styles.footerText}>Don't have an account? </Text>
           <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
+            <SoundTouchableOpacity>
               <Text style={styles.footerLink}>Register</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </Link>
         </View>
 

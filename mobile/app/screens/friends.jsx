@@ -1,7 +1,13 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, TextInput, RefreshControl,
-  ActivityIndicator, Alert, Image
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+  Image
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -13,6 +19,7 @@ import useAuthStore from '../../store/authStore';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 const TABS = ['Friend', 'Sent Request', 'Pending Request'];
 
@@ -149,11 +156,11 @@ export default function FriendsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Friends</Text>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           onPress={() => setShowSearch(!showSearch)}
         >
           <Ionicons
@@ -161,7 +168,7 @@ export default function FriendsScreen() {
             size={22}
             color={colors.primary}
           />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
 
       {/* Search Bar */}
@@ -225,13 +232,14 @@ export default function FriendsScreen() {
       {/* Tabs */}
       <View style={styles.tabs}>
         {TABS.map((tab) => (
-          <TouchableOpacity
+          <SoundTouchableOpacity
             key={tab}
             style={[
               styles.tab,
               activeTab === tab && styles.tabActive
             ]}
             onPress={() => setActiveTab(tab)}
+          soundType="tab"
           >
             <Text style={[
               styles.tabText,
@@ -243,7 +251,7 @@ export default function FriendsScreen() {
                 : ''
               }
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         ))}
       </View>
 
@@ -376,20 +384,20 @@ function FriendCard({ user, onViewPress, onRemovePress, primaryAction, secondary
         <Text style={styles.friendMeta}>Lv. {user.level}</Text>
       </View>
       <View style={styles.friendActions}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.friendActionBtn}
           onPress={onViewPress}
         >
           <Text style={styles.friendActionText}>{primaryAction}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </SoundTouchableOpacity>
+        <SoundTouchableOpacity
           style={[styles.friendActionBtn, styles.friendActionBtnSecondary]}
           onPress={onRemovePress}
         >
           <Text style={styles.friendActionTextSecondary}>
             {secondaryAction}
           </Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
     </View>
   );
@@ -417,18 +425,18 @@ function PendingCard({ user, onApprove, onReject, onViewPress }) {
         <Text style={styles.friendMeta}>Lv. {user.level}</Text>
       </View>
       <View style={styles.friendActions}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={[styles.friendActionBtn, styles.approveBtn]}
           onPress={onApprove}
         >
           <Text style={styles.approveBtnText}>Approve</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+        </SoundTouchableOpacity>
+        <SoundTouchableOpacity
           style={[styles.friendActionBtn, styles.rejectBtn]}
           onPress={onReject}
         >
           <Text style={styles.rejectBtnText}>Reject</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       </View>
     </View>
   );
@@ -465,19 +473,19 @@ function SearchResultCard({ user, onViewPress, onActionPress }) {
         <Text style={styles.friendMeta}>Lv. {user.level}</Text>
       </View>
       <View style={styles.friendActions}>
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.friendActionBtn}
           onPress={onViewPress}
         >
           <Text style={styles.friendActionText}>View</Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         {status === 'none' && (
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[styles.friendActionBtn, styles.sendRequestBtn]}
             onPress={onActionPress}
           >
             <Text style={styles.sendRequestText}>Add</Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
         )}
         {status !== 'none' && (
           <View style={styles.statusBadge}>

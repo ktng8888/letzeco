@@ -43,7 +43,7 @@ export default function TabLayout() {
     >
       <Tabs.Screen
         name="home"
-        listeners={{ tabPress: () => playClickSound() }}
+        listeners={{ tabPress: () => playClickSound('nav') }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'home' : 'home-outline'} focused={focused} label="Home" />
@@ -52,7 +52,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="log-action"
-        listeners={{ tabPress: () => playClickSound() }}
+        listeners={{ tabPress: () => playClickSound('nav') }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'leaf' : 'leaf-outline'} focused={focused} label="Log Action" />
@@ -61,7 +61,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="progress"
-        listeners={{ tabPress: () => playClickSound() }}
+        listeners={{ tabPress: () => playClickSound('nav') }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'bar-chart' : 'bar-chart-outline'} focused={focused} label="Progress" />
@@ -70,7 +70,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="leaderboard"
-        listeners={{ tabPress: () => playClickSound() }}
+        listeners={{ tabPress: () => playClickSound('nav') }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'trophy' : 'trophy-outline'} focused={focused} label="Leaderboard" />
@@ -79,7 +79,7 @@ export default function TabLayout() {
       />
       <Tabs.Screen
         name="profile"
-        listeners={{ tabPress: () => playClickSound() }}
+        listeners={{ tabPress: () => playClickSound('nav') }}
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon name={focused ? 'person' : 'person-outline'} focused={focused} label="Profile" />

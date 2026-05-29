@@ -1,6 +1,9 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl
 } from 'react-native';
 import { useState, useCallback } from 'react';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
@@ -10,6 +13,7 @@ import challengeService from '../../services/challengeService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import EligibleActionsList from '../../components/challenges/EligibleActionsList';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function ChallengeActionsScreen() {
   const router = useRouter();
@@ -49,9 +53,9 @@ export default function ChallengeActionsScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <SoundTouchableOpacity style={styles.backBtn} onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
           Eligible Actions
         </Text>

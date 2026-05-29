@@ -4,13 +4,14 @@ import { playClickSound } from '../../services/audioService';
 export default function SoundTouchableOpacity({
   onPress,
   sound = true,
+  soundType = 'ui',
   disabled,
   children,
   ...props
 }) {
   const handlePress = (event) => {
     if (sound && !disabled) {
-      playClickSound();
+      playClickSound(soundType);
     }
     onPress?.(event);
   };

@@ -1,6 +1,11 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl, Modal, Platform
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Modal,
+  Platform
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -12,6 +17,7 @@ import LoadingScreen from '../../components/common/LoadingScreen';
 import EmptyState from '../../components/common/EmptyState';
 import Badge from '../../components/common/Badge';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function LogHistoryScreen() {
   const router = useRouter();
@@ -100,9 +106,9 @@ export default function LogHistoryScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Log History</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -126,7 +132,7 @@ export default function LogHistoryScreen() {
         <View style={styles.filterRow}>
 
           {/* From Date */}
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={styles.dateBtn}
             onPress={() => setShowFromPicker(true)}
           >
@@ -134,12 +140,12 @@ export default function LogHistoryScreen() {
             <Text style={styles.dateBtnText}>
               {fromDate ? formatShortDate(fromDate) : 'From'}
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           <Text style={styles.filterArrow}>→</Text>
 
           {/* To Date */}
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={styles.dateBtn}
             onPress={() => setShowToPicker(true)}
           >
@@ -147,18 +153,18 @@ export default function LogHistoryScreen() {
             <Text style={styles.dateBtnText}>
               {toDate ? formatShortDate(toDate) : 'To'}
             </Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           {/* Apply */}
-          <TouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
+          <SoundTouchableOpacity style={styles.applyBtn} onPress={applyFilter}>
             <Text style={styles.applyBtnText}>Apply</Text>
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           {/* Clear */}
           {filterActive && (
-            <TouchableOpacity style={styles.clearBtn} onPress={clearFilter}>
+            <SoundTouchableOpacity style={styles.clearBtn} onPress={clearFilter}>
               <Ionicons name="close" size={16} color={colors.error} />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
         </View>
 
@@ -218,10 +224,10 @@ export default function LogHistoryScreen() {
               }
             />
             {filterActive && (
-              <TouchableOpacity style={styles.clearFilterBtn} onPress={clearFilter}>
+              <SoundTouchableOpacity style={styles.clearFilterBtn} onPress={clearFilter}>
                 <Ionicons name="close-circle-outline" size={16} color={colors.error} />
                 <Text style={styles.clearFilterBtnText}>Clear Filter</Text>
-              </TouchableOpacity>
+              </SoundTouchableOpacity>
             )}
           </View>
         ) : (
@@ -230,7 +236,7 @@ export default function LogHistoryScreen() {
               <View key={date}>
                 <Text style={styles.dateHeader}>{date}</Text>
                 {actions.map((action) => (
-                  <TouchableOpacity
+                  <SoundTouchableOpacity
                     key={action.id}
                     style={styles.historyCard}
                     onPress={() => router.push({
@@ -256,7 +262,7 @@ export default function LogHistoryScreen() {
                       <Text style={styles.historyXp}>+{action.xp_gained} XP</Text>
                       <Ionicons name="chevron-forward" size={16} color={colors.textLight} />
                     </View>
-                  </TouchableOpacity>
+                  </SoundTouchableOpacity>
                 ))}
               </View>
             ))}

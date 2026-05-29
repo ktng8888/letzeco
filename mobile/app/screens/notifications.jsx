@@ -1,6 +1,10 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, RefreshControl, Alert
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  RefreshControl,
+  Alert
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
@@ -10,6 +14,7 @@ import notificationService from '../../services/notificationService';
 import LoadingScreen from '../../components/common/LoadingScreen';
 import NotificationCard from '../../components/notifications/NotificationCard';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function NotificationsScreen() {
   const router = useRouter();
@@ -142,13 +147,13 @@ export default function NotificationsScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons
             name="arrow-back"
             size={24}
             color={colors.textPrimary}
           />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>Notifications</Text>
           {unreadCount > 0 && (
@@ -159,7 +164,7 @@ export default function NotificationsScreen() {
         </View>
         <View style={styles.headerActions}>
           {unreadCount > 0 && (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               onPress={handleMarkAllAsRead}
               style={styles.headerBtn}
             >
@@ -168,10 +173,10 @@ export default function NotificationsScreen() {
                 size={20}
                 color={colors.primary}
               />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
           {notifications.length > 0 && (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               onPress={handleDeleteAll}
               style={styles.headerBtn}
             >
@@ -180,14 +185,14 @@ export default function NotificationsScreen() {
                 size={20}
                 color={colors.error}
               />
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Mark all as read hint */}
       {unreadCount > 0 && (
-        <TouchableOpacity
+        <SoundTouchableOpacity
           style={styles.markAllRow}
           onPress={handleMarkAllAsRead}
         >
@@ -199,7 +204,7 @@ export default function NotificationsScreen() {
           <Text style={styles.markAllText}>
             Mark all as read ({unreadCount} unread)
           </Text>
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
       )}
 
       <ScrollView

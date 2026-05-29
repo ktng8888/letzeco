@@ -1,6 +1,11 @@
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Image, Modal, Linking
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Image,
+  Modal,
+  Linking
 } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -12,6 +17,7 @@ import LoadingScreen from '../../components/common/LoadingScreen';
 import Badge from '../../components/common/Badge';
 import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
 export default function LogHistoryDetailScreen() {
   const router = useRouter();
@@ -47,9 +53,9 @@ export default function LogHistoryDetailScreen() {
 
       {/* ── Header ── */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+        <SoundTouchableOpacity style={styles.backBtn} onPress={() => router.back()} soundType="back">
           <Ionicons name="chevron-back" size={22} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>Record</Text>
         <View style={{ width: 36 }} />
       </View>
@@ -188,13 +194,13 @@ export default function LogHistoryDetailScreen() {
         {/* ── How is this calculated button ── */}
         {(log.calc_info || log.source) && (
           <View style={[styles.section, styles.calcSection]}>
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.calcBtn}
               onPress={() => setShowCalcModal(true)}
             >
               <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
               <Text style={styles.calcBtnText}>How is this calculated?</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         )}
 
@@ -239,7 +245,7 @@ export default function LogHistoryDetailScreen() {
 
               {/* Proof photo */}
               {proofImageUrl && (
-                <TouchableOpacity
+                <SoundTouchableOpacity
                   style={styles.proofPreviewCard}
                   activeOpacity={0.9}
                   onPress={() => setShowProofPreview(true)}
@@ -253,7 +259,7 @@ export default function LogHistoryDetailScreen() {
                     <Ionicons name="expand-outline" size={16} color={colors.textWhite} />
                     <Text style={styles.proofPreviewText}>Preview</Text>
                   </View>
-                </TouchableOpacity>
+                </SoundTouchableOpacity>
               )}
             </View>
           </View>
@@ -290,12 +296,12 @@ export default function LogHistoryDetailScreen() {
               </View>
             )}
 
-            <TouchableOpacity
+            <SoundTouchableOpacity
               style={styles.modalBtn}
               onPress={() => setShowCalcModal(false)}
             >
               <Text style={styles.modalBtnText}>Got it!</Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -307,12 +313,12 @@ export default function LogHistoryDetailScreen() {
         onRequestClose={() => setShowProofPreview(false)}
       >
         <View style={styles.previewOverlay}>
-          <TouchableOpacity
+          <SoundTouchableOpacity
             style={[styles.previewCloseBtn, { top: insets.top + 14 }]}
             onPress={() => setShowProofPreview(false)}
           >
             <Ionicons name="close" size={24} color={colors.textWhite} />
-          </TouchableOpacity>
+          </SoundTouchableOpacity>
 
           {proofImageUrl && (
             <Image

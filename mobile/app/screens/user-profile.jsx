@@ -1,7 +1,12 @@
+import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 // mobile/app/screens/user-profile.jsx  (FULL REPLACEMENT)
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Alert, RefreshControl
+  View,
+  Text,
+  ScrollView,
+  StyleSheet,
+  Alert,
+  RefreshControl
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -116,9 +121,9 @@ export default function UserProfileScreen() {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <SoundTouchableOpacity onPress={() => router.back()} soundType="back">
           <Ionicons name="arrow-back" size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
         <Text style={styles.headerTitle}>{profile?.username}</Text>
         <View style={{ width: 24 }} />
       </View>
@@ -146,10 +151,11 @@ export default function UserProfileScreen() {
         {/* Tabs */}
         <View style={styles.tabs}>
           {TABS.map((tab) => (
-            <TouchableOpacity
+            <SoundTouchableOpacity
               key={tab}
               style={[styles.tab, activeTab === tab && styles.tabActive]}
               onPress={() => setActiveTab(tab)}
+            soundType="tab"
             >
               <Text style={[
                 styles.tabText,
@@ -157,7 +163,7 @@ export default function UserProfileScreen() {
               ]}>
                 {tab}
               </Text>
-            </TouchableOpacity>
+            </SoundTouchableOpacity>
           ))}
         </View>
 

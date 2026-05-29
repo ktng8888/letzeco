@@ -1,12 +1,14 @@
 import {
-  View, Text, TouchableOpacity, StyleSheet, Image
+  View,
+  Text,
+  StyleSheet,
+  Image
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Badge from '../common/Badge';
 import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
-import { playClickSound } from '../../services/audioService';
 
 export default function ActionCard({
   action,
@@ -30,10 +32,9 @@ export default function ActionCard({
       <View style={styles.top}>
 
         {/* Favourite button - top right */}
-        <TouchableOpacity
+        <SoundTouchableOpacity
           onPress={(e) => {
             e.stopPropagation();
-            playClickSound();
             onFavouriteToggle && onFavouriteToggle(action);
           }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -44,7 +45,7 @@ export default function ActionCard({
             size={20}
             color={isFavourited ? colors.error : colors.textLight}
           />
-        </TouchableOpacity>
+        </SoundTouchableOpacity>
 
         {/* Body Row: Image + (Badge + Name) */}
         <View style={styles.bodyRow}>
