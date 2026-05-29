@@ -167,7 +167,7 @@ export default function LeaderboardScreen() {
             <Text style={styles.infoDescription}>
               Rankings reset every Monday.{'\n\n'}
               Focus on earning XP this week by logging as many eco-actions as possible!{'\n\n'}
-              The more you log, the higher you rank. 🌿
+              The more you log, the higher you rank.
             </Text>
             <TouchableOpacity
               style={styles.infoBtn}
