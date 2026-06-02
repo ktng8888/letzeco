@@ -7,6 +7,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../constants/api';
+import { getImageUrl } from '../../utils/imageUrl';
 import { getRankBorderColor } from '../../utils/rankUtils';
 import images from '../../constants/images';
 import colors from '../../constants/colors';
@@ -28,9 +29,10 @@ export default function LeaderboardCard({ item, myId }) {
             pathname: '/screens/user-profile',
             params: { userId: item.id }
           });
+        } else {
+          router.push('/(tabs)/profile');
         }
       }}
-      disabled={isMe}
     >
       {/* Rank */}
       <View style={styles.rankContainer}>
@@ -79,6 +81,25 @@ export default function LeaderboardCard({ item, myId }) {
             <Text style={styles.meta}>No streak</Text>
           )}
         </View>
+        {item.emblems?.length > 0 && (
+          <View style={styles.emblemRow}>
+            {item.emblems.slice(0, 3).map((emblem) => (
+              <View key={emblem.user_emblem_id || emblem.user_badge_id} style={styles.emblemWrap}>
+                {emblem.badge_image ? (
+                  <Image
+                    source={{ uri: getImageUrl(emblem.badge_image) }}
+                    style={styles.emblemImg}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <View style={styles.emblemFallback}>
+                    <Ionicons name="ribbon" size={12} color={colors.primary} />
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
       </View>
 
       {/* Weekly XP */}
@@ -183,6 +204,34 @@ const styles = StyleSheet.create({
     color: colors.textLight,
   },
   xpContainer: { alignItems: 'flex-end' },
+  emblemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 5,
+    minHeight: 20,
+  },
+  emblemWrap: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.bgWhite,
+  },
+  emblemImg: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+  },
+  emblemFallback: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryBg,
+  },
   xpValue: {
     fontSize: 16,
     fontWeight: '700',

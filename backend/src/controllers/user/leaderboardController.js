@@ -1,4 +1,5 @@
 const leaderboardModel = require('../../models/leaderboardModel');
+const userBadgeModel = require('../../models/userBadgeModel');
 
 const leaderboardController = {
 
@@ -10,7 +11,8 @@ const leaderboardController = {
       const userRank = await leaderboardModel.getUserGlobalRank(userId);
 
       // Add rank number to each entry
-      const rankedLeaderboard = leaderboard.map((user, index) => ({
+      const withEmblems = await userBadgeModel.attachEmblemsToUsers(leaderboard);
+      const rankedLeaderboard = withEmblems.map((user, index) => ({
         rank: index + 1,
         ...user,
         is_me: user.id === userId
@@ -37,7 +39,8 @@ const leaderboardController = {
       const leaderboard = await leaderboardModel.getFriends(userId);
       const userRank = await leaderboardModel.getUserFriendsRank(userId);
 
-      const rankedLeaderboard = leaderboard.map((user, index) => ({
+      const withEmblems = await userBadgeModel.attachEmblemsToUsers(leaderboard);
+      const rankedLeaderboard = withEmblems.map((user, index) => ({
         rank: index + 1,
         ...user,
         is_me: user.id === userId

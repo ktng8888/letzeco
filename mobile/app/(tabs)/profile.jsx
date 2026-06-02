@@ -67,6 +67,19 @@ export default function ProfileScreen() {
     loadData();
   }, []);
 
+  const handleEmblemsChange = async (userBadgeIds) => {
+    const result = await profileService.updateEmblems(userBadgeIds);
+    setBadges((current) => ({
+      ...current,
+      emblems: result.data.emblems,
+      selectable_emblems: result.data.selectable_emblems,
+    }));
+    setProfile((current) => ({
+      ...current,
+      emblems: result.data.emblems,
+    }));
+  };
+
   if (isLoading) return <LoadingScreen />;
 
   const totalOwnedBadges =
@@ -122,6 +135,9 @@ export default function ProfileScreen() {
           totalFriends={profile?.total_friends || 0}
           isOwnProfile
           onEditPress={() => router.push('/screens/edit-profile')}
+          emblems={badges?.emblems || profile?.emblems || []}
+          selectableEmblems={badges?.selectable_emblems || []}
+          onEmblemsChange={handleEmblemsChange}
         />
 
         {/* Tabs */}

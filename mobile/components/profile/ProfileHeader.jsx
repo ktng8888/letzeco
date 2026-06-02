@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BASE_URL } from '../../constants/api';
 import colors from '../../constants/colors';
 import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
+import EmblemSection from './EmblemSection';
 
 export default function ProfileHeader({
   user,
@@ -18,6 +19,9 @@ export default function ProfileHeader({
   friendshipStatus,
   onEditPress,
   onFriendPress,
+  emblems = [],
+  selectableEmblems = [],
+  onEmblemsChange,
 }) {
   return (
     <View style={styles.container}>
@@ -64,6 +68,13 @@ export default function ProfileHeader({
             {user?.level_xp} / {user?.xp_to_next_level || 1000} XP
           </Text>
         </View>
+
+        <EmblemSection
+          emblems={emblems}
+          selectableEmblems={selectableEmblems}
+          isOwnProfile={isOwnProfile}
+          onSave={onEmblemsChange}
+        />
 
         {/* Friend button (other profiles) */}
         {!isOwnProfile && (

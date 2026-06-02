@@ -1,5 +1,6 @@
 // backend/src/controllers/user/giftController.js
 const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
+const userBadgeModel           = require('../../models/userBadgeModel');
 const xpService                = require('../../utils/xpService');
 const userModel                = require('../../models/userModel');
 
@@ -44,7 +45,10 @@ const giftController = {
         xpResult = await xpService.addXP(userId, gift.xp_reward);
       }
 
-      await userChallengeRewardModel.claim(id);
+      const claimed = await userChallengeRewardModel.claim(id);
+      const userBadge = claimed
+        ? await userBadgeModel.createForChallengeReward(userId, claimed.id)
+        : null;
 
       const user = await userModel.getProfile(userId);
 
@@ -54,6 +58,7 @@ const giftController = {
           xp_reward:      gift.xp_reward,
           badge_name:     gift.badge_name,
           badge_image:    gift.badge_image,
+          user_badge_id:   userBadge?.id || null,
           challenge_name: gift.challenge_name,
           type:           gift.type,
           level_up:       xpResult?.level_up || false,

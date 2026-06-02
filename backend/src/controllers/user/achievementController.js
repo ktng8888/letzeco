@@ -2,6 +2,7 @@
 const userAchievementModel  = require('../../models/userAchievementModel');
 const userStreakRewardModel  = require('../../models/userStreakRewardModel');
 const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
+const userBadgeModel        = require('../../models/userBadgeModel');
 const achievementModel      = require('../../models/achievementModel');
 const badgeModel            = require('../../models/badgeModel');
 const userModel             = require('../../models/userModel');
@@ -139,6 +140,8 @@ const achievementController = {
     try {
       const achievements = await userAchievementModel.getAllWithProgress(userId);
       const special = await userChallengeRewardModel.getClaimedBadgesByUser(userId);
+      const selectableEmblems = await userBadgeModel.getSelectableByUser(userId);
+      const emblems = await userBadgeModel.getEmblemsByUser(userId);
       const unlocked = achievements.filter(a => a.is_unlocked);
       const locked   = achievements.filter(a => !a.is_unlocked);
 
@@ -159,6 +162,8 @@ const achievementController = {
           locked: lockedWithProgress,
           special,
           total_special: special.length,
+          emblems,
+          selectable_emblems: selectableEmblems,
         }
       });
 
@@ -189,6 +194,30 @@ const achievementController = {
     } catch (err) {
       console.error('Get achievements error:', err);
       res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
+  // UPDATE MY SELECTED EMBLEMS
+  updateEmblems: async (req, res) => {
+    const userId = req.user.id;
+    const { user_badge_ids } = req.body;
+
+    try {
+      const emblems = await userBadgeModel.setEmblems(userId, user_badge_ids);
+      const selectableEmblems = await userBadgeModel.getSelectableByUser(userId);
+
+      res.json({
+        message: 'Emblems updated successfully.',
+        data: {
+          emblems,
+          selectable_emblems: selectableEmblems,
+        }
+      });
+    } catch (err) {
+      console.error('Update emblems error:', err);
+      res.status(err.statusCode || 500).json({
+        message: err.statusCode ? err.message : 'Server error.'
+      });
     }
   },
 
@@ -355,6 +384,7 @@ const achievementController = {
 
       const achievements = await userAchievementModel.getAllWithProgress(id);
       const special      = await userChallengeRewardModel.getClaimedBadgesByUser(id);
+      const emblems      = await userBadgeModel.getEmblemsByUser(id, req.user.id);
       const unlocked     = achievements.filter(a => a.is_unlocked);
       const locked       = achievements.filter(a => !a.is_unlocked);
       const lockedWithProgress = await Promise.all(
@@ -380,6 +410,7 @@ const achievementController = {
           locked: lockedWithProgress,
           special,
           total_special: special.length,
+          emblems,
         }
       });
 

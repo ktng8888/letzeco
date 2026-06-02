@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const userModel = require('../../models/userModel');
+const userBadgeModel = require('../../models/userBadgeModel');
 const { deleteFile } = require('../../utils/uploadService');
 const friendshipModel = require('../../models/friendshipModel');
 
@@ -15,8 +16,10 @@ const userController = {
       }
 
       const totalActions = await userModel.getTotalActions(userId);
+      await userBadgeModel.syncForUser(userId);
       const totalBadges = await userModel.getTotalBadges(userId);
       const totalFriends = await userModel.getTotalFriends(userId);
+      const emblems = await userBadgeModel.getEmblemsByUser(userId);
 
       res.json({
         message: 'Profile retrieved successfully.',
@@ -25,6 +28,7 @@ const userController = {
           total_actions: totalActions,
           total_badges: totalBadges,
           total_friends: totalFriends,
+          emblems,
         }
       });
 
@@ -60,8 +64,10 @@ const userController = {
         }
       }
 
+      await userBadgeModel.syncForUser(id);
       const totalBadges = await userModel.getTotalBadges(id);
       const totalActions = await userModel.getTotalActions(id);
+      const emblems = await userBadgeModel.getEmblemsByUser(id, userId);
 
       res.json({
         message: 'Friend profile retrieved successfully.',
@@ -69,6 +75,7 @@ const userController = {
           ...user,
           total_badges: totalBadges,
           total_actions: totalActions,
+          emblems,
           friendship_status: friendshipStatus,
           friendship_id: friendship ? friendship.id : null
         }
@@ -106,13 +113,16 @@ const userController = {
         }
       }
 
+      await userBadgeModel.syncForUser(id);
       const totalBadges = await userModel.getTotalBadges(id);
+      const emblems = await userBadgeModel.getEmblemsByUser(id, myId);
 
       res.json({
         message: 'User profile retrieved successfully.',
         data: {
           ...user,
           total_badges: totalBadges,
+          emblems,
           friendship_status: friendshipStatus
         }
       });

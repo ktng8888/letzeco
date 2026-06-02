@@ -1,4 +1,5 @@
 const pool = require('../config/db');
+const userBadgeModel = require('../models/userBadgeModel');
 
 const achievementSelect = `
   SELECT a.*, b.name AS badge_name, b.image AS badge_image
@@ -66,6 +67,10 @@ const unlockAchievement = async (userId, achievement) => {
      VALUES ($1, $2, NOW())`,
     [userId, achievement.id]
   );
+  const userBadge = await userBadgeModel.createForAchievement(
+    userId,
+    achievement.id
+  );
 
   const bonusXp = parseInt(achievement.bonus_xp || 0);
   if (bonusXp > 0) {
@@ -86,6 +91,7 @@ const unlockAchievement = async (userId, achievement) => {
     bonus_xp: bonusXp,
     badge_name: achievement.badge_name,
     badge_image: achievement.badge_image,
+    user_badge_id: userBadge?.id || null,
   };
 };
 

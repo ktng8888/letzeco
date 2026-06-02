@@ -112,6 +112,7 @@ const adminAchievementController = {
         const badge = await badgeModel.create({
           name: row.badge_name,
           image: imagePath,
+          type: 'achievement',
         });
 
         // Create achievement linked to badge
