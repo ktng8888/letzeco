@@ -69,8 +69,9 @@ const userModel = {
   // Get total badges count
   getTotalBadges: async (userId) => {
     const result = await pool.query(
-      `SELECT COUNT(*) FROM user_achievement
-       WHERE user_id = $1`,
+      `SELECT COUNT(*) FROM user_badge
+       WHERE user_id = $1
+         AND status IN ('unlocked', 'claimed')`,
       [userId]
     );
     return parseInt(result.rows[0].count);

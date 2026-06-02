@@ -135,6 +135,7 @@ const adminChallengeController = {
         const badge = await badgeModel.create({
           name:  badge_name,
           image: badgeImage,
+          type:  'special',
         });
         badgeId = badge.id;
       }

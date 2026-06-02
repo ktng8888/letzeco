@@ -146,6 +146,7 @@ export default function UserProfileScreen() {
           isOwnProfile={false}
           friendshipStatus={friendshipStatus}
           onFriendPress={handleFriendAction}
+          emblems={badges?.emblems || profile?.emblems || []}
         />
 
         {/* Tabs */}

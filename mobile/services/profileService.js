@@ -52,6 +52,13 @@ const profileService = {
     return response.data;
   },
 
+  updateEmblems: async (userBadgeIds) => {
+    const response = await api.put('/achievements/badges/emblems', {
+      user_badge_ids: userBadgeIds,
+    });
+    return response.data;
+  },
+
   getAchievements: async () => {
     const response = await api.get('/achievements');
     return response.data;
