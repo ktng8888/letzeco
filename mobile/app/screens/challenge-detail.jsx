@@ -1,6 +1,7 @@
 import {
   View,
   Text,
+  Image,
   ScrollView,
   StyleSheet,
   Alert,
@@ -28,6 +29,7 @@ import CreateTeamModal  from '../../components/challenges/modals/CreateTeamModal
 
 // Helpers
 import { getDaysLeft, formatDate, getTargetLabel, formatProgress } from '../../utils/challengeHelpers';
+import { getImageUrl } from '../../utils/imageUrl';
 
 import colors from '../../constants/colors';
 
@@ -203,6 +205,7 @@ export default function ChallengeDetailScreen() {
     || (targetValue > 0 && parseFloat(challenge.progress_value || 0) >= targetValue);
   const daysLeft        = getDaysLeft(challenge.end_date);
   const tabs            = isTeamChallenge && isParticipating ? TEAM_TABS : OVERVIEW_TABS;
+  const challengeImageUrl = getImageUrl(challenge.image || challenge.challenge_image);
 
   return (
     <View style={styles.container}>
@@ -239,25 +242,63 @@ export default function ChallengeDetailScreen() {
       >
         {/* ── Challenge Info ── */}
         <View style={styles.infoSection}>
-          <Text style={styles.challengeName}>{challenge.name}</Text>
-
-          <View style={styles.dateRow}>
-            <Text style={styles.dateText}>
-              {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)}
-            </Text>
-            {daysLeft > 0 && (
-              <Text style={styles.daysLeft}>{daysLeft} days left</Text>
+          <View style={styles.challengeImageCard}>
+            {challengeImageUrl ? (
+              <Image
+                source={{ uri: challengeImageUrl }}
+                style={styles.challengeImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                style={[
+                  styles.challengeImageFallback,
+                  { backgroundColor: isTeamChallenge ? '#eff6ff' : colors.primaryBg },
+                ]}
+              >
+                <Ionicons
+                  name={isTeamChallenge ? 'people-outline' : 'leaf-outline'}
+                  size={38}
+                  color={isTeamChallenge ? '#3b82f6' : colors.primary}
+                />
+              </View>
             )}
+            <View style={styles.imageTypeBadge}>
+              <Ionicons
+                name={isTeamChallenge ? 'people-outline' : 'radio-button-on-outline'}
+                size={12}
+                color="#fff"
+              />
+              <Text style={styles.imageTypeText}>{isTeamChallenge ? 'Team' : 'Solo'}</Text>
+            </View>
+          </View>
+
+          <View style={styles.titleBlock}>
+            <Text style={styles.challengeName}>{challenge.name}</Text>
+
+            <View style={styles.dateRow}>
+              <Text style={styles.dateText}>
+                {formatDate(challenge.start_date)} – {formatDate(challenge.end_date)}
+              </Text>
+              {daysLeft > 0 && (
+                <Text style={styles.daysLeft}>{daysLeft} days left</Text>
+              )}
+            </View>
           </View>
 
           {/* Solo progress */}
           {isParticipating && !isTeamChallenge && (
             <View style={styles.progressSection}>
               <View style={styles.progressHeader}>
-                <Text style={styles.progressTitle}>Your Progress</Text>
-                <Text style={styles.rankText}>
-                  Rank #{challenge.your_rank || '-'}
-                </Text>
+                <View style={styles.progressTitleRow}>
+                  <Ionicons name="analytics-outline" size={16} color={colors.primary} />
+                  <Text style={styles.progressTitle}>Your Progress</Text>
+                </View>
+                <View style={styles.rankPill}>
+                  <Text style={styles.rankText}>
+                    Rank {challenge.your_rank || '-'}
+                  </Text>
+                </View>
               </View>
               <ChallengeProgress
                 current={challenge.progress_value || 0}
@@ -286,7 +327,7 @@ export default function ChallengeDetailScreen() {
                   <View style={styles.teamRankPill}>
                     <Ionicons name="trophy-outline" size={13} color={colors.primary} />
                     <Text style={styles.teamRank}>
-                      Team Rank #{challenge.team_rank || '-'}
+                      Team Rank {challenge.team_rank || '-'}
                     </Text>
                   </View>
                 </View>
@@ -484,35 +525,119 @@ const styles = StyleSheet.create({
   typeText: { fontSize: 12, fontWeight: '700' },
   infoSection: {
     backgroundColor: colors.bgWhite,
-    padding: 16,
-    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
+    gap: 14,
   },
-  challengeName: { fontSize: 20, fontWeight: '700', color: colors.textPrimary },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  challengeImageCard: {
+    height: 170,
+    borderRadius: 18,
+    overflow: 'hidden',
+    backgroundColor: colors.bgGrey,
+    position: 'relative',
+  },
+  challengeImage: {
+    width: '100%',
+    height: '100%',
+  },
+  challengeImageFallback: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageTypeBadge: {
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(17,24,39,0.62)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  imageTypeText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  titleBlock: {
+    alignItems: 'center',
+    gap: 7,
+    paddingTop: 2,
+    paddingHorizontal: 8,
+  },
+  challengeName: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   dateText: { fontSize: 13, color: colors.textSecondary },
-  daysLeft: { fontSize: 13, color: colors.primary, fontWeight: '600' },
+  daysLeft: {
+    fontSize: 13,
+    color: colors.primary,
+    fontWeight: '800',
+    backgroundColor: colors.primaryBg,
+    borderRadius: 999,
+    paddingHorizontal: 9,
+    paddingVertical: 3,
+  },
 
   progressSection: {
-    backgroundColor: colors.bgGrey,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
+    backgroundColor: '#f8faf9',
+    borderWidth: 1,
+    borderColor: '#e5f7eb',
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 1,
   },
   progressHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  progressTitle: { fontSize: 14, fontWeight: '700', color: colors.textPrimary },
-  rankText: { fontSize: 13, fontWeight: '600', color: colors.primary },
+  progressTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  progressTitle: { fontSize: 15, fontWeight: '800', color: colors.textPrimary },
+  rankPill: {
+    backgroundColor: colors.bgWhite,
+    borderWidth: 1,
+    borderColor: '#d9fbe5',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  rankText: { fontSize: 12, fontWeight: '800', color: colors.primary },
 
   teamSection: {
-    backgroundColor: colors.primaryBg,
+    backgroundColor: '#f2fff6',
     borderWidth: 1,
     borderColor: colors.primaryLight,
-    borderRadius: 12,
-    padding: 14,
-    gap: 12,
+    borderRadius: 16,
+    padding: 16,
+    gap: 14,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 1,
   },
   teamHeader: {
     flexDirection: 'row',
@@ -532,16 +657,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     backgroundColor: colors.bgWhite,
+    borderWidth: 1,
+    borderColor: '#d9fbe5',
     borderRadius: 999,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   teamRank: { fontSize: 12, fontWeight: '800', color: colors.primary },
   contributionSection: {
-    backgroundColor: colors.bgGrey,
-    borderRadius: 12,
-    padding: 14,
-    gap: 10,
+    backgroundColor: '#f8faf9',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
   },
   contributionHeader: {
     flexDirection: 'row',
@@ -568,8 +697,10 @@ const styles = StyleSheet.create({
   },
 
   actionButtons: {
-    padding: 16,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 18,
+    gap: 10,
     backgroundColor: colors.bgWhite,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -640,16 +771,24 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgWhite,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    borderTopWidth: 1,
+    borderTopColor: '#edf2ef',
+    paddingHorizontal: 10,
+    paddingTop: 8,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
-    borderBottomWidth: 2,
+    borderBottomWidth: 3,
     borderBottomColor: 'transparent',
+    borderRadius: 10,
   },
-  tabActive: { borderBottomColor: colors.primary },
-  tabText: { fontSize: 12, fontWeight: '500', color: colors.textSecondary },
+  tabActive: {
+    backgroundColor: colors.primaryBg,
+    borderBottomColor: colors.primary,
+  },
+  tabText: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
   tabTextActive: { color: colors.primary, fontWeight: '700' },
   tabContent: { padding: 16 },
 });

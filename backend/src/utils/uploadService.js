@@ -77,7 +77,7 @@ const createBadgeStorage = (type) => multer.diskStorage({
   }
 });
 
-const badgeStorage = createBadgeStorage('normal');
+const badgeStorage = createBadgeStorage('achievement');
 const specialBadgeStorage = createBadgeStorage('special');
 
 // Proof photo upload
