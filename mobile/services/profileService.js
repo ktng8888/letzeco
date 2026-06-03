@@ -1,4 +1,5 @@
 import api from './api';
+import { createImageUploadFile } from '../utils/imageUpload';
 
 const profileService = {
 
@@ -17,17 +18,16 @@ const profileService = {
     return response.data;
   },
 
-  uploadProfilePicture: async (imageUri) => {
+  uploadProfilePicture: async (imageAsset) => {
     const formData = new FormData();
-    formData.append('image', {
-      uri: imageUri,
-      type: 'image/jpeg',
-      name: 'profile.jpg',
-    });
+    formData.append('image', createImageUploadFile(imageAsset, 'profile.jpg'));
     const response = await api.put(
       '/user/profile/picture',
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000,
+      }
     );
     return response.data;
   },
