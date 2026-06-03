@@ -2,7 +2,8 @@ import {
   View,
   Text,
   StyleSheet,
-  Image
+  Image,
+  ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -58,25 +59,32 @@ export default function TodayActionsSection({
       ) : (
         <>
           <Text style={styles.actionCount}>{loggedCount} logged today</Text>
-          {actions.map(action => (
-            <TodayActionRow
-              key={action.id}
-              action={action}
-              onPress={() => onActionPress(action)}
-            />
-          ))}
+          <ScrollView
+            style={styles.actionsList}
+            nestedScrollEnabled
+            showsVerticalScrollIndicator={actions.length > 4}
+          >
+            {actions.map((action, index) => (
+              <TodayActionRow
+                key={action.id}
+                action={action}
+                isLast={index === actions.length - 1}
+                onPress={() => onActionPress(action)}
+              />
+            ))}
+          </ScrollView>
         </>
       )}
     </View>
   );
 }
 
-function TodayActionRow({ action, onPress }) {
+function TodayActionRow({ action, onPress, isLast }) {
   const canOpenLogDetail = action?.status === 'completed' && !!action?.id;
 
   return (
     <SoundTouchableOpacity
-      style={styles.actionRow}
+      style={[styles.actionRow, isLast && styles.actionRowLast]}
       activeOpacity={canOpenLogDetail ? 0.75 : 1}
       disabled={!canOpenLogDetail}
       onPress={onPress}
@@ -182,6 +190,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   logMore: { fontSize: 13, color: colors.primary, fontWeight: '600' },
   actionCount: { fontSize: 12, color: colors.textSecondary, marginBottom: 10 },
+  actionsList: {
+    maxHeight: 294,
+  },
   emptyBox: {
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -246,6 +257,11 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#f3f4f6',
+  },
+  actionRowLast: {
+    marginBottom: 0,
+    paddingBottom: 0,
+    borderBottomWidth: 0,
   },
   actionImg: { width: 44, height: 44, borderRadius: 12 },
   actionImgFallback: {

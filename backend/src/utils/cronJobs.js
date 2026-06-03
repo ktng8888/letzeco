@@ -62,12 +62,12 @@ const startCronJobs = () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // CHALLENGE COMPLETION — every day at 11:59 PM
-  // Distributes ranking rewards → marks challenges as completed
+  // CHALLENGE EXPIRY — every day at 11:59 PM
+  // Distributes ranking rewards → marks expired challenges as inactive
   // Also checks team challenge achievements for each rewarded user
   // ─────────────────────────────────────────────────────────────────────────
   cron.schedule('59 23 * * *', async () => {
-    console.log('Running challenge completion job...');
+    console.log('Running challenge expiry job...');
     try {
       const expiredChallenges = await challengeModel.getExpiredActive();
       console.log(`Found ${expiredChallenges.length} expired challenge(s)`);
@@ -143,13 +143,13 @@ const startCronJobs = () => {
           }
         }
 
-        await challengeModel.markCompleted(challenge.id);
-        console.log(`Challenge ${challenge.id} marked as completed.`);
+        await challengeModel.markInactive(challenge.id);
+        console.log(`Challenge ${challenge.id} marked as inactive.`);
       }
 
-      console.log('Challenge completion job done.');
+      console.log('Challenge expiry job done.');
     } catch (err) {
-      console.error('Challenge completion job error:', err);
+      console.error('Challenge expiry job error:', err);
     }
   });
 

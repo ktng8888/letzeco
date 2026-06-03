@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useState, useEffect, useCallback} from 'react';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import actionService from '../../services/actionService';
@@ -25,6 +26,7 @@ export default function ActionDetailScreen() {
   const router = useRouter();
   const { actionId } = useLocalSearchParams();
   const { currentAction, setCurrentAction } = useActionStore();
+  const insets = useSafeAreaInsets();
 
   const [isLoading, setIsLoading] = useState(true);
   const [isStarting, setIsStarting] = useState(false);
@@ -274,11 +276,11 @@ export default function ActionDetailScreen() {
           </View>
         )}
 
-        <View style={{ height: 100 }} />
+        <View style={{ height: Math.max(insets.bottom + 104, 116) }} />
       </ScrollView>
 
       {/* Log Action Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom + 12, 24) }]}>
         <SoundTouchableOpacity
           style={[
             styles.logBtn,
@@ -682,7 +684,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    paddingBottom: 36,
     backgroundColor: colors.bgWhite,
     borderTopWidth: 1,
     borderTopColor: colors.border,

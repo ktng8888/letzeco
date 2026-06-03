@@ -69,7 +69,7 @@ export default function ChallengesScreen() {
     c => !c.is_participating && c.status === 'active'
   );
   const completed = myChallenges.filter(
-    c => c.status === 'completed' || c.challenge_status === 'completed'
+    c => (c.user_challenge_status || c.status) === 'completed'
   );
 
   const getTabData = () => {
@@ -204,7 +204,7 @@ export default function ChallengesScreen() {
                 ...challenge,
                 id: challenge.id || challenge.challenge_id,
                 name: challenge.name || challenge.challenge_name,
-                status: challenge.status || challenge.challenge_status,
+                status: challenge.challenge_status || challenge.status,
               }}
               onPress={() => router.push({
                 pathname: '/screens/challenge-detail',

@@ -394,16 +394,15 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    rowGap: 18,
+    gap: 12,
     paddingVertical: 8,
   },
   scrollContent: {
     paddingBottom: 8,
   },
   badgeOption: {
-    width: '30%',
-    aspectRatio: 1,
+    width: 92,
+    height: 92,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 14,
