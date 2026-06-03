@@ -6,10 +6,12 @@ import {
   StyleSheet,
   Alert,
   ActivityIndicator,
-  RefreshControl
+  RefreshControl,
+  Modal
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import challengeService   from '../../services/challengeService';
@@ -39,6 +41,7 @@ const TEAM_TABS     = ['Overview', 'Team', 'Ranking', 'Activity'];
 export default function ChallengeDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
 
   // ── Core state
   const [isLoading, setIsLoading]   = useState(true);
@@ -58,6 +61,7 @@ export default function ChallengeDetailScreen() {
   const [showCreateTeam, setShowCreateTeam] = useState(false);
   const [publicTeams, setPublicTeams]       = useState([]);
   const [isTeamLoading, setIsTeamLoading]   = useState(false);
+  const [showImagePreview, setShowImagePreview] = useState(false);
 
   // ── Load challenge
   const loadData = async () => {
@@ -206,6 +210,11 @@ export default function ChallengeDetailScreen() {
   const daysLeft        = getDaysLeft(challenge.end_date);
   const tabs            = isTeamChallenge && isParticipating ? TEAM_TABS : OVERVIEW_TABS;
   const challengeImageUrl = getImageUrl(challenge.image || challenge.challenge_image);
+  const targetLabel = formatTargetValue(
+    challenge.target_value,
+    challenge.target_type,
+    challenge.unit
+  );
 
   return (
     <View style={styles.container}>
@@ -242,12 +251,17 @@ export default function ChallengeDetailScreen() {
       >
         {/* ── Challenge Info ── */}
         <View style={styles.infoSection}>
-          <View style={styles.challengeImageCard}>
+          <SoundTouchableOpacity
+            style={styles.challengeImageCard}
+            onPress={() => challengeImageUrl && setShowImagePreview(true)}
+            disabled={!challengeImageUrl}
+            activeOpacity={0.9}
+          >
             {challengeImageUrl ? (
               <Image
                 source={{ uri: challengeImageUrl }}
                 style={styles.challengeImage}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             ) : (
               <View
@@ -271,7 +285,13 @@ export default function ChallengeDetailScreen() {
               />
               <Text style={styles.imageTypeText}>{isTeamChallenge ? 'Team' : 'Solo'}</Text>
             </View>
-          </View>
+            {challengeImageUrl && (
+              <View style={styles.imagePreviewBadge}>
+                <Ionicons name="expand-outline" size={13} color="#fff" />
+                <Text style={styles.imagePreviewText}>Preview</Text>
+              </View>
+            )}
+          </SoundTouchableOpacity>
 
           <View style={styles.titleBlock}>
             <Text style={styles.challengeName}>{challenge.name}</Text>
@@ -305,7 +325,7 @@ export default function ChallengeDetailScreen() {
                 target={targetValue}
                 targetType={challenge.target_type}
                 unit={challenge.unit}
-                label={`Min: ${challenge.target_value} ${
+                label={`Min: ${targetLabel} ${
                   challenge.unit || getTargetLabel(challenge.target_type)
                 }`}
               />
@@ -337,7 +357,7 @@ export default function ChallengeDetailScreen() {
                   target={targetValue}
                   targetType={challenge.target_type}
                   unit={challenge.unit}
-                  label={`Team Goal: ${challenge.target_value} ${
+                  label={`Team Goal: ${targetLabel} ${
                     challenge.unit || getTargetLabel(challenge.target_type)
                   }`}
                 />
@@ -503,6 +523,29 @@ export default function ChallengeDetailScreen() {
         onClose={() => setShowCreateTeam(false)}
         onSubmit={handleCreateTeam}
       />
+
+      <Modal
+        visible={showImagePreview}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowImagePreview(false)}
+      >
+        <View style={styles.previewOverlay}>
+          <SoundTouchableOpacity
+            style={[styles.previewCloseBtn, { top: insets.top + 14 }]}
+            onPress={() => setShowImagePreview(false)}
+          >
+            <Ionicons name="close" size={30} color="#fff" />
+          </SoundTouchableOpacity>
+          {challengeImageUrl && (
+            <Image
+              source={{ uri: challengeImageUrl }}
+              style={styles.previewImage}
+              resizeMode="contain"
+            />
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -531,10 +574,11 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   challengeImageCard: {
-    height: 170,
-    borderRadius: 18,
+    width: '100%',
+    aspectRatio: 12 / 5,
+    borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: colors.bgGrey,
+    backgroundColor: '#f8faf9',
     position: 'relative',
   },
   challengeImage: {
@@ -562,6 +606,23 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   imageTypeText: { fontSize: 11, fontWeight: '700', color: '#fff' },
+  imagePreviewBadge: {
+    position: 'absolute',
+    right: 10,
+    bottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: 'rgba(17,24,39,0.68)',
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  imagePreviewText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   titleBlock: {
     alignItems: 'center',
     gap: 7,
@@ -791,4 +852,36 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 12, fontWeight: '700', color: colors.textSecondary },
   tabTextActive: { color: colors.primary, fontWeight: '700' },
   tabContent: { padding: 16 },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.88)',
+    justifyContent: 'center',
+  },
+  previewCloseBtn: {
+    position: 'absolute',
+    right: 18,
+    zIndex: 10,
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewImage: {
+    width: '100%',
+    height: '76%',
+  },
 });
+
+function formatTargetValue(value, targetType, unit) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0';
+  const normalizedUnit = String(unit || '').toLowerCase();
+  const isWholeNumberTarget = targetType === 'count'
+    || normalizedUnit === 'actions'
+    || normalizedUnit === 'items';
+
+  if (isWholeNumberTarget) return String(Math.round(num));
+  return Number.isInteger(num) ? String(num) : num.toFixed(1);
+}

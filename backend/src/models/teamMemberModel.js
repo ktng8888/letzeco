@@ -5,16 +5,46 @@ const teamMemberModel = {
   // Get all members of a team
   getByTeamId: async (teamId) => {
     const result = await pool.query(
-      `SELECT tm.*,
+      `WITH team_users AS (
+         SELECT
+           t.id AS team_id,
+           t.leader_user_id AS user_id,
+           t.created_date AS joined_date
+         FROM team t
+         WHERE t.id = $1
+         UNION
+         SELECT
+           tm.team_id,
+           tm.user_id,
+           tm.joined_date
+         FROM team_member tm
+         WHERE tm.team_id = $1
+       ),
+       unique_team_users AS (
+         SELECT
+           team_id,
+           user_id,
+           MIN(joined_date) AS joined_date
+         FROM team_users
+         GROUP BY team_id, user_id
+       )
+       SELECT
+              tu.team_id,
+              tu.user_id,
+              tu.joined_date,
+              t.leader_user_id,
+              (tu.user_id = t.leader_user_id) AS is_leader,
               u.username, u.profile_image,
               u.level, u.total_xp,
               uc.progress_value AS contribution
-       FROM team_member tm
-       LEFT JOIN "user" u ON tm.user_id = u.id
-       LEFT JOIN user_challenge uc ON uc.user_id = tm.user_id
+       FROM unique_team_users tu
+       JOIN team t ON t.id = tu.team_id
+       LEFT JOIN "user" u ON tu.user_id = u.id
+       LEFT JOIN user_challenge uc ON uc.user_id = tu.user_id
          AND uc.team_id = $1
-       WHERE tm.team_id = $1
-       ORDER BY uc.progress_value DESC`,
+       ORDER BY (tu.user_id = t.leader_user_id) DESC,
+                uc.progress_value DESC NULLS LAST,
+                tu.joined_date ASC`,
       [teamId]
     );
     return result.rows;

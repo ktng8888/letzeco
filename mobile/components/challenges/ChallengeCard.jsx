@@ -18,7 +18,11 @@ export default function ChallengeCard({ challenge, onPress }) {
   const primaryReward = challenge.rewards?.find(r => r.type === 'ranking')
     || challenge.rewards?.[0];
   const targetLabel = challenge.target_value
-    ? `${challenge.target_value} ${challenge.unit || ''}`.trim()
+    ? `${formatTargetValue(
+      challenge.target_value,
+      challenge.target_type,
+      challenge.unit
+    )} ${challenge.unit || ''}`.trim()
     : null;
   const progressValue = `${formatOneDecimal(challenge.progress_value || 0)}${
     challenge.unit ? ` ${challenge.unit}` : ''
@@ -136,7 +140,7 @@ export default function ChallengeCard({ challenge, onPress }) {
 
           {!!primaryReward && (
             <View style={styles.rewardPill}>
-              <Ionicons name="gift-outline" size={13} color={colors.xpColor} />
+              <Ionicons name="trophy-outline" size={13} color={colors.xpColor} />
               <Text style={styles.rewardText}>
                 {primaryReward.xp_reward} XP
               </Text>
@@ -182,6 +186,18 @@ function formatOneDecimal(value) {
   const num = Number(value);
   if (!Number.isFinite(num)) return '0.0';
   return num.toFixed(1);
+}
+
+function formatTargetValue(value, targetType, unit) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0';
+  const normalizedUnit = String(unit || '').toLowerCase();
+  const isWholeNumberTarget = targetType === 'count'
+    || normalizedUnit === 'actions'
+    || normalizedUnit === 'items';
+
+  if (isWholeNumberTarget) return String(Math.round(num));
+  return Number.isInteger(num) ? String(num) : num.toFixed(1);
 }
 
 const styles = StyleSheet.create({
