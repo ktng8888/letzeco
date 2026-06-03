@@ -225,23 +225,29 @@ export default function ActionInProgressScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.8,
+      mediaTypes: ['images'],
+      quality: 0.7,
     });
 
     if (result.canceled) return;
 
     setIsUploadingProof(true);
     try {
-      const imageUri = result.assets[0].uri;
-      const uploadResult = await actionService.uploadProof(userActionId, imageUri);
+      const imageAsset = result.assets?.[0];
+      if (!imageAsset?.uri) {
+        Alert.alert('Error', 'No photo was captured. Please try again.');
+        return;
+      }
+
+      const uploadResult = await actionService.uploadProof(userActionId, imageAsset);
       setProofUploaded(true);
-      setProofImageUri(imageUri);
+      setProofImageUri(imageAsset.uri);
       setProofImagePath(uploadResult.data?.proof_image || null);
       setValidationStatus(null);
       setValidationResult(null);
       setValidationToken(null);
     } catch (err) {
+      console.error('Upload proof error:', err.response?.data || err.message);
       Alert.alert('Error', err.response?.data?.message || 'Upload failed.');
     } finally {
       setIsUploadingProof(false);

@@ -1,4 +1,5 @@
 import api from './api';
+import { createImageUploadFile } from '../utils/imageUpload';
 
 const actionService = {
 
@@ -84,17 +85,19 @@ const actionService = {
     return response.data;
   },
 
-  uploadProof: async (userActionId, imageUri) => {
+  uploadProof: async (userActionId, imageAsset) => {
     const formData = new FormData();
-    formData.append('image', {
-      uri: imageUri,
-      type: 'image/jpeg',
-      name: `proof_${userActionId}.jpg`,
-    });
+    formData.append(
+      'image',
+      createImageUploadFile(imageAsset, `proof_${userActionId}.jpg`)
+    );
     const response = await api.post(
       `/proofs/upload/${userActionId}`,
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } }
+      {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 30000,
+      }
     );
     return response.data;
   },

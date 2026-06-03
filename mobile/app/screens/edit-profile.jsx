@@ -74,7 +74,7 @@ export default function EditProfileScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.8,
@@ -84,12 +84,18 @@ export default function EditProfileScreen() {
 
     setIsUploadingPic(true);
     try {
-      const imageUri = result.assets[0].uri;
-      const res = await profileService.uploadProfilePicture(imageUri);
+      const imageAsset = result.assets?.[0];
+      if (!imageAsset?.uri) {
+        Alert.alert('Error', 'No image was selected. Please try again.');
+        return;
+      }
+
+      const res = await profileService.uploadProfilePicture(imageAsset);
       updateUser({ profile_image: res.data.profile_image });
       Alert.alert('Success', 'Profile picture updated!');
     } catch (err) {
-      Alert.alert('Error', 'Failed to upload image.');
+      console.error('Upload profile image error:', err.response?.data || err.message);
+      Alert.alert('Error', err.response?.data?.message || 'Failed to upload image.');
     } finally {
       setIsUploadingPic(false);
     }
