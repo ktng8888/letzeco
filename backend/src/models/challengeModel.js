@@ -148,10 +148,10 @@ const challengeModel = {
     return result.rows;
   },
 
-  // Mark a challenge as completed
-  markCompleted: async (id) => {
+  // Expired challenges are no longer joinable/editable as active challenges.
+  markInactive: async (id) => {
     await pool.query(
-      `UPDATE challenge SET status = 'completed' WHERE id = $1`, [id]
+      `UPDATE challenge SET status = 'inactive' WHERE id = $1`, [id]
     );
   },
 

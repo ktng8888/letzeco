@@ -173,7 +173,6 @@ export default function ChallengesPage() {
               options={[
                 { value: 'all', label: 'All Status' },
                 { value: 'active', label: 'Active' },
-                { value: 'completed', label: 'Completed' },
                 { value: 'inactive', label: 'Inactive' },
               ]}
             />

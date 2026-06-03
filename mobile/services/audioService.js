@@ -16,10 +16,12 @@ const sfxSources = {
   congrats: require('../assets/audio/congrats.wav'),
 };
 const bgmSource = require('../assets/audio/eco-ambient-loop.wav');
+const SFX_PLAYER_OPTIONS = { keepAudioSessionActive: true };
 
 let sfxPlayers = {};
 let bgmPlayer = null;
 let initialized = false;
+let initPromise = null;
 let appStateSubscription = null;
 let storeSubscription = null;
 
@@ -48,15 +50,47 @@ const syncSettings = () => {
   }
 };
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const warmSfxPlayers = async () => {
+  const { sfxVolume } = useAudioStore.getState();
+
+  await setIsAudioActiveAsync(true);
+
+  for (const player of Object.values(sfxPlayers)) {
+    if (!player) continue;
+
+    const previousVolume = player.volume;
+    const previousMuted = player.muted;
+
+    try {
+      player.volume = 0;
+      player.muted = true;
+      player.play();
+      await sleep(25);
+      player.pause();
+      await player.seekTo(0);
+    } catch (err) {
+      console.warn('Sound warm-up failed:', err?.message || err);
+    } finally {
+      player.muted = previousMuted ?? false;
+      player.volume = previousVolume ?? sfxVolume;
+    }
+  }
+};
+
 export const initAudio = async () => {
   if (initialized) {
     syncSettings();
     return;
   }
 
-  initialized = true;
+  if (initPromise) {
+    await initPromise;
+    return;
+  }
 
-  await safely(async () => {
+  initPromise = safely(async () => {
     await setAudioModeAsync({
       playsInSilentMode: true,
       shouldPlayInBackground: false,
@@ -64,12 +98,13 @@ export const initAudio = async () => {
     });
 
     sfxPlayers = Object.entries(sfxSources).reduce((players, [key, source]) => {
-      players[key] = createAudioPlayer(source);
+      players[key] = createAudioPlayer(source, SFX_PLAYER_OPTIONS);
       return players;
     }, {});
     bgmPlayer = createAudioPlayer(bgmSource);
     bgmPlayer.loop = true;
 
+    await warmSfxPlayers();
     syncSettings();
 
     appStateSubscription = AppState.addEventListener('change', async (nextState) => {
@@ -83,13 +118,26 @@ export const initAudio = async () => {
     });
 
     storeSubscription = useAudioStore.subscribe(syncSettings);
+    initialized = true;
   });
+
+  await initPromise;
+  initPromise = null;
 };
 
 export const playClickSound = (type = 'ui') => {
   const { sfxEnabled } = useAudioStore.getState();
+  if (!sfxEnabled) return;
+
+  if (!initialized) {
+    initAudio().then(() => {
+      if (initialized) playClickSound(type);
+    });
+    return;
+  }
+
   const player = sfxPlayers[type] || sfxPlayers.ui;
-  if (!sfxEnabled || !player) return;
+  if (!player) return;
 
   try {
     player.seekTo(0).finally(() => player.play());
@@ -108,4 +156,5 @@ export const disposeAudio = () => {
   sfxPlayers = {};
   bgmPlayer = null;
   initialized = false;
+  initPromise = null;
 };
