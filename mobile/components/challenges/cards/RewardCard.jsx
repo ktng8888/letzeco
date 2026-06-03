@@ -61,10 +61,12 @@ const styles = StyleSheet.create({
   rewardBadge: {
     fontSize: 13,
     color: colors.textSecondary,
+    flex: 1,
+    lineHeight: 18,
   },
   badgeRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 5,
   },
 });

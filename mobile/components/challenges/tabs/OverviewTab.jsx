@@ -88,7 +88,7 @@ function RewardSection({ title, icon, tint, bgColor, rewards }) {
                   : 'Complete Challenge'}
               </Text>
               {reward.badge_name && (
-                <Text style={styles.rewardBadge} numberOfLines={1}>
+                <Text style={styles.rewardBadge}>
                   Badge: {reward.badge_name}
                 </Text>
               )}
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   rewardRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -207,10 +207,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.textSecondary,
     marginTop: 3,
+    lineHeight: 17,
   },
   rewardValue: {
     fontSize: 15,
     fontWeight: '800',
     color: colors.primary,
+    flexShrink: 0,
+    marginTop: 1,
   },
 });

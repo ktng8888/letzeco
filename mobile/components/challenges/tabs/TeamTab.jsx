@@ -71,12 +71,22 @@ function MemberRow({ member, isYou, currentUserId }) {
       )}
 
       {/* Name */}
-      <Text style={styles.memberName}>
-        {member.username}
-        {isYou && (
-          <Text style={styles.youTag}> (You)</Text>
-        )}
-      </Text>
+      <View style={styles.memberInfo}>
+        <View style={styles.memberNameRow}>
+          <Text style={styles.memberName} numberOfLines={1}>
+            {member.username}
+            {isYou && (
+              <Text style={styles.youTag}> (You)</Text>
+            )}
+          </Text>
+          {member.is_leader && (
+            <View style={styles.leaderBadge}>
+              <Ionicons name="ribbon-outline" size={11} color={colors.xpColor} />
+              <Text style={styles.leaderText}>Leader</Text>
+            </View>
+          )}
+        </View>
+      </View>
 
       {/* Chevron */}
       <Ionicons
@@ -165,15 +175,39 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   memberName: {
-    flex: 1,
     fontSize: 15,
     fontWeight: '600',
     color: colors.textPrimary,
+    flexShrink: 1,
+  },
+  memberInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  memberNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   youTag: {
     fontSize: 13,
     fontWeight: '400',
     color: colors.primary,
+  },
+  leaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    flexShrink: 0,
+  },
+  leaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.xpColor,
   },
 
   // ── Code card ──

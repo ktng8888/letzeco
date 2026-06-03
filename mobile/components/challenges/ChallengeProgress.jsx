@@ -80,8 +80,13 @@ function formatValue(value, type, unit) {
   const num = parseFloat(value);
 
   if (unit) {
-    // Use the custom unit from the DB
-    const rounded = Number.isInteger(num) ? Math.round(num) : num.toFixed(1);
+    const normalizedUnit = String(unit).toLowerCase();
+    const isWholeNumberUnit = type === 'count'
+      || normalizedUnit === 'actions'
+      || normalizedUnit === 'items';
+    const rounded = isWholeNumberUnit
+      ? Math.round(num)
+      : Number.isInteger(num) ? Math.round(num) : num.toFixed(1);
     return `${rounded} ${unit}`;
   }
 

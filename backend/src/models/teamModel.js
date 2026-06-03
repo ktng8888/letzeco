@@ -34,15 +34,26 @@ const teamModel = {
   // Get public teams for a challenge
   getPublicTeams: async (challengeId) => {
     const result = await pool.query(
-      `SELECT t.*,
+      `WITH team_users AS (
+         SELECT id AS team_id, leader_user_id AS user_id
+         FROM team
+         WHERE challenge_id = $1
+         UNION
+         SELECT tm.team_id, tm.user_id
+         FROM team_member tm
+         JOIN team t ON t.id = tm.team_id
+         WHERE t.challenge_id = $1
+       )
+       SELECT t.*,
               u.username AS leader_username,
-              COUNT(tm.id) AS member_count,
+              COUNT(DISTINCT tu.user_id) AS member_count,
               COALESCE(SUM(uc.progress_value), 0) AS total_progress
        FROM team t
        LEFT JOIN "user" u ON t.leader_user_id = u.id
-       LEFT JOIN team_member tm ON t.id = tm.team_id
+       LEFT JOIN team_users tu ON t.id = tu.team_id
        LEFT JOIN user_challenge uc ON t.id = uc.team_id
          AND uc.challenge_id = $1
+         AND uc.user_id = tu.user_id
        WHERE t.challenge_id = $1
        AND t.is_private = false
        GROUP BY t.id, u.username
@@ -83,8 +94,16 @@ const teamModel = {
   // Get member count
   getMemberCount: async (teamId) => {
     const result = await pool.query(
-      `SELECT COUNT(*) FROM team_member
-       WHERE team_id = $1`,
+      `SELECT COUNT(DISTINCT user_id)
+       FROM (
+         SELECT leader_user_id AS user_id
+         FROM team
+         WHERE id = $1
+         UNION
+         SELECT user_id
+         FROM team_member
+         WHERE team_id = $1
+       ) team_users`,
       [teamId]
     );
     return parseInt(result.rows[0].count);

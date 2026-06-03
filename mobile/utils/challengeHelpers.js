@@ -32,7 +32,13 @@ export function formatProgress(value, targetType, unit) {
   if (!value && value !== 0) return '0';
   const num = parseFloat(value);
   if (unit) {
-    const rounded = Number.isInteger(num) ? Math.round(num) : num.toFixed(1);
+    const normalizedUnit = String(unit).toLowerCase();
+    const isWholeNumberUnit = targetType === 'count'
+      || normalizedUnit === 'actions'
+      || normalizedUnit === 'items';
+    const rounded = isWholeNumberUnit
+      ? Math.round(num)
+      : Number.isInteger(num) ? Math.round(num) : num.toFixed(1);
     return `${rounded} ${unit}`;
   }
   switch (targetType) {

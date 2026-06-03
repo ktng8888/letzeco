@@ -130,9 +130,21 @@ const userChallengeModel = {
   // Get team progress for a challenge
   getTeamProgress: async (teamId, challengeId) => {
     const result = await pool.query(
-      `SELECT ROUND(COALESCE(SUM(progress_value), 0)::numeric, 2) AS total_progress
-       FROM user_challenge
-       WHERE team_id = $1 AND challenge_id = $2`,
+      `WITH team_users AS (
+         SELECT leader_user_id AS user_id
+         FROM team
+         WHERE id = $1
+         UNION
+         SELECT user_id
+         FROM team_member
+         WHERE team_id = $1
+       )
+       SELECT ROUND(COALESCE(SUM(uc.progress_value), 0)::numeric, 2) AS total_progress
+       FROM team_users tu
+       LEFT JOIN user_challenge uc
+         ON uc.user_id = tu.user_id
+        AND uc.team_id = $1
+        AND uc.challenge_id = $2`,
       [teamId, challengeId]
     );
     return parseFloat(result.rows[0].total_progress) || 0;
@@ -206,19 +218,43 @@ const userChallengeModel = {
   // Get team rankings for a challenge (top N teams by combined progress)
   getTeamRankings: async (challengeId, limit = 5) => {
     const result = await pool.query(
-      `SELECT
-         t.id           AS team_id,
-         t.name         AS team_name,
-         ROUND(COALESCE(SUM(uc.progress_value), 0)::numeric, 2) AS team_progress,
-         COUNT(uc.user_id)      AS member_count,
-         MIN(uc.completion_time) AS team_completion_time,
+      `WITH team_users AS (
+         SELECT id AS team_id, leader_user_id AS user_id
+         FROM team
+         WHERE challenge_id = $1
+         UNION
+         SELECT tm.team_id, tm.user_id
+         FROM team_member tm
+         JOIN team t ON t.id = tm.team_id
+         WHERE t.challenge_id = $1
+       ),
+       team_scores AS (
+         SELECT
+           t.id AS team_id,
+           t.name AS team_name,
+           ROUND(COALESCE(SUM(uc.progress_value), 0)::numeric, 2) AS team_progress,
+           COUNT(DISTINCT tu.user_id) AS member_count,
+           MIN(uc.completion_time) AS team_completion_time
+         FROM team t
+         LEFT JOIN team_users tu
+           ON tu.team_id = t.id
+         LEFT JOIN user_challenge uc
+           ON uc.team_id = t.id
+          AND uc.challenge_id = t.challenge_id
+          AND uc.user_id = tu.user_id
+         WHERE t.challenge_id = $1
+         GROUP BY t.id, t.name
+       )
+       SELECT
+         team_id,
+         team_name,
+         team_progress,
+         member_count,
+         team_completion_time,
          ROW_NUMBER() OVER (
-           ORDER BY SUM(uc.progress_value) DESC, MIN(uc.completion_time) ASC NULLS LAST
+           ORDER BY team_progress DESC, team_completion_time ASC NULLS LAST
          ) AS rank
-       FROM user_challenge uc
-       JOIN team t ON uc.team_id = t.id
-       WHERE uc.challenge_id = $1 AND uc.team_id IS NOT NULL
-       GROUP BY t.id, t.name
+       FROM team_scores
        ORDER BY team_progress DESC, team_completion_time ASC NULLS LAST
        LIMIT $2`,
       [challengeId, limit]
@@ -246,15 +282,39 @@ const userChallengeModel = {
   // Get user's team rank in a challenge (team)
   getTeamRank: async (teamId, challengeId) => {
     const result = await pool.query(
-      `SELECT rank FROM (
-         SELECT team_id,
-                ROW_NUMBER() OVER (
-                  ORDER BY SUM(progress_value) DESC,
-                           MIN(completion_time) ASC NULLS LAST
-                ) AS rank
-         FROM user_challenge
-         WHERE challenge_id = $1 AND team_id IS NOT NULL
-         GROUP BY team_id
+      `WITH team_users AS (
+         SELECT id AS team_id, leader_user_id AS user_id
+         FROM team
+         WHERE challenge_id = $1
+         UNION
+         SELECT tm.team_id, tm.user_id
+         FROM team_member tm
+         JOIN team t ON t.id = tm.team_id
+         WHERE t.challenge_id = $1
+       ),
+       team_scores AS (
+         SELECT
+           t.id AS team_id,
+           ROUND(COALESCE(SUM(uc.progress_value), 0)::numeric, 2) AS team_progress,
+           MIN(uc.completion_time) AS team_completion_time
+         FROM team t
+         LEFT JOIN team_users tu
+           ON tu.team_id = t.id
+         LEFT JOIN user_challenge uc
+           ON uc.team_id = t.id
+          AND uc.challenge_id = t.challenge_id
+          AND uc.user_id = tu.user_id
+         WHERE t.challenge_id = $1
+         GROUP BY t.id
+       )
+       SELECT rank FROM (
+         SELECT
+           team_id,
+           ROW_NUMBER() OVER (
+             ORDER BY team_progress DESC,
+                      team_completion_time ASC NULLS LAST
+           ) AS rank
+         FROM team_scores
        ) ranked
        WHERE team_id = $2`,
       [challengeId, teamId]

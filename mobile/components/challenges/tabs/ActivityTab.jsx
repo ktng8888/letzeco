@@ -66,6 +66,9 @@ export default function ActivityTab({
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>Your Activity</Text>
+      <Text style={styles.subtitle}>
+        Eligible actions you logged for this challenge
+      </Text>
       {!hasData ? (
         <View style={styles.empty}>
           <Ionicons name="clipboard-outline" size={38} color={colors.borderDark} />
@@ -75,7 +78,9 @@ export default function ActivityTab({
           </Text>
         </View>
       ) : (
-        <DayBarChart data={activity.activity} />
+        activity.activity.map((item) => (
+          <FeedItem key={item.id} item={item} />
+        ))
       )}
     </View>
   );
@@ -87,7 +92,10 @@ export default function ActivityTab({
 function MemberContributionChart({ members, targetType, unit }) {
   const { user } = useAuthStore();
 
-  const sorted = [...members].sort(
+  const uniqueMembers = Array.from(
+    new Map(members.map(member => [member.user_id, member])).values()
+  );
+  const sorted = uniqueMembers.sort(
     (a, b) => parseFloat(b.contribution || 0) - parseFloat(a.contribution || 0)
   );
   const maxValue = parseFloat(sorted[0]?.contribution || 0);
@@ -225,41 +233,6 @@ function FeedItem({ item }) {
             <Text style={styles.xpText}>+{item.xp_gained} XP</Text>
           </View>
         </View>
-      </View>
-    </View>
-  );
-}
-
-// ─────────────────────────────────────────────────────
-// Solo vertical bar chart
-// ─────────────────────────────────────────────────────
-function DayBarChart({ data }) {
-  const maxCount = Math.max(
-    ...data.map(d => parseInt(d.action_count || 0)), 1
-  );
-
-  return (
-    <View style={styles.chart}>
-      <Text style={styles.chartLabel}>Actions Logged</Text>
-      <View style={styles.verticalBars}>
-        {data.map((item, i) => {
-          const count     = parseInt(item.action_count || 0);
-          const heightPct = (count / maxCount) * 100;
-          return (
-            <View key={i} style={styles.barCol}>
-              <Text style={styles.barValue}>{count}</Text>
-              <View style={styles.verticalBarBg}>
-                <View
-                  style={[
-                    styles.verticalBarFill,
-                    { height: `${Math.max(heightPct, 4)}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.barDay}>{item.day}</Text>
-            </View>
-          );
-        })}
       </View>
     </View>
   );
@@ -525,47 +498,4 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ── Solo bar chart ──
-  chart: { gap: 8 },
-  chartLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-  verticalBars: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    height: 140,
-    gap: 6,
-  },
-  barCol: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 4,
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  barValue: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  verticalBarBg: {
-    width: '100%',
-    flex: 1,
-    backgroundColor: colors.bgGrey,
-    borderRadius: 4,
-    overflow: 'hidden',
-    justifyContent: 'flex-end',
-  },
-  verticalBarFill: {
-    width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-  },
-  barDay: {
-    fontSize: 10,
-    color: colors.textSecondary,
-    fontWeight: '500',
-  },
 });
