@@ -29,7 +29,7 @@ const startCronJobs = () => {
   });
 
   // ─────────────────────────────────────────────────────────────────────────
-  // ACTION DEADLINE REMINDER — every minute, for actions ending in about 2 minutes
+  // ACTION DEADLINE REMINDER — every minute, for actions ending in about 2 min 10 sec
   // ─────────────────────────────────────────────────────────────────────────
   cron.schedule('* * * * *', async () => {
     try {
