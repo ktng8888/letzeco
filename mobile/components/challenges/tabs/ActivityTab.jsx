@@ -12,6 +12,7 @@ export default function ActivityTab({
   targetType,
   unit,
   teamMembers,
+  canViewActivity = true,
 }) {
   if (isLoading) {
     return (
@@ -19,6 +20,24 @@ export default function ActivityTab({
         color={colors.primary}
         style={{ marginTop: 20 }}
       />
+    );
+  }
+
+  if (!canViewActivity) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.sectionTitle}>Your Activity</Text>
+        <Text style={styles.subtitle}>
+          Eligible actions you log for this challenge will appear here
+        </Text>
+        <View style={styles.empty}>
+          <Ionicons name="clipboard-outline" size={38} color={colors.borderDark} />
+          <Text style={styles.emptyTitle}>No activity yet.</Text>
+          <Text style={styles.emptySub}>
+            Join this challenge to start tracking your activity.
+          </Text>
+        </View>
+      </View>
     );
   }
 

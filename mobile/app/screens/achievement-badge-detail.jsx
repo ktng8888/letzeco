@@ -15,7 +15,7 @@ import { getImageUrl } from '../../utils/imageUrl';
 import colors from '../../constants/colors';
 import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
-export default function AchievementDetailScreen() {
+export default function AchievementBadgeDetailScreen() {
   const router = useRouter();
   const { achievementId, userId } = useLocalSearchParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -173,7 +173,7 @@ export default function AchievementDetailScreen() {
                     onPress={() => {
                       if (!isActive) {
                         router.replace({
-                          pathname: '/screens/achievement-detail',
+                          pathname: '/screens/achievement-badge-detail',
                           params: {
                             achievementId: ach.id,
                             ...(userId ? { userId } : {}),

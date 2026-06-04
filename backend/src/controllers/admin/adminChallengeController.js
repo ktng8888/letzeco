@@ -118,7 +118,7 @@ const adminChallengeController = {
   // POST /api/admin/challenges/:id/rewards
   saveReward: async (req, res) => {
     const { id } = req.params; // challenge_id
-    const { type, top_value, xp_reward, badge_name } = req.body;
+    const { type, top_value, xp_reward, badge_name, reward_id, badge_id } = req.body;
 
     try {
       const challenge = await challengeModel.getById(id);
@@ -126,29 +126,64 @@ const adminChallengeController = {
         return res.status(404).json({ message: 'Challenge not found.' });
       }
 
-      // Create badge if badge_name is provided (with or without image)
-      let badgeId = null;
-      if (badge_name) {
-        const badgeImage = req.file
-          ? req.file.path.replace(/\\/g, '/')
-          : null;
-        const badge = await badgeModel.create({
-          name:  badge_name,
-          image: badgeImage,
-          type:  'special',
+      const topValue = top_value || null;
+      const xpReward = xp_reward || 0;
+      const badgeImage = req.file
+        ? req.file.path.replace(/\\/g, '/')
+        : undefined;
+
+      let existingReward = null;
+      if (reward_id) {
+        existingReward = await challengeRewardModel.getById(reward_id);
+        if (!existingReward || String(existingReward.challenge_id) !== String(id)) {
+          return res.status(404).json({ message: 'Reward not found for this challenge.' });
+        }
+      } else {
+        existingReward = await challengeRewardModel.findMatching({
+          challengeId: id,
+          type,
+          topValue,
         });
-        badgeId = badge.id;
       }
 
-      const reward = await challengeRewardModel.create({
-        challengeId: id,
-        badgeId,
-        type,
-        topValue:  top_value  || null,
-        xpReward:  xp_reward  || 0,
-      });
+      let badgeId = badge_id || existingReward?.badge_id || null;
+      if (badge_name) {
+        if (badgeId) {
+          const existingBadge = await badgeModel.getById(badgeId);
+          if (existingBadge?.image && badgeImage !== undefined) {
+            deleteFile(existingBadge.image);
+          }
+          await badgeModel.update(badgeId, {
+            name: badge_name,
+            ...(badgeImage !== undefined && { image: badgeImage }),
+            type: 'special',
+          });
+        } else {
+          const badge = await badgeModel.create({
+            name:  badge_name,
+            image: badgeImage,
+            type:  'special',
+          });
+          badgeId = badge.id;
+        }
+      }
 
-      res.status(201).json({ message: 'Reward saved.', data: reward });
+      const reward = existingReward
+        ? await challengeRewardModel.update(existingReward.id, {
+            badgeId,
+            type,
+            topValue,
+            xpReward,
+          })
+        : await challengeRewardModel.create({
+            challengeId: id,
+            badgeId,
+            type,
+            topValue,
+            xpReward,
+          });
+
+      res.status(existingReward ? 200 : 201).json({ message: 'Reward saved.', data: reward });
     } catch (err) {
       console.error('Save reward error:', err);
       res.status(500).json({ message: 'Server error.' });

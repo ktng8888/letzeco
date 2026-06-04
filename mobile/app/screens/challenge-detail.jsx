@@ -68,6 +68,9 @@ export default function ChallengeDetailScreen() {
     try {
       const data = await challengeService.getById(id);
       setChallenge(data.data);
+      if (!data.data?.is_participating) {
+        setActivity(null);
+      }
     } catch (err) {
       console.error('Load challenge error:', err);
     } finally {
@@ -81,8 +84,14 @@ export default function ChallengeDetailScreen() {
   // ── Load tab data lazily
   useEffect(() => {
     if (activeTab === 'Ranking' && !ranking)  loadRanking();
-    if (activeTab === 'Activity' && !activity) loadActivity();
-  }, [activeTab]);
+    if (
+      activeTab === 'Activity' &&
+      challenge?.is_participating &&
+      !activity
+    ) {
+      loadActivity();
+    }
+  }, [activeTab, challenge?.is_participating]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -502,6 +511,7 @@ export default function ChallengeDetailScreen() {
               teamMembers={challenge.team?.members}
               targetType={challenge.target_type}
               unit={challenge.unit}
+              canViewActivity={isParticipating}
             />
           )}
         </View>
