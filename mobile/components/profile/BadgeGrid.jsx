@@ -122,9 +122,19 @@ export default function BadgeGrid({
 
   const goToDetail = (achievementId) => {
     router.push({
-      pathname: '/screens/achievement-detail',
+      pathname: '/screens/achievement-badge-detail',
       params: {
         achievementId,
+        ...(profileUserId ? { userId: profileUserId } : {}),
+      },
+    });
+  };
+
+  const goToSpecialDetail = (badge) => {
+    router.push({
+      pathname: '/screens/special-badge-detail',
+      params: {
+        badge: JSON.stringify(badge),
         ...(profileUserId ? { userId: profileUserId } : {}),
       },
     });
@@ -231,9 +241,11 @@ export default function BadgeGrid({
   };
 
   const renderSpecialBadgeCard = (badge) => (
-    <View
+    <SoundTouchableOpacity
       key={badge.user_challenge_reward_id || badge.challenge_reward_id}
       style={styles.badgeCard}
+      onPress={() => goToSpecialDetail(badge)}
+      activeOpacity={0.75}
     >
       <View style={styles.badgeImgWrap}>
         {badge.badge_image ? (
@@ -259,7 +271,7 @@ export default function BadgeGrid({
       <Text style={styles.specialSource} numberOfLines={2}>
         {badge.challenge_name}
       </Text>
-    </View>
+    </SoundTouchableOpacity>
   );
 
   const renderSection = (title, badges) => (

@@ -46,12 +46,12 @@ function ChallengeDetail() {
 
   // ── Completion reward state
   const [completionReward, setCompletionReward] = useState({
-    xp_reward: '', badge_name: '', badge_file: null, badge_preview: null,
+    id: null, badge_id: null, xp_reward: '', badge_name: '', badge_file: null, badge_preview: null,
   });
 
   // ── Ranking reward tiers state
   const [rankingRewards, setRankingRewards] = useState([
-    { top_value: '', xp_reward: '', badge_name: '', badge_file: null, badge_preview: null }
+    { id: null, badge_id: null, top_value: '', xp_reward: '', badge_name: '', badge_file: null, badge_preview: null }
   ]);
 
   useEffect(() => {
@@ -81,6 +81,8 @@ function ChallengeDetail() {
       const completion = rewards.find(r => r.type === 'completion');
       if (completion) {
         setCompletionReward({
+          id:           completion.id || null,
+          badge_id:     completion.badge_id || null,
           xp_reward:    String(completion.xp_reward || ''),
           badge_name:   completion.badge_name  || '',
           badge_file:   null,
@@ -93,6 +95,8 @@ function ChallengeDetail() {
       const ranking = rewards.filter(r => r.type === 'ranking');
       if (ranking.length > 0) {
         setRankingRewards(ranking.map(r => ({
+          id:           r.id || null,
+          badge_id:     r.badge_id || null,
           top_value:    String(r.top_value  || ''),
           xp_reward:    String(r.xp_reward  || ''),
           badge_name:   r.badge_name  || '',
@@ -124,7 +128,7 @@ function ChallengeDetail() {
   const addRankingTier = () =>
     setRankingRewards(prev => [
       ...prev,
-      { top_value: '', xp_reward: '', badge_name: '', badge_file: null, badge_preview: null }
+      { id: null, badge_id: null, top_value: '', xp_reward: '', badge_name: '', badge_file: null, badge_preview: null }
     ]);
 
   const removeRankingTier = (i) =>
@@ -188,12 +192,15 @@ function ChallengeDetail() {
       // 1. Update challenge details
       await challengeService.update(id, buildFormData(form, imageFile, imageRemoved));
 
-      // 2. Delete existing rewards then re-save
-      await challengeService.deleteRewards(id);
-
-      // 3. Save completion reward
+      // 2. Save completion reward
       if (completionReward.xp_reward || completionReward.badge_name) {
         const fd = new FormData();
+        if (completionReward.id) {
+          fd.append('reward_id', completionReward.id);
+        }
+        if (completionReward.badge_id) {
+          fd.append('badge_id', completionReward.badge_id);
+        }
         fd.append('type',       'completion');
         fd.append('xp_reward',  completionReward.xp_reward  || 0);
         fd.append('badge_name', completionReward.badge_name || '');
@@ -203,10 +210,16 @@ function ChallengeDetail() {
         await challengeService.saveReward(id, fd);
       }
 
-      // 4. Save ranking reward tiers
+      // 3. Save ranking reward tiers
       for (const tier of rankingRewards) {
         if (!tier.top_value) continue;
         const fd = new FormData();
+        if (tier.id) {
+          fd.append('reward_id', tier.id);
+        }
+        if (tier.badge_id) {
+          fd.append('badge_id', tier.badge_id);
+        }
         fd.append('type',       'ranking');
         fd.append('top_value',  tier.top_value);
         fd.append('xp_reward',  tier.xp_reward  || 0);
