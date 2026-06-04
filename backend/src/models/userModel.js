@@ -102,7 +102,7 @@ const userModel = {
     return result.rows[0];
   },
 
-  // Get users with action in progress timing out in 2 minutes
+  // Get users with action in progress timing out around 2 min 10 sec
   getUsersWithTimingOutActions: async () => {
     const result = await pool.query(
       `SELECT
@@ -122,10 +122,10 @@ const userModel = {
         AND n.type = 'action_time_out'
        WHERE ua.status = 'in_progress'
        AND a.time_limit IS NOT NULL
-       AND a.time_limit > INTERVAL '2 minutes'
+       AND a.time_limit > INTERVAL '2 minutes 10 seconds'
        AND u.push_token IS NOT NULL
        AND n.id IS NULL
-       AND (ua.start_time + a.time_limit - INTERVAL '2 minutes')
+       AND (ua.start_time + a.time_limit - INTERVAL '2 minutes 10 seconds')
            BETWEEN NOW() - INTERVAL '30 seconds'
                AND NOW() + INTERVAL '30 seconds'`
     );
