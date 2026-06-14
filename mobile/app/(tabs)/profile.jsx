@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import profileService from '../../services/profileService';
 import useAuthStore from '../../store/authStore';
+import isAuthError from '../../utils/isAuthError';
 
 import LoadingScreen from '../../components/common/LoadingScreen';
 import ProfileHeader from '../../components/profile/ProfileHeader';
@@ -51,7 +52,9 @@ export default function ProfileScreen() {
       setImpact(impactData.data?.environmental_impact);
       setGlobalRank(leaderboardData.data?.your_rank ?? null);
     } catch (err) {
-      console.error('Load profile error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load profile error:', err);
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);

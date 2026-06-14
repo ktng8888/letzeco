@@ -19,6 +19,7 @@ import actionService from '../../services/actionService';
 import challengeService from '../../services/challengeService';
 import notificationService from '../../services/notificationService';
 import profileService from '../../services/profileService';
+import isAuthError from '../../utils/isAuthError';
 
 import LoadingScreen from '../../components/common/LoadingScreen';
 import HomeTopBar from '../../components/home/HomeTopBar';
@@ -69,7 +70,9 @@ export default function HomeScreen() {
       const giftData = await challengeService.getGifts();
       setGiftCount(giftData.data.count || 0);
     } catch (err) {
-      console.error('Load home error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load home error:', err);
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);

@@ -63,6 +63,11 @@ const useAuthStore = create((set) => ({
     set({ user: null, token: null, isAuthenticated: false });
   },
 
+  clearSession: async () => {
+    await storage.clear();
+    set({ user: null, token: null, isAuthenticated: false });
+  },
+
   // Update user data (after profile edit, XP gain etc.)
   updateUser: (updatedUser) => {
     set((state) => ({

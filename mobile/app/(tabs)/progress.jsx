@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import progressService from '../../services/progressService';
 import useAuthStore from '../../store/authStore';
+import isAuthError from '../../utils/isAuthError';
 
 import LoadingScreen from '../../components/common/LoadingScreen';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -78,7 +79,9 @@ export default function ProgressScreen() {
       setTrend(trendData.data);
 
     } catch (err) {
-      console.error('Load progress error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load progress error:', err);
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);
