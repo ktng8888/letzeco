@@ -1,6 +1,4 @@
 const actionCategoryModel = require('../../models/actionCategoryModel');
-const actionModel = require('../../models/actionModel');
-const favouriteModel = require('../../models/favouriteModel');
 
 const actionCategoryController = {
 
@@ -9,20 +7,9 @@ const actionCategoryController = {
     try {
       const categories = await actionCategoryModel.getAll();
 
-      // Add action count to each category
-      const categoriesWithCount = await Promise.all(
-        categories.map(async (cat) => {
-          const actions = await actionModel.getByCategory(cat.id);
-          return {
-            ...cat,
-            action_count: actions.length
-          };
-        })
-      );
-
       res.json({
         message: 'Categories retrieved successfully.',
-        data: categoriesWithCount
+        data: categories
       });
 
     } catch (err) {
