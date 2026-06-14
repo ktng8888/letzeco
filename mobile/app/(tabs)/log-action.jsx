@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import actionService from '../../services/actionService';
 import useActionStore from '../../store/actionStore';
+import isAuthError from '../../utils/isAuthError';
 
 import ScreenHeader from '../../components/common/ScreenHeader';
 import LoadingScreen from '../../components/common/LoadingScreen';
@@ -57,7 +58,9 @@ export default function LogActionScreen() {
       }
 
     } catch (err) {
-      console.error('Load log action error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load log action error:', err);
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);
@@ -75,7 +78,9 @@ export default function LogActionScreen() {
         setFavourites(data.data || []);
       }
     } catch (err) {
-      console.error('Load tab data error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load tab data error:', err);
+      }
     }
   };
 

@@ -10,7 +10,7 @@ const api = axios.create({
   },
 });
 
-// Request interceptor — attach token to every request
+// Attach the saved auth token to every request.
 api.interceptors.request.use(
   async (config) => {
     const token = await storage.getToken();
@@ -22,16 +22,15 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — handle 401 globally
+// Clear expired or invalid sessions so navigation returns to login.
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Token expired — clear storage
-      await storage.clear();
-      // Force logout via auth store
-      const { logout } = require('../store/authStore').default.getState();
-      await logout();
+    const status = error.response?.status;
+    if ((status === 401 || status === 403) && !error.config?._handledAuthError) {
+      error.config._handledAuthError = true;
+      const { clearSession } = require('../store/authStore').default.getState();
+      await clearSession();
     }
     return Promise.reject(error);
   }

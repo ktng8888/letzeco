@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import leaderboardService from '../../services/leaderboardService';
 import useAuthStore from '../../store/authStore';
+import isAuthError from '../../utils/isAuthError';
 
 import LoadingScreen from '../../components/common/LoadingScreen';
 import ScreenHeader from '../../components/common/ScreenHeader';
@@ -39,7 +40,9 @@ export default function LeaderboardScreen() {
       setGlobalData(globalResult.data);
       setFriendsData(friendsResult.data);
     } catch (err) {
-      console.error('Load leaderboard error:', err);
+      if (!isAuthError(err)) {
+        console.error('Load leaderboard error:', err);
+      }
     } finally {
       setIsLoading(false);
       setRefreshing(false);
