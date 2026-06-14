@@ -5,7 +5,13 @@ const actionCategoryModel = {
   // Get all categories
   getAll: async () => {
     const result = await pool.query(
-      'SELECT * FROM action_category ORDER BY id ASC'
+      `SELECT
+         ac.*,
+         COUNT(a.id)::int AS action_count
+       FROM action_category ac
+       LEFT JOIN action a ON a.action_category_id = ac.id
+       GROUP BY ac.id
+       ORDER BY ac.id ASC`
     );
     return result.rows;
   },
