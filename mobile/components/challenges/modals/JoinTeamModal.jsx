@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import TeamCard from '../TeamCard';
 import colors from '../../../constants/colors';
 import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
@@ -23,6 +24,8 @@ export default function JoinTeamModal({
 }) {
   const [joinTab, setJoinTab] = useState('public');
   const [teamCode, setTeamCode] = useState('');
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 20);
 
   const handleJoinByCode = () => {
     if (!teamCode.trim()) return;
@@ -38,7 +41,7 @@ export default function JoinTeamModal({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Join Team</Text>
@@ -63,7 +66,10 @@ export default function JoinTeamModal({
             ))}
           </View>
 
-          <ScrollView style={styles.scroll}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+          >
             {joinTab === 'public' && (
               <View style={styles.section}>
                 {isLoading ? (
@@ -151,6 +157,7 @@ const styles = StyleSheet.create({
   tabText: { fontSize: 14, color: colors.textSecondary },
   tabTextActive: { color: colors.primary, fontWeight: '700' },
   scroll: { maxHeight: 400 },
+  scrollContent: { paddingBottom: 4 },
   section: { padding: 16, gap: 12 },
   empty: {
     fontSize: 14,

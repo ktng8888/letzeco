@@ -10,7 +10,7 @@ const HOTSPOT_IP = '10.143.15.170';
 const NETWORK_IP = HOTSPOT_IP;
 
 // Backend tunnel URL (Update this if the tunnel URL changes)
-const TUNNEL_URL = 'https://passage-angel-democrat-descending.trycloudflare.com';
+const TUNNEL_URL = 'https://yields-lender-dimension-testament.trycloudflare.com';
 
 // Change this to switch backend mode
 const USE_TUNNEL = true;
