@@ -7,12 +7,15 @@ import {
 } from 'react-native';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import colors from '../../../constants/colors';
 import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
 
 export default function CreateTeamModal({ visible, onClose, onSubmit }) {
   const [teamName, setTeamName]     = useState('');
   const [isPrivate, setIsPrivate]   = useState(false);
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 20);
 
   const handleSubmit = () => {
     if (!teamName.trim()) return;
@@ -29,7 +32,7 @@ export default function CreateTeamModal({ visible, onClose, onSubmit }) {
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
+        <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
           {/* Header */}
           <View style={styles.header}>
             <Text style={styles.title}>Create Team</Text>
