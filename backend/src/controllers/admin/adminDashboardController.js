@@ -7,7 +7,7 @@ const adminDashboardController = {
         totalUsers, totalAdmins, totalCategories,
         totalActionsAvailable, totalActionsLogged,
         activeChallenges, totalChallenges,
-        environmentalImpact, topActions
+        environmentalImpact, topActions, topBadges
       ] = await Promise.all([
         dashboardModel.getTotalUsers(),
         dashboardModel.getTotalAdmins(),
@@ -18,6 +18,7 @@ const adminDashboardController = {
         dashboardModel.getTotalChallenges(),
         dashboardModel.getTotalEnvironmentalImpact(),
         dashboardModel.getTopActions(10),
+        dashboardModel.getTopBadgesUnlocked(5),
       ]);
 
       res.json({
@@ -32,6 +33,7 @@ const adminDashboardController = {
           total_challenges: totalChallenges,
           environmental_impact: environmentalImpact,
           top_actions: topActions,
+          top_badges: topBadges,
         }
       });
     } catch (err) {

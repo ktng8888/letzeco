@@ -112,6 +112,17 @@ const userChallengeModel = {
     return result.rows[0];
   },
 
+  markCompletionTime: async (userId, challengeId) => {
+    const result = await pool.query(
+      `UPDATE user_challenge
+       SET completion_time = COALESCE(completion_time, NOW())
+       WHERE user_id = $1 AND challenge_id = $2
+       RETURNING *`,
+      [userId, challengeId]
+    );
+    return result.rows[0];
+  },
+
   updateTeamStatus: async (teamId, challengeId, status) => {
     const result = await pool.query(
       `UPDATE user_challenge
@@ -123,6 +134,17 @@ const userChallengeModel = {
        WHERE team_id = $2 AND challenge_id = $3
        RETURNING *`,
       [status, teamId, challengeId]
+    );
+    return result.rows;
+  },
+
+  markTeamCompletionTime: async (teamId, challengeId) => {
+    const result = await pool.query(
+      `UPDATE user_challenge
+       SET completion_time = COALESCE(completion_time, NOW())
+       WHERE team_id = $1 AND challenge_id = $2
+       RETURNING *`,
+      [teamId, challengeId]
     );
     return result.rows;
   },
@@ -180,13 +202,7 @@ const userChallengeModel = {
        WHERE uc.user_id = $1
          AND ea.action_id = $2
          AND c.status = 'active'
-         AND COALESCE(
-               uc.status,
-               CASE
-                 WHEN uc.progress_value >= c.target_value THEN 'completed'
-                 ELSE 'active'
-               END
-             ) = 'active'
+         AND COALESCE(uc.status, 'active') IN ('active', 'completed')
          AND CURRENT_DATE BETWEEN c.start_date AND c.end_date
          AND $3::timestamptz >= COALESCE(uc.joined_at, c.start_date::timestamptz)`,
       [userId, actionId, actionStartTime]
