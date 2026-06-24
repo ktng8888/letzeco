@@ -1,26 +1,23 @@
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  Image
-} from 'react-native';
+import { Text, Alert } from 'react-native';
 import { useState } from 'react';
 import { Link, useRouter } from 'expo-router';
 import useAuthStore from '../../store/authStore';
-import colors from '../../constants/colors';
-import images from '../../constants/images';
 import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
+import {
+  AuthButton,
+  AuthFooter,
+  AuthHeader,
+  AuthInput,
+  AuthPanel,
+  AuthScreen,
+  authStyles,
+} from '../../components/common/AuthShell';
 
 export default function LoginScreen() {
-    const router = useRouter();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const { login, isLoading } = useAuthStore();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { login, isLoading } = useAuthStore();
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -30,190 +27,53 @@ export default function LoginScreen() {
 
     const result = await login(email.trim(), password);
     if (!result.success) {
-        Alert.alert('Login Failed', result.message);
+      Alert.alert('Login Failed', result.message);
     } else {
-        router.replace('/(tabs)/home');
+      router.replace('/(tabs)/home');
     }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.inner}>
+    <AuthScreen>
+      <AuthPanel>
+        <AuthHeader
+          title="Welcome Back"
+          subtitle="Continue your eco-friendly journey"
+        />
 
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={images.logo}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.appName}>LetzECO</Text>
-        </View>
+        <AuthInput
+          label="Email"
+          icon="mail-outline"
+          placeholder="kayetee@gmail.com"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-        {/* Title */}
-        <Text style={styles.title}>Welcome Back</Text>
-        <Text style={styles.subtitle}>
-          Continue your eco-friendly journey
-        </Text>
+        <AuthInput
+          label="Password"
+          icon="lock-closed-outline"
+          placeholder="Enter your password"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
 
-        {/* Form */}
-        <View style={styles.form}>
-          <Text style={styles.label}>Email</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="kayetee@gmail.com"
-            placeholderTextColor={colors.textLight}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <Text style={styles.label}>Password</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="••••••••"
-            placeholderTextColor={colors.textLight}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-
-          {/* Forgot Password */}
-          <Link href="/(auth)/forgot-password" asChild>
-            <SoundTouchableOpacity style={styles.forgotBtn}>
-              <Text style={styles.forgotText}>Forgot Password?</Text>
-            </SoundTouchableOpacity>
-          </Link>
-
-          {/* Login Button */}
-          <SoundTouchableOpacity
-            style={[styles.btn, isLoading && styles.btnDisabled]}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={colors.textWhite} />
-            ) : (
-              <Text style={styles.btnText}>Login</Text>
-            )}
+        <Link href="/(auth)/forgot-password" asChild>
+          <SoundTouchableOpacity style={authStyles.inlineAction}>
+            <Text style={authStyles.inlineActionText}>Forgot Password?</Text>
           </SoundTouchableOpacity>
-        </View>
+        </Link>
 
-        {/* Register Link */}
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Link href="/(auth)/register" asChild>
-            <SoundTouchableOpacity>
-              <Text style={styles.footerLink}>Register</Text>
-            </SoundTouchableOpacity>
-          </Link>
-        </View>
+        <AuthButton title="Login" loading={isLoading} onPress={handleLogin} />
 
-      </View>
-    </KeyboardAvoidingView>
+        <Link href="/(auth)/register" asChild>
+          <SoundTouchableOpacity>
+            <AuthFooter text="Don't have an account?" linkText="Register" />
+          </SoundTouchableOpacity>
+        </Link>
+      </AuthPanel>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgWhite,
-  },
-  inner: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 16,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  appName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.primary,
-    letterSpacing: 1,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 28,
-    textAlign: 'center',
-  },
-  form: {
-    gap: 4,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 6,
-    marginTop: 12,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.bgLight,
-  },
-  forgotBtn: {
-    alignSelf: 'flex-end',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  forgotText: {
-    fontSize: 13,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  btn: {
-    height: 50,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  btnDisabled: {
-    backgroundColor: colors.primaryLight,
-  },
-  btnText: {
-    color: colors.textWhite,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 28,
-  },
-  footerText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  footerLink: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '600',
-  },
-});

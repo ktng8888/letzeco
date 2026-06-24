@@ -1,25 +1,21 @@
-import {
-  View,
-  Text,
-  TextInput,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  Alert,
-  Image
-} from 'react-native';
+import { Text, Alert } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import authService from '../../services/authService';
-import colors from '../../constants/colors';
-import images from '../../constants/images';
 import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
+import {
+  AuthButton,
+  AuthHeader,
+  AuthInput,
+  AuthPanel,
+  AuthScreen,
+  authStyles,
+} from '../../components/common/AuthShell';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
-  const [step, setStep] = useState('email'); // 'email' | 'otp'
+  const [step, setStep] = useState('email');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
@@ -48,10 +44,9 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       await authService.validateOtp(email.trim(), otp);
-      // Go to reset password with email + otp
       router.push({
         pathname: '/(auth)/reset-password',
-        params: { email: email.trim(), otp }
+        params: { email: email.trim(), otp },
       });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Invalid OTP.');
@@ -61,187 +56,72 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View style={styles.inner}>
-
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <Image
-            source={images.logo}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.appName}>LetzECO</Text>
-        </View>
-
-        <Text style={styles.title}>Forgot Password</Text>
+    <AuthScreen>
+      <AuthPanel>
+        <AuthHeader
+          title="Forgot Password"
+          subtitle={
+            step === 'email'
+              ? 'Enter your email to receive a secure OTP'
+              : `OTP sent to ${email}. Enter it within 5 minutes.`
+          }
+        />
 
         {step === 'email' ? (
           <>
-            <Text style={styles.subtitle}>
-              Enter your email to receive an OTP
-            </Text>
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
+            <AuthInput
+              label="Email"
+              icon="mail-outline"
               placeholder="kayetee@gmail.com"
-              placeholderTextColor={colors.textLight}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            <SoundTouchableOpacity
-              style={[styles.btn, isLoading && styles.btnDisabled]}
+
+            <AuthButton
+              title="Send OTP"
+              loading={isLoading}
               onPress={handleSendOtp}
-              disabled={isLoading}
-            >
-              {isLoading
-                ? <ActivityIndicator color={colors.textWhite} />
-                : <Text style={styles.btnText}>Send OTP</Text>
-              }
-            </SoundTouchableOpacity>
+            />
           </>
         ) : (
           <>
-            <Text style={styles.subtitle}>
-              OTP sent to {email}, please enter within 5 minutes
-            </Text>
-            <Text style={styles.label}>OTP</Text>
-            <TextInput
-              style={[styles.input, styles.otpInput]}
+            <AuthInput
+              label="OTP"
+              icon="keypad-outline"
               placeholder="123456"
-              placeholderTextColor={colors.textLight}
               value={otp}
               onChangeText={setOtp}
               keyboardType="number-pad"
               maxLength={6}
+              inputStyle={authStyles.otpInput}
             />
-            <SoundTouchableOpacity
-              style={[styles.btn, isLoading && styles.btnDisabled]}
+
+            <AuthButton
+              title="Validate OTP"
+              loading={isLoading}
               onPress={handleValidateOtp}
-              disabled={isLoading}
-            >
-              {isLoading
-                ? <ActivityIndicator color={colors.textWhite} />
-                : <Text style={styles.btnText}>Validate OTP</Text>
-              }
-            </SoundTouchableOpacity>
+            />
+
             <SoundTouchableOpacity
-              style={styles.resendBtn}
+              style={authStyles.secondaryAction}
               onPress={handleSendOtp}
               disabled={isLoading}
             >
-              <Text style={styles.resendText}>Resend OTP</Text>
+              <Text style={authStyles.inlineActionText}>Resend OTP</Text>
             </SoundTouchableOpacity>
           </>
         )}
 
-        {/* Back to Login */}
         <SoundTouchableOpacity
-          style={styles.backBtn}
+          style={authStyles.secondaryAction}
           onPress={() => router.back()}
-        soundType="back"
+          soundType="back"
         >
-          <Text style={styles.backText}>← Back to Login</Text>
+          <Text style={authStyles.secondaryActionText}>Back to Login</Text>
         </SoundTouchableOpacity>
-
-      </View>
-    </KeyboardAvoidingView>
+      </AuthPanel>
+    </AuthScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bgWhite,
-  },
-  inner: {
-    flex: 1,
-    paddingHorizontal: 24,
-    justifyContent: 'center',
-  },
-  logoContainer: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logo: {
-    width: 72,
-    height: 72,
-    borderRadius: 16,
-  },
-  appName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.primary,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: 6,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: 6,
-  },
-  input: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.bgLight,
-    marginBottom: 16,
-  },
-  otpInput: {
-    fontSize: 24,
-    letterSpacing: 8,
-    textAlign: 'center',
-  },
-  btn: {
-    height: 50,
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  btnDisabled: { backgroundColor: colors.primaryLight },
-  btnText: {
-    color: colors.textWhite,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  resendBtn: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  resendText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-  },
-  backBtn: {
-    alignItems: 'center',
-    marginTop: 24,
-  },
-  backText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-});
