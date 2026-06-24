@@ -247,11 +247,8 @@ const userActionController = {
               && teamProgress >= targetValue;
 
             if (completedChallenge) {
-              const teamMembers = await userChallengeModel.updateTeamStatus(
-                uc.team_id,
-                uc.challenge_id,
-                'completed'
-              );
+              const teamMembers = await userChallengeModel
+                .markTeamCompletionTime(uc.team_id, uc.challenge_id);
               rewardRecipients = teamMembers.map(member => member.user_id);
             }
           } else {
@@ -260,11 +257,7 @@ const userActionController = {
               && newProgress >= targetValue;
 
             if (completedChallenge) {
-              await userChallengeModel.updateStatus(
-                userId,
-                uc.challenge_id,
-                'completed'
-              );
+              await userChallengeModel.markCompletionTime(userId, uc.challenge_id);
             }
           }
 

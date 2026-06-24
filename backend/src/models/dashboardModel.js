@@ -87,6 +87,25 @@ const dashboardModel = {
     return result.rows;
   },
 
+  getTopBadgesUnlocked: async (limit = 5) => {
+    const result = await pool.query(
+      `SELECT
+         b.id,
+         b.name,
+         b.image,
+         b.type,
+         COUNT(ub.id) AS unlock_count
+       FROM user_badge ub
+       JOIN badge b ON ub.badge_id = b.id
+       WHERE ub.status IN ('unlocked', 'claimed')
+       GROUP BY b.id, b.name, b.image, b.type
+       ORDER BY unlock_count DESC, b.name ASC
+       LIMIT $1`,
+      [limit]
+    );
+    return result.rows;
+  },
+
 };
 
 module.exports = dashboardModel;
