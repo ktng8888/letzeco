@@ -7,13 +7,13 @@ const UNIFI_IP = '192.168.0.50';
 const HOTSPOT_IP = '10.143.15.170';
 
 // Change this to switch networks
-const NETWORK_IP = HOTSPOT_IP;
+const NETWORK_IP = UNIFI_IP;
 
 // Backend tunnel URL (Update this if the tunnel URL changes)
-const TUNNEL_URL = 'https://yields-lender-dimension-testament.trycloudflare.com';
+const TUNNEL_URL = 'https://gods-russia-casino-symantec.trycloudflare.com';
 
 // Change this to switch backend mode
-const USE_TUNNEL = true;
+const USE_TUNNEL = false;
 
 const LOCAL_BASE_URL = Platform.OS === 'web'
   ? 'http://localhost:5000'
