@@ -195,16 +195,12 @@ const friendshipController = {
  
       const approved = await friendshipModel.approve(id);
  
-      const approver      = await userModel.findById(userId);
-      const originalSender = await userModel.findById(
-        friendship.request_sender_user_id
-      );
+      const approver = await userModel.findById(userId);
  
       try {
         await notificationService.friendRequestApproved(
           friendship.request_sender_user_id,
-          approver.username,
-          originalSender.push_token
+          approver.username
         );
       } catch (notifErr) {
         console.warn('Notification failed (non-critical):', notifErr.message);

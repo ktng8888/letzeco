@@ -2,9 +2,9 @@
 
 export function getDaysLeft(endDate) {
   if (!endDate) return 0;
-  const diff = Math.ceil(
-    (new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24)
-  );
+  const end = new Date(endDate);
+  end.setHours(23, 59, 59, 999);
+  const diff = Math.ceil((end - new Date()) / (1000 * 60 * 60 * 24));
   return Math.max(0, diff);
 }
 

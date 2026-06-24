@@ -32,6 +32,8 @@ export default function EligibleActionsList({
           action.action_image || action.category_image
         );
         const xpReward = action.xp_reward || 10;
+        const proofBonusXp = Number(action.proof_bonus_xp || 0);
+        const xpLabel = `${xpReward} XP${proofBonusXp > 0 ? '+' : ''}`;
 
         return (
           <SoundTouchableOpacity
@@ -67,7 +69,7 @@ export default function EligibleActionsList({
               </Text>
             </View>
             <View style={styles.actionRight}>
-              <Text style={styles.actionXp}>{xpReward} XP+</Text>
+              <Text style={styles.actionXp}>{xpLabel}</Text>
               <Ionicons
                 name="chevron-forward"
                 size={16}

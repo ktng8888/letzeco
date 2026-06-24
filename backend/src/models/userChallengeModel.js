@@ -60,8 +60,8 @@ const userChallengeModel = {
   create: async (userId, challengeId, teamId) => {
     const result = await pool.query(
       `INSERT INTO user_challenge
-        (user_id, challenge_id, progress_value, team_id, status)
-       VALUES ($1, $2, 0, $3, 'active')
+        (user_id, challenge_id, progress_value, team_id, status, joined_at)
+       VALUES ($1, $2, 0, $3, 'active', NOW())
        RETURNING *`,
       [userId, challengeId, teamId || null]
     );
@@ -162,7 +162,7 @@ const userChallengeModel = {
 
   // ── NEW: Get all active challenges that a user is participating in
   //         and that include the given action as eligible
-  getActiveForUserAndAction: async (userId, actionId) => {
+  getActiveForUserAndAction: async (userId, actionId, actionStartTime) => {
     const result = await pool.query(
       `SELECT uc.*, c.target_type, c.target_value, c.type,
               ROUND(COALESCE(uc.progress_value, 0)::numeric, 2) AS progress_value,
@@ -187,8 +187,9 @@ const userChallengeModel = {
                  ELSE 'active'
                END
              ) = 'active'
-         AND CURRENT_DATE BETWEEN c.start_date AND c.end_date`,
-      [userId, actionId]
+         AND CURRENT_DATE BETWEEN c.start_date AND c.end_date
+         AND $3::timestamptz >= COALESCE(uc.joined_at, c.start_date::timestamptz)`,
+      [userId, actionId, actionStartTime]
     );
     return result.rows;
   },
