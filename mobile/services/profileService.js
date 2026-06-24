@@ -1,5 +1,5 @@
 import api from './api';
-import { createImageUploadFile } from '../utils/imageUpload';
+import { uploadImageMultipart } from '../utils/imageUpload';
 
 const profileService = {
 
@@ -19,17 +19,12 @@ const profileService = {
   },
 
   uploadProfilePicture: async (imageAsset) => {
-    const formData = new FormData();
-    formData.append('image', createImageUploadFile(imageAsset, 'profile.jpg'));
-    const response = await api.put(
+    return await uploadImageMultipart(
       '/user/profile/picture',
-      formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: 30000,
-      }
+      imageAsset,
+      'profile.jpg',
+      { method: 'PUT' }
     );
-    return response.data;
   },
 
   changePassword: async (currentPassword, newPassword) => {

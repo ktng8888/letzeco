@@ -196,7 +196,7 @@ function formatImpactValue(value) {
   if (!value && value !== 0) return '0';
   const num = Number(value);
   if (Number.isNaN(num)) return '0';
-  return num.toString();
+  return Number(num.toFixed(3)).toString();
 }
 
 function getConfig(type) {

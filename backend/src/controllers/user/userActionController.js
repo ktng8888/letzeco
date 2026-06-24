@@ -214,7 +214,7 @@ const userActionController = {
 
       try {
         const activeChallenges = await userChallengeModel
-          .getActiveForUserAndAction(userId, action.id);
+          .getActiveForUserAndAction(userId, action.id, userAction.start_time);
 
         for (const uc of activeChallenges) {
           let increment = 0;

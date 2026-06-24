@@ -77,7 +77,7 @@ const notificationService = {
   },
 
   // Friend request approved
-  friendRequestApproved: async (userId, approverUsername, pushToken) => {
+  friendRequestApproved: async (userId, approverUsername) => {
     // Save to DB
     await notificationModel.create(
       userId,
@@ -86,13 +86,7 @@ const notificationService = {
       'friend_approved',
       null
     );
-    // Push notification
-    await notificationService.sendPush(
-      pushToken,
-      'Friend Request Accepted',
-      `${approverUsername} accepted your friend request!`,
-      { type: 'friend_approved' }
-    );
+    // No push - just shows in notification list
   },
 
   // ─────────────────────────────────────────

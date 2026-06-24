@@ -154,8 +154,7 @@ export default function EditProfileScreen() {
 
           {/* Level bar (display only) */}
           <Text style={styles.levelDisplay}>
-            Lv. {user?.level} •{' '}
-            {user?.level} • {user?.level_xp} / {user?.xp_to_next_level || 1000} XP
+            Lv. {user?.level} • {user?.level_xp} / {user?.xp_to_next_level || 1000} XP
           </Text>
         </View>
 
@@ -287,3 +286,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgLight,
   },
 });
+

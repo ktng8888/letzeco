@@ -207,9 +207,13 @@ const userActionModel = {
          ON ea.action_id = ua.action_id
          AND ea.challenge_id = $2
        JOIN challenge c ON c.id = $2
+       JOIN user_challenge uc
+         ON uc.user_id = ua.user_id
+        AND uc.challenge_id = $2
        WHERE ua.user_id = $1
          AND ua.status = 'completed'
          AND ua.end_time BETWEEN c.start_date AND c.end_date + INTERVAL '1 day'
+         AND ua.start_time >= COALESCE(uc.joined_at, c.start_date::timestamptz)
        ORDER BY ua.end_time DESC`,
       [userId, challengeId]
     );
@@ -248,8 +252,12 @@ const userActionModel = {
       JOIN team_users tu      ON tu.user_id = ua.user_id
       JOIN eligible_action ea ON ea.action_id = ua.action_id AND ea.challenge_id = $2
       JOIN challenge c        ON c.id = $2
+      JOIN user_challenge uc  ON uc.user_id = ua.user_id
+        AND uc.team_id = $1
+        AND uc.challenge_id = $2
       WHERE ua.status = 'completed'
         AND ua.end_time BETWEEN c.start_date AND c.end_date + INTERVAL '1 day'
+        AND ua.start_time >= COALESCE(uc.joined_at, c.start_date::timestamptz)
       ORDER BY ua.end_time DESC`,
       [teamId, challengeId]
     );

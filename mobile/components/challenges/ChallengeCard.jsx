@@ -7,6 +7,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 import { getImageUrl } from '../../utils/imageUrl';
+import { getDaysLeft } from '../../utils/challengeHelpers';
 import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ChallengeCard({ challenge, onPress }) {
@@ -164,14 +165,6 @@ export default function ChallengeCard({ challenge, onPress }) {
       </View>
     </SoundTouchableOpacity>
   );
-}
-
-function getDaysLeft(endDate) {
-  if (!endDate) return 0;
-  const diff = Math.ceil(
-    (new Date(endDate) - new Date()) / (1000 * 60 * 60 * 24)
-  );
-  return Math.max(0, diff);
 }
 
 function formatDate(dateString) {
