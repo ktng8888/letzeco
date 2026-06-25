@@ -86,6 +86,7 @@ function RewardSection({ title, icon, tint, bgColor, rewards, onPreview }) {
       <View style={styles.rewardRows}>
         {rewards.map((reward, index) => {
           const hasBadge = !!reward.badge_name;
+          const isObtained = !!reward.user_reward_status;
           const RowComponent = hasBadge ? SoundTouchableOpacity : View;
           return (
           <RowComponent
@@ -108,6 +109,11 @@ function RewardSection({ title, icon, tint, bgColor, rewards, onPreview }) {
                 ) : (
                   <Ionicons name="ribbon" size={25} color={tint} />
                 )}
+                {isObtained && (
+                  <View style={styles.rewardClaimedBadge}>
+                    <Ionicons name="checkmark" size={11} color={colors.textWhite} />
+                  </View>
+                )}
               </View>
             )}
             <View style={styles.rewardCopy}>
@@ -125,6 +131,9 @@ function RewardSection({ title, icon, tint, bgColor, rewards, onPreview }) {
             <View style={styles.rewardRight}>
               {reward.xp_reward > 0 && (
                 <Text style={styles.rewardValue}>+{reward.xp_reward} XP</Text>
+              )}
+              {isObtained && !hasBadge && (
+                <Ionicons name="checkmark-circle" size={17} color={colors.primary} />
               )}
               {hasBadge && (
                 <Ionicons name="chevron-forward" size={17} color={colors.textLight} />
@@ -293,10 +302,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(15,23,42,0.08)',
     marginRight: 10,
+    position: 'relative',
   },
   rewardBadgeImage: {
     width: 38,
     height: 38,
+  },
+  rewardClaimedBadge: {
+    position: 'absolute',
+    right: -5,
+    top: -5,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderWidth: 2,
+    borderColor: colors.bgWhite,
   },
   rewardLabel: {
     fontSize: 14,

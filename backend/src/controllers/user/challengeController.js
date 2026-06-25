@@ -29,10 +29,13 @@ const challengeController = {
           // Get participants count
           const participantsCount = await userChallengeModel
             .getParticipantsCount(challenge.id);
+          const teamCount = challenge.type === 'team'
+            ? await teamModel.getTeamCountByChallenge(challenge.id)
+            : 0;
 
           // Get rewards
           const rewards = await challengeRewardModel
-            .getByChallengeId(challenge.id);
+            .getByChallengeIdForUser(challenge.id, userId);
 
           return {
             ...challenge,
@@ -43,6 +46,7 @@ const challengeController = {
               ? participating.progress_value : 0,
             eligible_actions: eligibleActions,
             participants_count: participantsCount,
+            team_count: teamCount,
             rewards
           };
         })
@@ -76,7 +80,7 @@ const challengeController = {
         .getByChallengeId(id);
 
       const rewards = await challengeRewardModel
-        .getByChallengeId(id);
+        .getByChallengeIdForUser(id, userId);
 
       const participantsCount = await userChallengeModel
         .getParticipantsCount(id);
@@ -144,7 +148,12 @@ const challengeController = {
       const challengesWithDetails = await Promise.all(
         challenges.map(async (uc) => {
           const rewards = await challengeRewardModel
-            .getByChallengeId(uc.challenge_id);
+            .getByChallengeIdForUser(uc.challenge_id, userId);
+          const participantsCount = await userChallengeModel
+            .getParticipantsCount(uc.challenge_id);
+          const teamCount = uc.type === 'team'
+            ? await teamModel.getTeamCountByChallenge(uc.challenge_id)
+            : 0;
 
           let teamDetails = null;
           if (uc.type === 'team' && uc.team_id) {
@@ -162,6 +171,8 @@ const challengeController = {
 
           return {
             ...uc,
+            participants_count: participantsCount,
+            team_count: teamCount,
             rewards,
             team: teamDetails
           };
@@ -234,7 +245,24 @@ const challengeController = {
 
       // If team challenge, also remove from team
       if (existing.team_id) {
+        const team = await teamModel.getById(existing.team_id);
         await teamMemberModel.delete(userId, existing.team_id);
+        await userChallengeModel.delete(userId, id);
+
+        if (team && Number(team.leader_user_id) === Number(userId)) {
+          const nextLeader = await teamMemberModel
+            .getNextLeader(existing.team_id);
+
+          if (nextLeader) {
+            await teamModel.updateLeader(
+              existing.team_id, nextLeader.user_id
+            );
+          } else {
+            await teamModel.delete(existing.team_id);
+          }
+        }
+
+        return res.json({ message: 'Successfully left challenge.' });
       }
 
       await userChallengeModel.delete(userId, id);

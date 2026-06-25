@@ -62,15 +62,24 @@ export default function ChallengesScreen() {
   if (isLoading) return <LoadingScreen />;
 
   // Split challenges into tabs
+  const isCompletedForUser = c =>
+    (c.user_challenge_status || c.status) === 'completed' ||
+    (
+      c.is_participating &&
+      (c.challenge_status || c.status) === 'inactive' &&
+      Number(c.progress_value || 0) >= Number(c.target_value || 0)
+    );
+
   const participating = allChallenges.filter(
-    c => c.is_participating && (c.user_challenge_status || 'active') !== 'completed'
+    c =>
+      c.is_participating &&
+      (c.challenge_status || c.status) === 'active' &&
+      !isCompletedForUser(c)
   );
   const available = allChallenges.filter(
     c => !c.is_participating && c.status === 'active'
   );
-  const completed = myChallenges.filter(
-    c => (c.user_challenge_status || c.status) === 'completed'
-  );
+  const completed = myChallenges.filter(isCompletedForUser);
 
   const getTabData = () => {
     switch (activeTab) {
@@ -197,23 +206,28 @@ export default function ChallengesScreen() {
             }
           />
         ) : (
-          currentData.map((challenge) => (
-            <ChallengeCard
-              key={challenge.id || challenge.challenge_id}
-              challenge={{
-                ...challenge,
-                id: challenge.id || challenge.challenge_id,
-                name: challenge.name || challenge.challenge_name,
-                status: challenge.challenge_status || challenge.status,
-              }}
-              onPress={() => router.push({
-                pathname: '/screens/challenge-detail',
-                params: {
-                  id: challenge.id || challenge.challenge_id
-                }
-              })}
-            />
-          ))
+          currentData.map((challenge) => {
+            const challengeId = challenge.challenge_id || challenge.id;
+            const userChallengeStatus =
+              challenge.user_challenge_status || challenge.status;
+
+            return (
+              <ChallengeCard
+                key={`${activeTab}-${challengeId}`}
+                challenge={{
+                  ...challenge,
+                  id: challengeId,
+                  name: challenge.name || challenge.challenge_name,
+                  status: challenge.challenge_status || challenge.status,
+                  user_challenge_status: userChallengeStatus,
+                }}
+                onPress={() => router.push({
+                  pathname: '/screens/challenge-detail',
+                  params: { id: challengeId }
+                })}
+              />
+            );
+          })
         )}
         <View style={{ height: 20 }} />
       </ScrollView>

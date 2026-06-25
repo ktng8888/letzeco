@@ -14,6 +14,27 @@ const challengeRewardModel = {
     return result.rows;
   },
 
+  getByChallengeIdForUser: async (challengeId, userId) => {
+    const result = await pool.query(
+      `SELECT
+         cr.*,
+         b.name AS badge_name,
+         b.image AS badge_image,
+         ucr.id AS user_challenge_reward_id,
+         ucr.status AS user_reward_status,
+         ucr.obtain_date AS user_reward_obtain_date
+       FROM challenge_reward cr
+       LEFT JOIN badge b ON cr.badge_id = b.id
+       LEFT JOIN user_challenge_reward ucr
+         ON ucr.challenge_reward_id = cr.id
+        AND ucr.user_id = $2
+       WHERE cr.challenge_id = $1
+       ORDER BY cr.type DESC, cr.top_value ASC NULLS FIRST`,
+      [challengeId, userId]
+    );
+    return result.rows;
+  },
+
   getCompletionReward: async (challengeId) => {
     const result = await pool.query(
       `SELECT cr.*, b.name AS badge_name, b.image AS badge_image

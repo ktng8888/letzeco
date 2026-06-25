@@ -161,7 +161,7 @@ export default function ChallengeDetailScreen() {
             setIsLeaving(true);
             try {
               await challengeService.leave(id);
-              await loadData();
+              router.replace('/screens/challenges');
             } catch (err) {
               Alert.alert('Error', err.response?.data?.message || 'Failed to leave.');
             } finally {
@@ -714,19 +714,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    flexWrap: 'wrap',
+    gap: 8,
   },
   teamTitleBlock: { flex: 1, minWidth: 0, gap: 3 },
   teamTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
+    minWidth: 0,
   },
-  teamName: { fontSize: 16, fontWeight: '700', color: colors.textPrimary },
+  teamName: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
   teamCode: { fontSize: 12, color: colors.primary, fontWeight: '500' },
   teamRankPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    flexShrink: 0,
     backgroundColor: colors.bgWhite,
     borderWidth: 1,
     borderColor: '#d9fbe5',
