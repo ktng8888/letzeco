@@ -63,7 +63,14 @@ export default function HomeScreen() {
       const actions = todayData.data.actions || [];
       setTodayActions(actions);
       setTodayLoggedCount(actions.filter(action => action.status === 'completed').length);
-      setMyChallenges(challengeData.data.slice(0, 5) || []);
+      setMyChallenges(
+        (challengeData.data || [])
+          .filter(challenge =>
+            (challenge.challenge_status || challenge.status) === 'active' &&
+            (challenge.user_challenge_status || 'active') !== 'completed'
+          )
+          .slice(0, 5)
+      );
       setUnreadCount(notifData.data.unread_count || 0);
       setStreakRewards(streakData.data.rewards || []);
 

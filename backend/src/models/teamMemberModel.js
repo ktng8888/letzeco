@@ -80,6 +80,18 @@ const teamMemberModel = {
     );
   },
 
+  getNextLeader: async (teamId) => {
+    const result = await pool.query(
+      `SELECT user_id
+       FROM team_member
+       WHERE team_id = $1
+       ORDER BY joined_date ASC, user_id ASC
+       LIMIT 1`,
+      [teamId]
+    );
+    return result.rows[0];
+  },
+
   deleteByTeamId: async (teamId) => {
     await pool.query(
       'DELETE FROM team_member WHERE team_id = $1', [teamId]

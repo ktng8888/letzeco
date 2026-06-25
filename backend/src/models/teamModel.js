@@ -85,6 +85,17 @@ const teamModel = {
     await pool.query('DELETE FROM team WHERE id = $1', [id]);
   },
 
+  updateLeader: async (id, leaderUserId) => {
+    const result = await pool.query(
+      `UPDATE team
+       SET leader_user_id = $1
+       WHERE id = $2
+       RETURNING *`,
+      [leaderUserId, id]
+    );
+    return result.rows[0];
+  },
+
   deleteByChallengeId: async (challengeId) => {
     await pool.query(
       'DELETE FROM team WHERE challenge_id = $1', [challengeId]
@@ -105,6 +116,14 @@ const teamModel = {
          WHERE team_id = $1
        ) team_users`,
       [teamId]
+    );
+    return parseInt(result.rows[0].count);
+  },
+
+  getTeamCountByChallenge: async (challengeId) => {
+    const result = await pool.query(
+      'SELECT COUNT(*) FROM team WHERE challenge_id = $1',
+      [challengeId]
     );
     return parseInt(result.rows[0].count);
   },

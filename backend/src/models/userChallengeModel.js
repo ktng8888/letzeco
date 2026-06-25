@@ -14,14 +14,12 @@ const userChallengeModel = {
     const result = await pool.query(
       `SELECT uc.*,
               ROUND(COALESCE(uc.progress_value, 0)::numeric, 2) AS progress_value,
-              COALESCE(
-                uc.status,
-                CASE
-                  WHEN c.target_value IS NOT NULL
-                   AND uc.progress_value >= c.target_value THEN 'completed'
-                  ELSE 'active'
-                END
-              ) AS status
+              CASE
+                WHEN c.status = 'inactive'
+                 AND c.target_value IS NOT NULL
+                 AND uc.progress_value >= c.target_value THEN 'completed'
+                ELSE COALESCE(uc.status, 'active')
+              END AS status
        FROM user_challenge uc
        LEFT JOIN challenge c ON uc.challenge_id = c.id
        WHERE uc.user_id = $1 AND uc.challenge_id = $2`,
@@ -38,14 +36,12 @@ const userChallengeModel = {
               c.image AS challenge_image,
               c.type, c.start_date, c.end_date,
               c.about, c.target_type, c.target_value,
-              COALESCE(
-                uc.status,
-                CASE
-                  WHEN c.target_value IS NOT NULL
-                   AND uc.progress_value >= c.target_value THEN 'completed'
-                  ELSE 'active'
-                END
-              ) AS status,
+              CASE
+                WHEN c.status = 'inactive'
+                 AND c.target_value IS NOT NULL
+                 AND uc.progress_value >= c.target_value THEN 'completed'
+                ELSE COALESCE(uc.status, 'active')
+              END AS status,
               c.status AS challenge_status
        FROM user_challenge uc
        LEFT JOIN challenge c ON uc.challenge_id = c.id
@@ -145,6 +141,29 @@ const userChallengeModel = {
        WHERE team_id = $1 AND challenge_id = $2
        RETURNING *`,
       [teamId, challengeId]
+    );
+    return result.rows;
+  },
+
+  finalizeByChallengeId: async (challengeId) => {
+    const result = await pool.query(
+      `UPDATE user_challenge uc
+       SET status = CASE
+             WHEN c.target_value IS NOT NULL
+              AND uc.progress_value >= c.target_value THEN 'completed'
+             ELSE 'inactive'
+           END,
+           completion_time = CASE
+             WHEN c.target_value IS NOT NULL
+              AND uc.progress_value >= c.target_value
+              THEN COALESCE(uc.completion_time, NOW())
+             ELSE uc.completion_time
+           END
+       FROM challenge c
+       WHERE c.id = uc.challenge_id
+         AND uc.challenge_id = $1
+       RETURNING uc.*`,
+      [challengeId]
     );
     return result.rows;
   },

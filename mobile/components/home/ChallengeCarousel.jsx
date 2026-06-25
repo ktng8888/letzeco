@@ -164,6 +164,7 @@ function ChallengeCard({ challenge, index, onPress }) {
   const bgColor = CHALLENGE_GRADIENTS[index % CHALLENGE_GRADIENTS.length];
   const isTeam = challenge.type === 'team';
   const challengeImageUrl = getImageUrl(challenge.challenge_image || challenge.image);
+  const challengeStatus = challenge.challenge_status || challenge.status;
   const daysLeft = Math.max(
     0,
     Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / 86400000)
@@ -215,7 +216,9 @@ function ChallengeCard({ challenge, index, onPress }) {
               {challenge.challenge_name}
             </Text>
             <Text style={styles.cDays}>
-              {daysLeft > 0 ? `${daysLeft} days left` : 'Ends today'}
+              {challengeStatus === 'inactive'
+                ? 'Ended'
+                : daysLeft > 0 ? `${daysLeft} days left` : 'Ends today'}
             </Text>
           </View>
           <View style={styles.cViewBtn}>

@@ -90,6 +90,16 @@ const challengeModel = {
     return result.rows;
   },
 
+  // Get expired challenges on startup. Includes inactive rows so a previous
+  // partial run can still receive missing ranking rewards.
+  getMissedExpiredActive: async () => {
+    const result = await pool.query(
+      `SELECT * FROM challenge
+       WHERE status IN ('active', 'inactive') AND end_date < CURRENT_DATE`
+    );
+    return result.rows;
+  },
+
   // Solo challenge rankings
   getSoloRankings: async (challengeId) => {
     const result = await pool.query(
@@ -100,13 +110,7 @@ const challengeModel = {
        FROM user_challenge uc
        JOIN challenge c ON c.id = uc.challenge_id
        WHERE uc.challenge_id = $1
-         AND COALESCE(
-               uc.status,
-               CASE
-                 WHEN uc.progress_value >= c.target_value THEN 'completed'
-                 ELSE 'active'
-               END
-             ) = 'completed'`,
+         AND uc.progress_value >= c.target_value`,
       [challengeId]
     );
     return result.rows;

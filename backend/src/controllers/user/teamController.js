@@ -244,24 +244,31 @@ const teamController = {
 
       // Check if member
       const member = await teamMemberModel.checkExists(userId, id);
-      if (!member) {
+      const isLeader = Number(team.leader_user_id) === Number(userId);
+      if (!member && !isLeader) {
         return res.status(404).json({
           message: 'You are not a member of this team.'
-        });
-      }
-
-      // If leader, delete the whole team
-      if (team.leader_user_id === userId) {
-        await userChallengeModel.delete(userId, team.challenge_id);
-        await teamModel.delete(id);
-        return res.json({
-          message: 'Team deleted as you were the leader.'
         });
       }
 
       // Remove from team and challenge
       await teamMemberModel.delete(userId, id);
       await userChallengeModel.delete(userId, team.challenge_id);
+
+      if (isLeader) {
+        const nextLeader = await teamMemberModel.getNextLeader(id);
+        if (nextLeader) {
+          await teamModel.updateLeader(id, nextLeader.user_id);
+          return res.json({
+            message: 'Successfully left team. Leadership transferred.'
+          });
+        }
+
+        await teamModel.delete(id);
+        return res.json({
+          message: 'Successfully left team. Team deleted because it is empty.'
+        });
+      }
 
       res.json({ message: 'Successfully left team.' });
 

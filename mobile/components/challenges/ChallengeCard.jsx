@@ -15,6 +15,8 @@ export default function ChallengeCard({ challenge, onPress }) {
   const isParticipating = challenge.is_participating;
   const daysLeft = getDaysLeft(challenge.end_date);
   const isActive = challenge.status === 'active';
+  const isCompleted = (challenge.user_challenge_status || challenge.status) === 'completed';
+  const showParticipationMeta = isActive && !isCompleted;
   const imageUrl = getImageUrl(challenge.image || challenge.challenge_image);
   const primaryReward = challenge.rewards?.find(r => r.type === 'ranking')
     || challenge.rewards?.[0];
@@ -110,12 +112,14 @@ export default function ChallengeCard({ challenge, onPress }) {
             </Text>
           </View>
 
-          <View style={styles.infoItem}>
-            <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-            <Text style={styles.infoText}>
-              {challenge.participants_count || 0} joined
-            </Text>
-          </View>
+          {showParticipationMeta && (
+            <View style={styles.infoItem}>
+              <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
+              <Text style={styles.infoText}>
+                {formatParticipationMeta(challenge)}
+              </Text>
+            </View>
+          )}
 
           {!!targetLabel && (
             <View style={styles.infoItem}>
@@ -191,6 +195,14 @@ function formatTargetValue(value, targetType, unit) {
 
   if (isWholeNumberTarget) return String(Math.round(num));
   return Number.isInteger(num) ? String(num) : num.toFixed(1);
+}
+
+function formatParticipationMeta(challenge) {
+  const joined = challenge.participants_count || 0;
+  if (challenge.type !== 'team') return `${joined} joined`;
+
+  const teamCount = challenge.team_count || 0;
+  return `${joined} joined (Total ${teamCount} ${teamCount === 1 ? 'team' : 'teams'})`;
 }
 
 const styles = StyleSheet.create({
