@@ -1,7 +1,7 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Bell, ChevronDown, User, KeyRound, LogOut } from 'lucide-react';
+import { ChevronDown, User, KeyRound, LogOut } from 'lucide-react';
 import { getImageUrl } from '../../utils/imageUrl';
 import useAuthStore from '../../store/authStore';
 
@@ -29,27 +29,10 @@ export default function Topbar() {
 
   return (
     <header className="h-16 bg-white border-b border-gray-200
-      px-6 flex items-center justify-between sticky top-0 z-10">
-
-      {/* Search */}
-      <div className="flex-1 max-w-lg">
-        <div className="relative">
-          <input
-            placeholder="Search Here"
-            className="w-full pl-4 pr-4 py-2 text-sm border border-gray-200
-              rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500
-              bg-gray-50"
-          />
-        </div>
-      </div>
+      px-6 flex items-center justify-end sticky top-0 z-10">
 
       {/* Right Side */}
-      <div className="flex items-center gap-3 ml-4">
-        {/* Bell */}
-        <button className="p-2 hover:bg-gray-100 rounded-lg transition">
-          <Bell className="w-5 h-5 text-gray-500" />
-        </button>
-
+      <div className="flex items-center gap-3">
         <span className="hidden md:inline-flex text-sm text-gray-700">
           {admin?.username || 'Unknown Admin'}
         </span>
