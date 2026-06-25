@@ -36,10 +36,13 @@ export default function Sidebar() {
 
       {/* Logo */}
       <div className="p-5 border-b border-white/10">
-        <div className="flex items-center gap-3">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3 rounded-xl transition"
+        >
           <Image
             src="/app_logo.png"
-            alt="LetzEco"
+            alt="LetzECO"
             width={40}
             height={40}
             className="rounded-xl"
@@ -47,10 +50,10 @@ export default function Sidebar() {
           />
           <div>
             <p className="text-white font-bold text-sm leading-tight">
-              LetzEco Admin
+              LetzECO Admin
             </p>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Nav Groups */}

@@ -42,7 +42,7 @@ export default function LoginPage() {
           height={64}
           className="rounded-2xl shadow-lg mx-auto block mb-4"
         />
-        <h1 className="text-2xl font-bold text-white">LetzEco Admin</h1>
+        <h1 className="text-2xl font-bold text-white">LetzECO Admin</h1>
         <p className="text-white text-sm mt-1">
           Sign in to access the admin dashboard
         </p>
