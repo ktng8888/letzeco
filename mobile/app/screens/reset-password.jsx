@@ -68,8 +68,7 @@ export default function ResetPasswordScreen() {
 
       <View style={styles.content}>
         <Text style={styles.label}>Enter Current Password</Text>
-        <TextInput
-          style={styles.input}
+        <PasswordInput
           value={currentPassword}
           onChangeText={setCurrentPassword}
           placeholder="••••••••"
@@ -78,8 +77,7 @@ export default function ResetPasswordScreen() {
         />
 
         <Text style={styles.label}>Set New Password</Text>
-        <TextInput
-          style={styles.input}
+        <PasswordInput
           value={newPassword}
           onChangeText={setNewPassword}
           placeholder="••••••••"
@@ -88,8 +86,7 @@ export default function ResetPasswordScreen() {
         />
 
         <Text style={styles.label}>Confirm New Password</Text>
-        <TextInput
-          style={styles.input}
+        <PasswordInput
           value={confirmPassword}
           onChangeText={setConfirmPassword}
           placeholder="••••••••"
@@ -110,6 +107,33 @@ export default function ResetPasswordScreen() {
         </SoundTouchableOpacity>
       </View>
     </KeyboardAvoidingView>
+  );
+}
+
+function PasswordInput(props) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <View style={styles.passwordInputWrap}>
+      <TextInput
+        {...props}
+        style={styles.passwordInput}
+        placeholderTextColor={colors.textLight}
+        secureTextEntry={!isVisible}
+      />
+      <SoundTouchableOpacity
+        style={styles.passwordToggle}
+        onPress={() => setIsVisible(current => !current)}
+        accessibilityRole="button"
+        accessibilityLabel={isVisible ? 'Hide password' : 'Show password'}
+      >
+        <Ionicons
+          name={isVisible ? 'eye-off-outline' : 'eye-outline'}
+          size={20}
+          color={colors.textSecondary}
+        />
+      </SoundTouchableOpacity>
+    </View>
   );
 }
 
@@ -152,6 +176,30 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textPrimary,
     backgroundColor: colors.bgLight,
+  },
+  passwordInputWrap: {
+    height: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    paddingLeft: 14,
+    paddingRight: 6,
+    backgroundColor: colors.bgLight,
+  },
+  passwordInput: {
+    flex: 1,
+    height: 46,
+    fontSize: 15,
+    color: colors.textPrimary,
+  },
+  passwordToggle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   btn: {
     backgroundColor: colors.primary,
