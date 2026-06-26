@@ -139,8 +139,10 @@ export default function ChallengeDetailScreen() {
     setIsJoining(true);
     try {
       await challengeService.joinSolo(id);
-      await loadData();
-      Alert.alert('Success!', 'You joined the challenge!');
+      router.replace({
+        pathname: '/screens/challenges',
+        params: { tab: 'Participating' },
+      });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to join.');
     } finally {
@@ -161,7 +163,10 @@ export default function ChallengeDetailScreen() {
             setIsLeaving(true);
             try {
               await challengeService.leave(id);
-              router.replace('/screens/challenges');
+              router.replace({
+                pathname: '/screens/challenges',
+                params: { tab: 'Participating' },
+              });
             } catch (err) {
               Alert.alert('Error', err.response?.data?.message || 'Failed to leave.');
             } finally {
@@ -177,8 +182,10 @@ export default function ChallengeDetailScreen() {
     try {
       await challengeService.joinPublicTeam(teamId);
       setShowJoinTeam(false);
-      await loadData();
-      Alert.alert('Success!', 'You joined the team!');
+      router.replace({
+        pathname: '/screens/challenges',
+        params: { tab: 'Participating' },
+      });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to join.');
     }
@@ -188,8 +195,10 @@ export default function ChallengeDetailScreen() {
     try {
       await challengeService.joinByCode(code);
       setShowJoinTeam(false);
-      await loadData();
-      Alert.alert('Success!', 'You joined the team!');
+      router.replace({
+        pathname: '/screens/challenges',
+        params: { tab: 'Participating' },
+      });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Invalid code.');
     }
@@ -199,8 +208,10 @@ export default function ChallengeDetailScreen() {
     try {
       await challengeService.createTeam(teamName, isPrivate, id);
       setShowCreateTeam(false);
-      await loadData();
-      Alert.alert('Success!', 'Team created! Share the code with friends.');
+      router.replace({
+        pathname: '/screens/challenges',
+        params: { tab: 'Participating' },
+      });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to create team.');
     }

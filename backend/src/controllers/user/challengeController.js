@@ -6,7 +6,33 @@ const challengeRewardModel = require('../../models/challengeRewardModel');
 const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
 const teamModel = require('../../models/teamModel');
 const teamMemberModel = require('../../models/teamMemberModel');
+const friendshipModel = require('../../models/friendshipModel');
 const xpService = require('../../utils/xpService');
+
+const getFriendshipStatus = async (myId, otherId) => {
+  if (!otherId || Number(myId) === Number(otherId)) {
+    return { friendship_status: 'self', friendship_id: null };
+  }
+
+  const friendship = await friendshipModel.checkExists(myId, otherId);
+  if (!friendship) {
+    return { friendship_status: 'none', friendship_id: null };
+  }
+
+  if (friendship.status === 'approved') {
+    return { friendship_status: 'friends', friendship_id: friendship.id };
+  }
+
+  const friendshipStatus =
+    Number(friendship.request_sender_user_id) === Number(myId)
+      ? 'request_sent'
+      : 'request_received';
+
+  return {
+    friendship_status: friendshipStatus,
+    friendship_id: friendship.id
+  };
+};
 
 const challengeController = {
 
@@ -124,6 +150,7 @@ const challengeController = {
             ? participating.status || 'active' : null,
           progress_value: participating
             ? participating.progress_value : 0,
+          current_user_id: userId,
           your_rank: userRank,
           team_rank: teamRank,
           eligible_actions: eligibleActions,
@@ -287,16 +314,23 @@ const challengeController = {
       }
  
       if (challenge.type === 'solo') {
-        const top5 = await userChallengeModel.getSoloRankings(id, 5);
+        const rankings = await userChallengeModel.getSoloRankings(id, null);
         const userRank = await userChallengeModel.getUserRank(userId, id);
         const totalCount = await userChallengeModel.getParticipantsCount(id);
+        const rankingsWithFriendship = await Promise.all(
+          rankings.map(async (participant) => ({
+            ...participant,
+            ...(await getFriendshipStatus(userId, participant.user_id))
+          }))
+        );
  
         return res.json({
           message: 'Ranking retrieved.',
           data: {
             type: 'solo',
-            top: top5,
+            top: rankingsWithFriendship,
             your_rank: userRank,
+            current_user_id: userId,
             total_participants: totalCount,
           }
         });
@@ -306,17 +340,33 @@ const challengeController = {
           .getByUserAndChallenge(userId, id);
         const teamId = participating?.team_id || null;
  
-        const top5 = await userChallengeModel.getTeamRankings(id, 5);
+        const rankings = await userChallengeModel.getTeamRankings(id, null);
         const teamRank = teamId
           ? await userChallengeModel.getTeamRank(teamId, id)
           : null;
-        const totalTeams = top5.length; // approximate
+        const totalTeams = await teamModel.getTeamCountByChallenge(id);
+        const rankingsWithMembers = await Promise.all(
+          rankings.map(async (team) => {
+            const members = await teamMemberModel.getByTeamId(team.team_id);
+            const membersWithFriendship = await Promise.all(
+              members.map(async (member) => ({
+                ...member,
+                ...(await getFriendshipStatus(userId, member.user_id))
+              }))
+            );
+
+            return {
+              ...team,
+              members: membersWithFriendship
+            };
+          })
+        );
  
         return res.json({
           message: 'Ranking retrieved.',
           data: {
             type: 'team',
-            top: top5,
+            top: rankingsWithMembers,
             your_team_rank: teamRank,
             your_team_id: teamId,
             total_teams: totalTeams,
