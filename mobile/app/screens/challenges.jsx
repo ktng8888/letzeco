@@ -5,8 +5,8 @@ import {
   StyleSheet,
   RefreshControl
 } from 'react-native';
-import { useState, useCallback } from 'react';
-import { useRouter } from 'expo-router';
+import { useRef, useState, useCallback } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -26,6 +26,8 @@ const TYPE_FILTERS = [
 
 export default function ChallengesScreen() {
   const router = useRouter();
+  const { tab } = useLocalSearchParams();
+  const consumedTabParamRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -51,7 +53,14 @@ export default function ChallengesScreen() {
   };
 
   useFocusEffect(
-    useCallback(() => { loadData(); }, [])
+    useCallback(() => {
+      if (TABS.includes(tab) && consumedTabParamRef.current !== tab) {
+        consumedTabParamRef.current = tab;
+        setActiveTab(tab);
+        setActiveType('all');
+      }
+      loadData();
+    }, [tab])
   );
 
   const onRefresh = useCallback(() => {

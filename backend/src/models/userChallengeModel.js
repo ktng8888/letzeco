@@ -231,6 +231,11 @@ const userChallengeModel = {
 
   // Get solo rankings for a challenge (top N participants by progress)
   getSoloRankings: async (challengeId, limit = 5) => {
+    const hasLimit = limit !== null
+      && limit !== undefined
+      && Number.isFinite(Number(limit));
+    const limitClause = hasLimit ? 'LIMIT $2' : '';
+    const params = hasLimit ? [challengeId, Number(limit)] : [challengeId];
     const result = await pool.query(
       `SELECT
          uc.user_id,
@@ -245,14 +250,19 @@ const userChallengeModel = {
        JOIN "user" u ON uc.user_id = u.id
        WHERE uc.challenge_id = $1
        ORDER BY uc.progress_value DESC, uc.completion_time ASC NULLS LAST
-       LIMIT $2`,
-      [challengeId, limit]
+       ${limitClause}`,
+      params
     );
     return result.rows;
   },
 
   // Get team rankings for a challenge (top N teams by combined progress)
   getTeamRankings: async (challengeId, limit = 5) => {
+    const hasLimit = limit !== null
+      && limit !== undefined
+      && Number.isFinite(Number(limit));
+    const limitClause = hasLimit ? 'LIMIT $2' : '';
+    const params = hasLimit ? [challengeId, Number(limit)] : [challengeId];
     const result = await pool.query(
       `WITH team_users AS (
          SELECT id AS team_id, leader_user_id AS user_id
@@ -292,8 +302,8 @@ const userChallengeModel = {
          ) AS rank
        FROM team_scores
        ORDER BY team_progress DESC, team_completion_time ASC NULLS LAST
-       LIMIT $2`,
-      [challengeId, limit]
+       ${limitClause}`,
+      params
     );
     return result.rows;
   },
