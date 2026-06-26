@@ -117,7 +117,8 @@ const userStreakRewardModel = {
   claim: async (id) => {
     const result = await pool.query(
       `UPDATE user_streak_reward
-       SET status = 'claimed'
+       SET status = 'claimed',
+           claimed_date = NOW()
        WHERE id = $1 AND status <> 'claimed'
        RETURNING *`,
       [id]

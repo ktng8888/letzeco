@@ -60,6 +60,7 @@ export default function AchievementBadgeDetailScreen() {
     : current.current_progress;
 
   const tierColor = getTierColor(current.badge_name);
+  const achievedTime = formatDateTime(current.achieve_date);
 
   return (
     <View style={styles.container}>
@@ -137,6 +138,16 @@ export default function AchievementBadgeDetailScreen() {
         </View>
 
         {/* ── Reward ── */}
+        {current.is_unlocked && achievedTime && (
+          <View style={styles.infoCard}>
+            <InfoRow
+              icon="calendar-outline"
+              label="Achieved Time"
+              value={achievedTime}
+            />
+          </View>
+        )}
+
         <View style={styles.rewardSection}>
           <Text style={styles.rewardLabel}>Rewards</Text>
           <View style={styles.rewardRow}>
@@ -237,6 +248,35 @@ function TierIcon({ name = '', size = 28 }) {
         : 'ribbon-outline';
 
   return <Ionicons name={icon} size={size} color={tier.accent} />;
+}
+
+function InfoRow({ icon, label, value }) {
+  return (
+    <View style={styles.infoRow}>
+      <View style={styles.infoIcon}>
+        <Ionicons name={icon} size={18} color={colors.primary} />
+      </View>
+      <View style={styles.infoTextWrap}>
+        <Text style={styles.infoLabel}>{label}</Text>
+        <Text style={styles.infoValue} numberOfLines={2}>
+          {value}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString('en-MY', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 const styles = StyleSheet.create({
@@ -352,6 +392,44 @@ const styles = StyleSheet.create({
   },
 
   // ── Reward ──
+  infoCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  infoIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primaryBg,
+  },
+  infoTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.textPrimary,
+    lineHeight: 20,
+  },
   rewardSection: {
     marginHorizontal: 16,
     marginTop: 12,

@@ -88,7 +88,7 @@ export default function GiftsScreen() {
           <Ionicons name="gift-outline" size={56} color={colors.borderDark} />
           <Text style={styles.emptyTitle}>No gifts yet</Text>
           <Text style={styles.emptySub}>
-            Complete challenges or rank high to earn rewards!
+            Complete challenges to earn special rewards!
           </Text>
         </View>
       ) : (
