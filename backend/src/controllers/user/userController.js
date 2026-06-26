@@ -3,6 +3,7 @@ const userModel = require('../../models/userModel');
 const userBadgeModel = require('../../models/userBadgeModel');
 const { deleteFile } = require('../../utils/uploadService');
 const friendshipModel = require('../../models/friendshipModel');
+const weeklyXpService = require('../../utils/weeklyXpService');
 
 const userController = {
 
@@ -10,6 +11,8 @@ const userController = {
   getProfile: async (req, res) => {
     const userId = req.user.id;
     try {
+      await weeklyXpService.syncWeeklyXp();
+
       const user = await userModel.getProfile(userId);
       if (!user) {
         return res.status(404).json({ message: 'User not found.' });

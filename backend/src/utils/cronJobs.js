@@ -8,6 +8,7 @@ const challengeRewardModel = require('../models/challengeRewardModel');
 const userChallengeRewardModel = require('../models/userChallengeRewardModel');
 const xpService = require('./xpService');
 const notificationService = require('./notificationService');
+const weeklyXpService = require('./weeklyXpService');
 
 const processChallengeExpiry = async ({ catchUp = false } = {}) => {
   const expiredChallenges = catchUp
@@ -151,6 +152,30 @@ const startCronJobs = () => {
       console.error('Challenge expiry job error:', err);
     }
   });
+
+  // Weekly XP sync: every Monday at 12:00 AM.
+  cron.schedule('0 0 * * 1', async () => {
+    console.log('Running weekly XP sync job...');
+    try {
+      await weeklyXpService.syncWeeklyXp({ force: true });
+      console.log('Weekly XP sync job done.');
+    } catch (err) {
+      console.error('Weekly XP sync job error:', err);
+    }
+  });
+
+  // Extra safety: keep weekly XP aligned even if the backend missed a cron run.
+  cron.schedule('0 * * * *', async () => {
+    try {
+      await weeklyXpService.syncWeeklyXp({ force: true });
+    } catch (err) {
+      console.error('Hourly weekly XP sync error:', err);
+    }
+  });
+
+  weeklyXpService.syncWeeklyXp({ force: true })
+    .then(() => console.log('Weekly XP startup sync done.'))
+    .catch(err => console.error('Weekly XP startup sync error:', err));
 
   // Catch up missed challenge expiry jobs after backend downtime.
   processChallengeExpiry({ catchUp: true })

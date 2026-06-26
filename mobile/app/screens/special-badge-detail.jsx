@@ -31,7 +31,7 @@ export default function SpecialBadgeDetailScreen() {
   const badgeName = current.badge_name || 'Special Badge';
   const challengeName = current.challenge_name || 'Challenge Reward';
   const rewardType = getRewardTypeLabel(current);
-  const obtainedDate = formatDate(current.obtain_date);
+  const obtainedTime = formatDateTime(current.claimed_date || current.obtain_date);
 
   return (
     <View style={styles.container}>
@@ -95,11 +95,11 @@ export default function SpecialBadgeDetailScreen() {
               valueColor={colors.xpColor}
             />
           )}
-          {obtainedDate && (
+          {obtainedTime && (
             <InfoRow
               icon="calendar-outline"
-              label="Obtained"
-              value={obtainedDate}
+              label="Claimed At"
+              value={obtainedTime}
             />
           )}
         </View>
@@ -151,14 +151,16 @@ function getRewardTypeIcon(badge = {}) {
   return 'ribbon';
 }
 
-function formatDate(value) {
+function formatDateTime(value) {
   if (!value) return '';
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-MY', {
+  return date.toLocaleString('en-MY', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
   });
 }
 

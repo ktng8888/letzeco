@@ -86,7 +86,8 @@ const userChallengeRewardModel = {
   claim: async (id) => {
     const result = await pool.query(
       `UPDATE user_challenge_reward
-       SET status = 'claimed'
+       SET status = 'claimed',
+           claimed_date = NOW()
        WHERE id = $1 RETURNING *`,
       [id]
     );
@@ -99,6 +100,7 @@ const userChallengeRewardModel = {
       `SELECT
          ucr.id             AS user_challenge_reward_id,
          ucr.obtain_date,
+         ucr.claimed_date,
          ucr.status,
          cr.id              AS challenge_reward_id,
          cr.type,
