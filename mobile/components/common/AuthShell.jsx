@@ -9,6 +9,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
@@ -76,8 +77,12 @@ export function AuthInput({
   inputStyle,
   containerStyle,
   compact = false,
+  secureTextEntry,
   ...props
 }) {
+  const [showPassword, setShowPassword] = useState(false);
+  const isPassword = secureTextEntry;
+
   return (
     <View style={[styles.field, compact && styles.fieldCompact, containerStyle]}>
       <Text style={[styles.label, compact && styles.labelCompact]}>{label}</Text>
@@ -93,8 +98,23 @@ export function AuthInput({
         <TextInput
           style={[styles.input, compact && styles.inputCompact, inputStyle]}
           placeholderTextColor={colors.textLight}
+          secureTextEntry={isPassword && !showPassword}
           {...props}
         />
+        {isPassword && (
+          <SoundTouchableOpacity
+            style={styles.passwordToggle}
+            onPress={() => setShowPassword(current => !current)}
+            accessibilityRole="button"
+            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+          >
+            <Ionicons
+              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+              size={20}
+              color={colors.textSecondary}
+            />
+          </SoundTouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -321,6 +341,14 @@ const styles = StyleSheet.create({
   inputCompact: {
     minHeight: 46,
     fontSize: 14,
+  },
+  passwordToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 6,
   },
   otpInput: {
     fontSize: 22,
