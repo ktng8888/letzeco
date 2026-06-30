@@ -80,6 +80,13 @@ const adminManageController = {
         return res.status(404).json({ message: 'Admin not found.' });
       }
 
+      if (email) {
+        const existingEmail = await adminModel.findByEmailExceptId(email, id);
+        if (existingEmail) {
+          return res.status(400).json({ message: 'Email already exists.' });
+        }
+      }
+
       const updated = await adminModel.update(
         id, username, email, current
       );

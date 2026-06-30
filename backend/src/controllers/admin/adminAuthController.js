@@ -174,6 +174,16 @@ const adminAuthController = {
       if (!current) {
         return res.status(404).json({ message: 'Admin not found.' });
       }
+
+      if (email) {
+        const existingEmail = await adminModel.findByEmailExceptId(
+          email, req.admin.id
+        );
+        if (existingEmail) {
+          return res.status(400).json({ message: 'Email already exists.' });
+        }
+      }
+
       const updated = await adminModel.update(
         req.admin.id, username, email, current
       );
