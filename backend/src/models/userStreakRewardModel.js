@@ -77,7 +77,8 @@ const userStreakRewardModel = {
       FROM user_streak_reward usr
       LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
       WHERE usr.user_id = $1
-        AND COALESCE(usr.day, sr.day) = $2`,
+        AND COALESCE(usr.day, sr.day) = $2
+        AND usr.status = 'unclaimed'`,
       [userId, day]
     );
     return result.rows[0] || null;
@@ -105,10 +106,11 @@ const userStreakRewardModel = {
     return result.rows[0];
   },
 
-  deleteByUserId: async (userId) => {
+  deleteUnclaimedByUserId: async (userId) => {
     await pool.query(
       `DELETE FROM user_streak_reward
-       WHERE user_id = $1`,
+       WHERE user_id = $1
+         AND status = 'unclaimed'`,
       [userId]
     );
   },

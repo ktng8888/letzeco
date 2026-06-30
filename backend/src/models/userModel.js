@@ -255,6 +255,7 @@ const userModel = {
         DELETE FROM user_streak_reward usr
         USING reset_users ru
         WHERE usr.user_id = ru.id
+          AND usr.status = 'unclaimed'
         RETURNING usr.id
       )
       SELECT id FROM reset_users`

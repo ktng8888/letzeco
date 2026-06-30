@@ -273,18 +273,25 @@ const achievementController = {
       // Fetch all user earned reward records. Day 8+ rows have no streak_reward_id,
       // so keep the user row as the source of truth and use streak_reward as fallback.
       const claimedRows = await pool.query(
-        `SELECT
-          usr.*,
-          COALESCE(usr.day, sr.day) AS day,
+        `SELECT DISTINCT ON (COALESCE(usr.day, sr.day))
+          usr.id,
+          usr.user_id,
+          usr.streak_reward_id,
+          usr.obtain_date,
+          usr.status,
+          usr.claimed_date,
+          COALESCE(usr.day, sr.day) AS reward_day,
           COALESCE(usr.xp_reward, sr.xp_reward) AS xp_reward
         FROM user_streak_reward usr
         LEFT JOIN streak_reward sr ON usr.streak_reward_id = sr.id
-        WHERE usr.user_id = $1`,
-        [userId]
+        WHERE usr.user_id = $1
+          AND COALESCE(usr.day, sr.day) <= $2
+        ORDER BY COALESCE(usr.day, sr.day), usr.obtain_date DESC, usr.id DESC`,
+        [userId, streak]
       );
 
       const claimedMap = {};
-      for (const r of claimedRows.rows) claimedMap[r.day] = r;
+      for (const r of claimedRows.rows) claimedMap[r.reward_day] = r;
 
       // Build a sliding window of 7 days centered on current streak
       // Show from max(1, streak-2) so user sees their history + upcoming
