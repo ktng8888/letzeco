@@ -78,7 +78,11 @@ const unlockAchievement = async (userId, achievement) => {
       `UPDATE "user" SET
         total_xp = total_xp + $1,
         level_xp = level_xp + $1,
-        weekly_xp = weekly_xp + $1
+        weekly_xp = weekly_xp + $1,
+        best_weekly_xp = GREATEST(
+          COALESCE(best_weekly_xp, 0),
+          COALESCE(weekly_xp, 0) + $1
+        )
        WHERE id = $2`,
       [bonusXp, userId]
     );
@@ -181,7 +185,11 @@ const xpService = {
         `UPDATE "user" SET
           level_xp = level_xp + $1,
           total_xp = total_xp + $1,
-          weekly_xp = weekly_xp + $1
+          weekly_xp = weekly_xp + $1,
+          best_weekly_xp = GREATEST(
+            COALESCE(best_weekly_xp, 0),
+            COALESCE(weekly_xp, 0) + $1
+          )
          WHERE id = $2`,
         [xpAmount, userId]
       );

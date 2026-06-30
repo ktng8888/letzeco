@@ -5,14 +5,23 @@ const challengeModel = {
 
   getAll: async () => {
     const result = await pool.query(
-      'SELECT * FROM challenge ORDER BY id ASC'
+      `SELECT *,
+              TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+              TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date
+       FROM challenge
+       ORDER BY id ASC`
     );
     return result.rows;
   },
 
   getById: async (id) => {
     const result = await pool.query(
-      'SELECT * FROM challenge WHERE id = $1', [id]
+      `SELECT *,
+              TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+              TO_CHAR(end_date, 'YYYY-MM-DD') AS end_date
+       FROM challenge
+       WHERE id = $1`,
+      [id]
     );
     return result.rows[0];
   },

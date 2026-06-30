@@ -149,6 +149,19 @@ const streakService = {
     }
   },
 
+  resetBrokenStreaks: async () => {
+    try {
+      const resetUsers = await userModel.resetBrokenStreaks();
+      if (resetUsers.length > 0) {
+        console.log(`Reset ${resetUsers.length} broken streak(s).`);
+      }
+      return resetUsers;
+    } catch (err) {
+      console.error('Reset broken streaks error:', err);
+      throw err;
+    }
+  },
+
 };
 
 module.exports = streakService;

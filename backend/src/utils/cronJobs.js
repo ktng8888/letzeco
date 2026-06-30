@@ -9,6 +9,7 @@ const userChallengeRewardModel = require('../models/userChallengeRewardModel');
 const xpService = require('./xpService');
 const notificationService = require('./notificationService');
 const weeklyXpService = require('./weeklyXpService');
+const streakService = require('./streakService');
 
 const processChallengeExpiry = async ({ catchUp = false } = {}) => {
   const expiredChallenges = catchUp
@@ -110,6 +111,17 @@ const startCronJobs = () => {
     }
   });
 
+  // Broken streak reset: every day shortly after midnight.
+  cron.schedule('5 0 * * *', async () => {
+    console.log('Running broken streak reset job...');
+    try {
+      await streakService.resetBrokenStreaks();
+      console.log('Broken streak reset job done.');
+    } catch (err) {
+      console.error('Broken streak reset job error:', err);
+    }
+  });
+
   // Action deadline reminder: every minute.
   cron.schedule('* * * * *', async () => {
     try {
@@ -176,6 +188,10 @@ const startCronJobs = () => {
   weeklyXpService.syncWeeklyXp({ force: true })
     .then(() => console.log('Weekly XP startup sync done.'))
     .catch(err => console.error('Weekly XP startup sync error:', err));
+
+  streakService.resetBrokenStreaks()
+    .then(() => console.log('Broken streak startup check done.'))
+    .catch(err => console.error('Broken streak startup check error:', err));
 
   // Catch up missed challenge expiry jobs after backend downtime.
   processChallengeExpiry({ catchUp: true })

@@ -64,8 +64,8 @@ function ChallengeDetail() {
       setForm({
         name:         c.name         || '',
         type:         c.type         || 'solo',
-        start_date:   c.start_date?.split('T')[0] || '',
-        end_date:     c.end_date?.split('T')[0]   || '',
+        start_date:   toDateInputValue(c.start_date),
+        end_date:     toDateInputValue(c.end_date),
         about:        c.about        || '',
         target_type:  c.target_type  || 'count',
         target_value: c.target_value || '',
@@ -492,6 +492,17 @@ function ChallengeDetail() {
       </FormCard>
     </div>
   );
+}
+
+function toDateInputValue(value) {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  if (typeof value === 'string' && value.includes('T')) {
+    return value.slice(0, 10);
+  }
+  return '';
 }
 
 export default function ChallengeDetailPage() {
