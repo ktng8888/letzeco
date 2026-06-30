@@ -1,6 +1,7 @@
 const leaderboardModel = require('../../models/leaderboardModel');
 const userBadgeModel = require('../../models/userBadgeModel');
 const weeklyXpService = require('../../utils/weeklyXpService');
+const streakService = require('../../utils/streakService');
 
 const leaderboardController = {
 
@@ -8,6 +9,7 @@ const leaderboardController = {
   getGlobal: async (req, res) => {
     const userId = req.user.id;
     try {
+      await streakService.resetBrokenStreaks();
       await weeklyXpService.syncWeeklyXp();
 
       const leaderboard = await leaderboardModel.getGlobal(100);
@@ -39,6 +41,7 @@ const leaderboardController = {
   getFriends: async (req, res) => {
     const userId = req.user.id;
     try {
+      await streakService.resetBrokenStreaks();
       await weeklyXpService.syncWeeklyXp();
 
       const leaderboard = await leaderboardModel.getFriends(userId);

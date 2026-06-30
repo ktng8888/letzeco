@@ -7,6 +7,7 @@ const achievementModel      = require('../../models/achievementModel');
 const badgeModel            = require('../../models/badgeModel');
 const userModel             = require('../../models/userModel');
 const xpService             = require('../../utils/xpService');
+const streakService         = require('../../utils/streakService');
 const pool                  = require('../../config/db');
 
 // ── Helper: get current progress for any achievement type ──
@@ -254,6 +255,7 @@ const achievementController = {
   getStreakRewards: async (req, res) => {
     const userId = req.user.id;
     try {
+      await streakService.checkAndResetStreak(userId);
       const user = await userModel.getProfile(userId);
       const streak = user.streak;
       const FIXED_XP = 200;

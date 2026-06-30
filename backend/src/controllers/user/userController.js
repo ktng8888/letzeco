@@ -4,6 +4,7 @@ const userBadgeModel = require('../../models/userBadgeModel');
 const { deleteFile } = require('../../utils/uploadService');
 const friendshipModel = require('../../models/friendshipModel');
 const weeklyXpService = require('../../utils/weeklyXpService');
+const streakService = require('../../utils/streakService');
 
 const userController = {
 
@@ -11,6 +12,7 @@ const userController = {
   getProfile: async (req, res) => {
     const userId = req.user.id;
     try {
+      await streakService.checkAndResetStreak(userId);
       await weeklyXpService.syncWeeklyXp();
 
       const user = await userModel.getProfile(userId);
@@ -47,6 +49,7 @@ const userController = {
     const { id } = req.params; // user id
 
     try {
+      await streakService.checkAndResetStreak(id);
       const user = await userModel.getPublicProfile(id);
       if (!user) {
         return res.status(404).json({ message: 'User not found.' });
@@ -95,6 +98,7 @@ const userController = {
     const { id } = req.params;
     const myId = req.user.id;
     try {
+      await streakService.checkAndResetStreak(id);
       const user = await userModel.getPublicProfile(id);
       if (!user) {
         return res.status(404).json({ message: 'User not found.' });

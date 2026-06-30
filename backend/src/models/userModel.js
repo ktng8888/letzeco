@@ -30,7 +30,8 @@ const userModel = {
   getProfile: async (id) => {
     const result = await pool.query(
       `SELECT u.id, u.username, u.email, u.level, u.level_xp,
-              u.total_xp, u.weekly_xp, u.streak, u.best_streak,
+              u.total_xp, u.weekly_xp, u.best_weekly_xp,
+              u.streak, u.best_streak,
               u.profile_image, u.created_at,
               l.xp_to_next_level
       FROM "user" u
@@ -45,7 +46,8 @@ const userModel = {
   getPublicProfile: async (id) => {
     const result = await pool.query(
       `SELECT u.id, u.username, u.level, u.level_xp,
-              u.total_xp, u.weekly_xp, u.streak, u.best_streak,
+              u.total_xp, u.weekly_xp, u.best_weekly_xp,
+              u.streak, u.best_streak,
               u.profile_image, u.created_at,
               l.xp_to_next_level
        FROM "user" u
@@ -154,7 +156,8 @@ const userModel = {
   getAll: async () => {
     const result = await pool.query(
       `SELECT id, username, email, level, level_xp,
-              total_xp, weekly_xp, streak, best_streak, profile_image
+              total_xp, weekly_xp, best_weekly_xp,
+              streak, best_streak, profile_image
        FROM "user" ORDER BY id ASC`
     );
     return result.rows;
@@ -224,13 +227,52 @@ const userModel = {
     );
   },
 
+  resetBrokenStreaks: async () => {
+    const result = await pool.query(
+      `WITH broken_users AS (
+        SELECT u.id
+        FROM "user" u
+        LEFT JOIN LATERAL (
+          SELECT MAX(ua.end_time)::date AS last_action_date
+          FROM user_action ua
+          WHERE ua.user_id = u.id
+            AND ua.status = 'completed'
+        ) latest ON true
+        WHERE u.streak > 0
+          AND (
+            latest.last_action_date IS NULL
+            OR latest.last_action_date < CURRENT_DATE - INTERVAL '1 day'
+          )
+      ),
+      reset_users AS (
+        UPDATE "user" u
+        SET streak = 0
+        FROM broken_users b
+        WHERE u.id = b.id
+        RETURNING u.id
+      ),
+      deleted_rewards AS (
+        DELETE FROM user_streak_reward usr
+        USING reset_users ru
+        WHERE usr.user_id = ru.id
+        RETURNING usr.id
+      )
+      SELECT id FROM reset_users`
+    );
+    return result.rows;
+  },
+
   // Add XP directly (used by streak reward & achievement bonus)
   addXpDirect: async (userId, xpToAdd) => {
     await pool.query(
       `UPDATE "user" SET
         total_xp = total_xp + $1,
         level_xp = level_xp + $1,
-        weekly_xp = weekly_xp + $1
+        weekly_xp = weekly_xp + $1,
+        best_weekly_xp = GREATEST(
+          COALESCE(best_weekly_xp, 0),
+          COALESCE(weekly_xp, 0) + $1
+        )
        WHERE id = $2`,
       [xpToAdd, userId]
     );
@@ -263,11 +305,11 @@ const userModel = {
     const result = await pool.query(
       `INSERT INTO "user"
         (username, email, password, level,
-         level_xp, total_xp, weekly_xp, streak, best_streak)
-       VALUES ($1, $2, $3, 1, 0, 0, 0, 0, 0)
+         level_xp, total_xp, weekly_xp, best_weekly_xp, streak, best_streak)
+       VALUES ($1, $2, $3, 1, 0, 0, 0, 0, 0, 0)
        RETURNING id, username, email,
                  level, level_xp, total_xp,
-                 weekly_xp, streak, best_streak`,
+                 weekly_xp, best_weekly_xp, streak, best_streak`,
       [username, email, hashedPassword]
     );
     return result.rows[0];

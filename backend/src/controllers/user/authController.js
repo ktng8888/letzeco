@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../../models/userModel');
 const { sendOtpEmail } = require('../../utils/emailService');
 const streakService = require('../../utils/streakService');
+const weeklyXpService = require('../../utils/weeklyXpService');
 
 const authController = {
 
@@ -66,6 +67,8 @@ const authController = {
       }
 
       await streakService.checkAndResetStreak(user.id);
+      await weeklyXpService.syncWeeklyXp();
+      const freshUser = await userModel.findById(user.id);
 
       // Generate token
       const token = jwt.sign(
@@ -78,15 +81,16 @@ const authController = {
         message: 'Login successful!',
         token,
         user: {
-          id: user.id,
-          username: user.username,
-          email: user.email,
-          level: user.level,
-          level_xp: user.level_xp,
-          total_xp: user.total_xp,
-          weekly_xp: user.weekly_xp,
-          streak: user.streak,
-          profile_image: user.profile_image
+          id: freshUser.id,
+          username: freshUser.username,
+          email: freshUser.email,
+          level: freshUser.level,
+          level_xp: freshUser.level_xp,
+          total_xp: freshUser.total_xp,
+          weekly_xp: freshUser.weekly_xp,
+          best_weekly_xp: freshUser.best_weekly_xp,
+          streak: freshUser.streak,
+          profile_image: freshUser.profile_image
         }
       });
 

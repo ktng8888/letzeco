@@ -1,6 +1,8 @@
 const progressModel = require('../../models/progressModel');
 const userActionModel = require('../../models/userActionModel');
 const userModel = require('../../models/userModel');
+const streakService = require('../../utils/streakService');
+const weeklyXpService = require('../../utils/weeklyXpService');
 
 const progressController = {
 
@@ -12,6 +14,9 @@ const progressController = {
     const selectedPeriod = period || 'this_week';
 
     try {
+      await streakService.checkAndResetStreak(userId);
+      await weeklyXpService.syncWeeklyXp();
+
       const user = await userModel.getProfile(userId);
       const impact = await progressModel.getEnvironmentalImpact(
         userId, selectedPeriod
@@ -32,6 +37,7 @@ const progressController = {
             level_xp: user.level_xp,
             total_xp: user.total_xp,
             weekly_xp: user.weekly_xp,
+            best_weekly_xp: user.best_weekly_xp,
             streak: user.streak,
             best_streak: user.best_streak
           },
