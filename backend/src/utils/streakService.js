@@ -44,7 +44,7 @@ const streakService = {
 
       if (streakContinued) {
         if (streakRestarted) {
-          await userStreakRewardModel.deleteByUserId(userId);
+          await userStreakRewardModel.deleteUnclaimedByUserId(userId);
         }
         await userModel.updateStreak(userId, newStreak);
       }
@@ -123,7 +123,7 @@ const streakService = {
 
       if (lastActions.length === 0) {
         if (user.streak > 0) await userModel.updateStreak(userId, 0);
-        await userStreakRewardModel.deleteByUserId(userId);
+        await userStreakRewardModel.deleteUnclaimedByUserId(userId);
         return;
       }
 
@@ -139,7 +139,7 @@ const streakService = {
 
       if (diffDays > 1) {
         if (user.streak > 0) await userModel.updateStreak(userId, 0);
-        await userStreakRewardModel.deleteByUserId(userId);
+        await userStreakRewardModel.deleteUnclaimedByUserId(userId);
         console.log(`Streak reset for user ${userId}`);
       }
 
