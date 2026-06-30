@@ -9,6 +9,17 @@ const adminModel = {
     return result.rows[0];
   },
 
+  findByEmailExceptId: async (email, id) => {
+    const result = await pool.query(
+      `SELECT *
+       FROM admin
+       WHERE LOWER(email) = LOWER($1)
+         AND id <> $2`,
+      [email, id]
+    );
+    return result.rows[0];
+  },
+
   findById: async (id) => {
     const result = await pool.query(
       'SELECT * FROM admin WHERE id = $1', [id]
