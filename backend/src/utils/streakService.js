@@ -84,12 +84,14 @@ const streakService = {
         const existing = await userStreakRewardModel.getByUserAndDay(userId, currentStreak);
         if (existing) return null;
 
-        await userStreakRewardModel.create(
+        const createdReward = await userStreakRewardModel.create(
           userId,
           reward.id,
           reward.day,
           reward.xp_reward
         );
+        if (!createdReward) return null;
+
         return {
           day:         reward.day,
           xp_reward:   reward.xp_reward,
@@ -102,7 +104,11 @@ const streakService = {
         const existing = await userStreakRewardModel.getByUserAndDay(userId, currentStreak);
         if (existing) return null;
 
-        await userStreakRewardModel.createForDay(userId, currentStreak, 200);
+        const createdReward = await userStreakRewardModel.createForDay(
+          userId, currentStreak, 200
+        );
+        if (!createdReward) return null;
+
         return {
           day:         currentStreak,
           xp_reward:   200,

@@ -88,22 +88,36 @@ const userStreakRewardModel = {
     const result = await pool.query(
       `INSERT INTO user_streak_reward
         (user_id, streak_reward_id, day, xp_reward, obtain_date, status)
-      VALUES ($1, NULL, $2, $3, NOW(), 'unclaimed')
+      SELECT $1, NULL, $2, $3, NOW(), 'unclaimed'
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM user_streak_reward
+        WHERE user_id = $1
+          AND day = $2
+          AND status = 'unclaimed'
+      )
       RETURNING *`,
       [userId, day, xpReward]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   },
 
   create: async (userId, rewardId, day = null, xpReward = null) => {
     const result = await pool.query(
       `INSERT INTO user_streak_reward
         (user_id, streak_reward_id, day, xp_reward, obtain_date, status)
-      VALUES ($1, $2, $3, $4, NOW(), 'unclaimed')
+      SELECT $1, $2, $3, $4, NOW(), 'unclaimed'
+      WHERE NOT EXISTS (
+        SELECT 1
+        FROM user_streak_reward
+        WHERE user_id = $1
+          AND day = $3
+          AND status = 'unclaimed'
+      )
       RETURNING *`,
       [userId, rewardId, day, xpReward]
     );
-    return result.rows[0];
+    return result.rows[0] || null;
   },
 
   deleteUnclaimedByUserId: async (userId) => {
