@@ -169,12 +169,15 @@ function ChallengeCard({ challenge, index, onPress }) {
     0,
     Math.ceil((new Date(challenge.end_date).getTime() - Date.now()) / 86400000)
   );
+  const displayedProgressValue = isTeam
+    ? challenge.team?.team_progress ?? challenge.progress_value ?? 0
+    : challenge.progress_value ?? 0;
   const progress = Math.min(
-    ((challenge.progress_value || 0) / (challenge.target_value || 1)) * 100,
+    (displayedProgressValue / (challenge.target_value || 1)) * 100,
     100
   );
   const progressLabel = formatProgressLabel(
-    challenge.progress_value || 0,
+    displayedProgressValue,
     challenge.target_value,
     challenge.target_type,
     challenge.unit
