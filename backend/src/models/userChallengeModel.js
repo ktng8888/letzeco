@@ -35,7 +35,7 @@ const userChallengeModel = {
               ROUND(COALESCE(uc.progress_value, 0)::numeric, 2) AS progress_value,
               c.image AS challenge_image,
               c.type, c.start_date, c.end_date,
-              c.about, c.target_type, c.target_value,
+              c.about, c.target_type, c.target_value, c.unit,
               CASE
                 WHEN c.status = 'inactive'
                  AND c.target_value IS NOT NULL

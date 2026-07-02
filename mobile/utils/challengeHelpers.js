@@ -21,7 +21,7 @@ export function formatDate(dateString) {
 export function getTargetLabel(type) {
   switch (type) {
     case 'co2_kg': return 'kg CO₂';
-    case 'count':  return 'items';
+    case 'count':  return 'actions';
     case 'litre':  return 'L';
     case 'kwh':    return 'kWh';
     default:       return '';
@@ -43,7 +43,7 @@ export function formatProgress(value, targetType, unit) {
   }
   switch (targetType) {
     case 'co2_kg': return `${num.toFixed(1)} kg CO₂`;
-    case 'count':  return `${Math.round(num)} items`;
+    case 'count':  return `${Math.round(num)} actions`;
     case 'litre':  return `${num.toFixed(1)} L`;
     case 'kwh':    return `${num.toFixed(1)} kWh`;
     default:       return Math.round(num).toString();
