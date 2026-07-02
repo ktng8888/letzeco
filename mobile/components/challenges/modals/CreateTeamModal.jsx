@@ -3,6 +3,8 @@ import {
   Text,
   Modal,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet
 } from 'react-native';
 import { useState } from 'react';
@@ -31,53 +33,63 @@ export default function CreateTeamModal({ visible, onClose, onSubmit }) {
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Create Team</Text>
-            <SoundTouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={22} color={colors.textPrimary} />
-            </SoundTouchableOpacity>
-          </View>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.overlay}>
+          <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Create Team</Text>
+              <SoundTouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={22} color={colors.textPrimary} />
+              </SoundTouchableOpacity>
+            </View>
 
-          <View style={styles.form}>
-            <Text style={styles.label}>Team Name</Text>
-            <TextInput
-              style={styles.input}
-              value={teamName}
-              onChangeText={setTeamName}
-              placeholder="The Green Squad"
-              placeholderTextColor={colors.textLight}
-            />
+            <View style={styles.form}>
+              <Text style={styles.label}>Team Name</Text>
+              <TextInput
+                style={styles.input}
+                value={teamName}
+                onChangeText={setTeamName}
+                placeholder="The Green Squad"
+                placeholderTextColor={colors.textLight}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+              />
 
-            {/* Private toggle */}
-            <SoundTouchableOpacity
-              style={styles.toggle}
-              onPress={() => setIsPrivate(!isPrivate)}
-            >
-              <View style={[styles.checkbox, isPrivate && styles.checkboxChecked]}>
-                {isPrivate && (
-                  <Ionicons name="checkmark" size={14} color="#fff" />
-                )}
-              </View>
-              <View>
-                <Text style={styles.toggleLabel}>Private Team</Text>
-                <Text style={styles.toggleHint}>Only people with code can join</Text>
-              </View>
-            </SoundTouchableOpacity>
+              {/* Private toggle */}
+              <SoundTouchableOpacity
+                style={styles.toggle}
+                onPress={() => setIsPrivate(!isPrivate)}
+              >
+                <View style={[styles.checkbox, isPrivate && styles.checkboxChecked]}>
+                  {isPrivate && (
+                    <Ionicons name="checkmark" size={14} color="#fff" />
+                  )}
+                </View>
+                <View>
+                  <Text style={styles.toggleLabel}>Private Team</Text>
+                  <Text style={styles.toggleHint}>Only people with code can join</Text>
+                </View>
+              </SoundTouchableOpacity>
 
-            <SoundTouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
-              <Text style={styles.submitText}>Create Team & Participate</Text>
-            </SoundTouchableOpacity>
+              <SoundTouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+                <Text style={styles.submitText}>Create Team & Participate</Text>
+              </SoundTouchableOpacity>
+            </View>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoider: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',

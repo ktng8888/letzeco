@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import profileService from '../../services/profileService';
 import useAuthStore from '../../store/authStore';
@@ -28,6 +29,7 @@ const TABS = ['Badge', 'Impact', 'Stat'];
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { user, updateUser } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +124,10 @@ export default function ProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: Math.max(insets.bottom + 96, 120) },
+        ]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -185,8 +191,6 @@ export default function ProfileScreen() {
             globalRank={globalRank}
           />
         )}
-
-        <View style={{ height: 20 }} />
       </ScrollView>
     </View>
   );
@@ -196,6 +200,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.bgLight,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   topBar: {
     flexDirection: 'row',
