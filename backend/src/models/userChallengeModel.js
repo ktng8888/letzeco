@@ -244,12 +244,18 @@ const userChallengeModel = {
          ROUND(COALESCE(uc.progress_value, 0)::numeric, 2) AS progress_value,
          uc.completion_time,
          ROW_NUMBER() OVER (
-           ORDER BY uc.progress_value DESC, uc.completion_time ASC NULLS LAST
+           ORDER BY uc.progress_value DESC,
+                    uc.completion_time ASC NULLS LAST,
+                    uc.joined_at ASC NULLS LAST,
+                    uc.user_id ASC
          ) AS rank
        FROM user_challenge uc
        JOIN "user" u ON uc.user_id = u.id
        WHERE uc.challenge_id = $1
-       ORDER BY uc.progress_value DESC, uc.completion_time ASC NULLS LAST
+       ORDER BY uc.progress_value DESC,
+                uc.completion_time ASC NULLS LAST,
+                uc.joined_at ASC NULLS LAST,
+                uc.user_id ASC
        ${limitClause}`,
       params
     );
@@ -314,7 +320,10 @@ const userChallengeModel = {
       `SELECT rank FROM (
          SELECT user_id,
                 ROW_NUMBER() OVER (
-                  ORDER BY progress_value DESC, completion_time ASC NULLS LAST
+                  ORDER BY progress_value DESC,
+                           completion_time ASC NULLS LAST,
+                           joined_at ASC NULLS LAST,
+                           user_id ASC
                 ) AS rank
          FROM user_challenge
          WHERE challenge_id = $1

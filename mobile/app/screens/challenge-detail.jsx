@@ -225,15 +225,26 @@ export default function ChallengeDetailScreen() {
   const isParticipating = challenge.is_participating;
   const targetValue      = parseFloat(challenge.target_value) || 0;
   const userChallengeStatus = challenge.user_challenge_status || 'active';
+  const completionProgress = isTeamChallenge
+    ? parseFloat(challenge.team?.team_progress || 0)
+    : parseFloat(challenge.progress_value || 0);
   const hasCompletedChallenge = userChallengeStatus === 'completed'
-    || (targetValue > 0 && parseFloat(challenge.progress_value || 0) >= targetValue);
+    || (targetValue > 0 && completionProgress >= targetValue);
   const daysLeft        = getDaysLeft(challenge.end_date);
+  const isChallengeStillActive =
+    (challenge.challenge_status || challenge.status) === 'active'
+    && daysLeft > 0;
+  const showCompletedBanner = hasCompletedChallenge && !isChallengeStillActive;
   const tabs            = isTeamChallenge && isParticipating ? TEAM_TABS : OVERVIEW_TABS;
   const challengeImageUrl = getImageUrl(challenge.image || challenge.challenge_image);
   const targetLabel = formatTargetValue(
     challenge.target_value,
     challenge.target_type,
     challenge.unit
+  );
+  const hasUnclaimedCompletionReward = challenge.rewards?.some(
+    reward => reward.type === 'completion'
+      && reward.user_reward_status === 'unclaimed'
   );
 
   return (
@@ -348,6 +359,11 @@ export default function ChallengeDetailScreen() {
                 label={`Min: ${targetLabel} ${
                   challenge.unit || getTargetLabel(challenge.target_type)
                 }`}
+                onClaimRewardPress={
+                  hasUnclaimedCompletionReward
+                    ? () => router.push('/screens/gifts')
+                    : null
+                }
               />
             </View>
           )}
@@ -380,6 +396,11 @@ export default function ChallengeDetailScreen() {
                   label={`Team Goal: ${targetLabel} ${
                     challenge.unit || getTargetLabel(challenge.target_type)
                   }`}
+                  onClaimRewardPress={
+                    hasUnclaimedCompletionReward
+                      ? () => router.push('/screens/gifts')
+                      : null
+                  }
                 />
               </View>
 
@@ -414,7 +435,7 @@ export default function ChallengeDetailScreen() {
         </View>
 
         {/* ── Action buttons ── */}
-        {isParticipating && hasCompletedChallenge ? (
+        {isParticipating && showCompletedBanner ? (
           <View style={styles.actionButtons}>
             <View style={styles.completedBtn}>
               <Ionicons name="checkmark-circle" size={18} color={colors.success} />
@@ -423,16 +444,18 @@ export default function ChallengeDetailScreen() {
           </View>
         ) : isParticipating ? (
           <View style={styles.actionButtons}>
-            <SoundTouchableOpacity
-              style={styles.leaveBtn}
-              onPress={handleLeave}
-              disabled={isLeaving}
-            >
-              {isLeaving
-                ? <ActivityIndicator size="small" color={colors.error} />
-                : <Text style={styles.leaveBtnText}>Leave Challenge</Text>
-              }
-            </SoundTouchableOpacity>
+            {!hasCompletedChallenge && (
+              <SoundTouchableOpacity
+                style={styles.leaveBtn}
+                onPress={handleLeave}
+                disabled={isLeaving}
+              >
+                {isLeaving
+                  ? <ActivityIndicator size="small" color={colors.error} />
+                  : <Text style={styles.leaveBtnText}>Leave Challenge</Text>
+                }
+              </SoundTouchableOpacity>
+            )}
             <SoundTouchableOpacity
               style={styles.logBtn}
               onPress={() => router.push({

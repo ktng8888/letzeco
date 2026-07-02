@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
+import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
 
 export default function ChallengeProgress({
   current,
@@ -13,6 +14,7 @@ export default function ChallengeProgress({
   showTargetValue = true,
   showRemaining = true,
   showCompleteBadge = true,
+  onClaimRewardPress = null,
 }) {
   const percent = target > 0
     ? Math.min((current / target) * 100, 100)
@@ -64,9 +66,21 @@ export default function ChallengeProgress({
       )}
 
       {showCompleteBadge && isComplete && (
-        <View style={styles.completeBadge}>
-          <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} />
-          <Text style={styles.completeText}>Goal Reached!</Text>
+        <View style={styles.completeRow}>
+          <View style={styles.completeBadge}>
+            <Ionicons name="checkmark-circle-outline" size={13} color={colors.success} />
+            <Text style={styles.completeText}>Goal Reached!</Text>
+          </View>
+          {!!onClaimRewardPress && (
+            <SoundTouchableOpacity
+              style={styles.claimRewardLink}
+              onPress={onClaimRewardPress}
+              activeOpacity={0.78}
+            >
+              <Ionicons name="gift-outline" size={13} color={colors.xpColor} />
+              <Text style={styles.claimRewardText}>Claim reward here</Text>
+            </SoundTouchableOpacity>
+          )}
         </View>
       )}
     </View>
@@ -93,7 +107,7 @@ function formatValue(value, type, unit) {
   // Fallback defaults
   switch (type) {
     case 'co2_kg': return `${num.toFixed(1)} kg CO₂`;
-    case 'count':  return `${Math.round(num)} items`;
+    case 'count':  return `${Math.round(num)} actions`;
     case 'litre':  return `${num.toFixed(1)} L`;
     case 'kwh':    return `${num.toFixed(1)} kWh`;
     default:       return Math.round(num).toString();
@@ -131,6 +145,12 @@ const styles = StyleSheet.create({
   separator:    { fontSize: 13, color: colors.textSecondary },
   targetValue:  { fontSize: 13, color: colors.textSecondary },
   remaining:    { fontSize: 12, color: colors.primary, fontWeight: '500' },
+  completeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
   completeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -142,4 +162,20 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   completeText: { fontSize: 13, fontWeight: '600', color: colors.success },
+  claimRewardLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fffbeb',
+    borderRadius: 8,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#fde68a',
+  },
+  claimRewardText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.xpColor,
+  },
 });

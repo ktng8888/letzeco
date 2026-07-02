@@ -118,7 +118,7 @@ export default function RankingTab({ ranking, isLoading, challenge }) {
             {type === 'team' ? 'Team Rank' : 'Your Rank'}
           </Text>
           <Text style={styles.yourRankValue}>
-            #{your_rank || your_team_rank}
+            Rank {your_rank || your_team_rank}
           </Text>
         </View>
       )}
