@@ -173,10 +173,12 @@ function ChallengeCard({ challenge, index, onPress }) {
     ((challenge.progress_value || 0) / (challenge.target_value || 1)) * 100,
     100
   );
-  const progressValue = formatOneDecimal(challenge.progress_value || 0);
-  const targetValue = challenge.target_value
-    ? formatOneDecimal(challenge.target_value)
-    : '?';
+  const progressLabel = formatProgressLabel(
+    challenge.progress_value || 0,
+    challenge.target_value,
+    challenge.target_type,
+    challenge.unit
+  );
 
   return (
     <SoundTouchableOpacity style={styles.challengeCard} onPress={onPress} activeOpacity={0.88}>
@@ -229,18 +231,44 @@ function ChallengeCard({ challenge, index, onPress }) {
         <View style={styles.cProgressBg}>
           <View style={[styles.cProgressFill, { width: `${progress}%` }]} />
         </View>
-        <Text style={styles.cProgressLabel}>
-          {progressValue} / {targetValue}
+        <Text
+          style={styles.cProgressLabel}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+        >
+          {progressLabel}
         </Text>
       </View>
     </SoundTouchableOpacity>
   );
 }
 
-function formatOneDecimal(value) {
+function formatProgressLabel(current, target, targetType, unit) {
+  const formattedCurrent = formatChallengeValue(current, targetType, unit);
+  const formattedTarget = target
+    ? formatChallengeValue(target, targetType, unit)
+    : '?';
+  return `${formattedCurrent} / ${formattedTarget}`;
+}
+
+function formatChallengeValue(value, targetType, unit) {
   const num = Number(value);
-  if (!Number.isFinite(num)) return '0.0';
-  return num.toFixed(1);
+  const normalizedUnit = String(unit || '').toLowerCase();
+  const isWholeNumberTarget = targetType === 'count'
+    || normalizedUnit === 'actions'
+    || normalizedUnit === 'items';
+  const fallback = isWholeNumberTarget ? '0' : '0';
+
+  if (!Number.isFinite(num)) {
+    return unit ? `${fallback} ${unit}` : fallback;
+  }
+
+  const formatted = isWholeNumberTarget
+    ? String(Math.round(num))
+    : Number.isInteger(num) ? String(num) : num.toFixed(1);
+
+  return unit ? `${formatted} ${unit}` : formatted;
 }
 
 const styles = StyleSheet.create({

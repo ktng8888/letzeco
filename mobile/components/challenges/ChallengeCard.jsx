@@ -27,9 +27,11 @@ export default function ChallengeCard({ challenge, onPress }) {
       challenge.unit
     )} ${challenge.unit || ''}`.trim()
     : null;
-  const progressValue = `${formatOneDecimal(challenge.progress_value || 0)}${
-    challenge.unit ? ` ${challenge.unit}` : ''
-  }`;
+  const progressValue = formatProgressValue(
+    challenge.progress_value || 0,
+    challenge.target_type,
+    challenge.unit
+  );
 
   return (
     <SoundTouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.86}>
@@ -179,12 +181,6 @@ function formatDate(dateString) {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
-function formatOneDecimal(value) {
-  const num = Number(value);
-  if (!Number.isFinite(num)) return '0.0';
-  return num.toFixed(1);
-}
-
 function formatTargetValue(value, targetType, unit) {
   const num = Number(value);
   if (!Number.isFinite(num)) return '0';
@@ -195,6 +191,21 @@ function formatTargetValue(value, targetType, unit) {
 
   if (isWholeNumberTarget) return String(Math.round(num));
   return Number.isInteger(num) ? String(num) : num.toFixed(1);
+}
+
+function formatProgressValue(value, targetType, unit) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return unit ? `0 ${unit}` : '0';
+
+  const normalizedUnit = String(unit || '').toLowerCase();
+  const isWholeNumberTarget = targetType === 'count'
+    || normalizedUnit === 'actions'
+    || normalizedUnit === 'items';
+  const formatted = isWholeNumberTarget
+    ? String(Math.round(num))
+    : Number.isInteger(num) ? String(num) : num.toFixed(1);
+
+  return unit ? `${formatted} ${unit}` : formatted;
 }
 
 function formatParticipationMeta(challenge) {
