@@ -5,6 +5,8 @@ import {
   TextInput,
   ScrollView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet
 } from 'react-native';
 import { useState } from 'react';
@@ -40,83 +42,94 @@ export default function JoinTeamModal({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.title}>Join Team</Text>
-            <SoundTouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={22} color={colors.textPrimary} />
-            </SoundTouchableOpacity>
-          </View>
-
-          {/* Tabs */}
-          <View style={styles.tabs}>
-            {['public', 'code'].map((t) => (
-              <SoundTouchableOpacity
-                key={t}
-                style={[styles.tab, joinTab === t && styles.tabActive]}
-                onPress={() => setJoinTab(t)}
-              soundType="tab"
-              >
-                <Text style={[styles.tabText, joinTab === t && styles.tabTextActive]}>
-                  {t === 'public' ? 'Public Team' : 'Enter Code'}
-                </Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoider}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.overlay}>
+          <View style={[styles.modal, { paddingBottom: bottomPadding }]}>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.title}>Join Team</Text>
+              <SoundTouchableOpacity onPress={onClose}>
+                <Ionicons name="close" size={22} color={colors.textPrimary} />
               </SoundTouchableOpacity>
-            ))}
-          </View>
+            </View>
 
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-          >
-            {joinTab === 'public' && (
-              <View style={styles.section}>
-                {isLoading ? (
-                  <ActivityIndicator color={colors.primary} />
-                ) : publicTeams.length === 0 ? (
-                  <Text style={styles.empty}>No public teams yet. Create one!</Text>
-                ) : (
-                  publicTeams.map((team) => (
-                    <TeamCard
-                      key={team.id}
-                      team={team}
-                      showJoinBtn
-                      onJoin={() => onJoinPublic(team.id)}
-                    />
-                  ))
-                )}
-              </View>
-            )}
-
-            {joinTab === 'code' && (
-              <View style={styles.section}>
-                <Text style={styles.codeLabel}>Enter 6-character code</Text>
-                <TextInput
-                  style={styles.codeInput}
-                  value={teamCode}
-                  onChangeText={setTeamCode}
-                  placeholder="ABC123"
-                  placeholderTextColor={colors.textLight}
-                  autoCapitalize="characters"
-                  maxLength={6}
-                />
+            {/* Tabs */}
+            <View style={styles.tabs}>
+              {['public', 'code'].map((t) => (
                 <SoundTouchableOpacity
-                  style={styles.joinBtn}
-                  onPress={handleJoinByCode}
+                  key={t}
+                  style={[styles.tab, joinTab === t && styles.tabActive]}
+                  onPress={() => setJoinTab(t)}
+                soundType="tab"
                 >
-                  <Text style={styles.joinBtnText}>Join Team</Text>
+                  <Text style={[styles.tabText, joinTab === t && styles.tabTextActive]}>
+                    {t === 'public' ? 'Public Team' : 'Enter Code'}
+                  </Text>
                 </SoundTouchableOpacity>
-              </View>
-            )}
-          </ScrollView>
+              ))}
+            </View>
+
+            <ScrollView
+              style={styles.scroll}
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+            >
+              {joinTab === 'public' && (
+                <View style={styles.section}>
+                  {isLoading ? (
+                    <ActivityIndicator color={colors.primary} />
+                  ) : publicTeams.length === 0 ? (
+                    <Text style={styles.empty}>No public teams yet. Create one!</Text>
+                  ) : (
+                    publicTeams.map((team) => (
+                      <TeamCard
+                        key={team.id}
+                        team={team}
+                        showJoinBtn
+                        onJoin={() => onJoinPublic(team.id)}
+                      />
+                    ))
+                  )}
+                </View>
+              )}
+
+              {joinTab === 'code' && (
+                <View style={styles.section}>
+                  <Text style={styles.codeLabel}>Enter 6-character code</Text>
+                  <TextInput
+                    style={styles.codeInput}
+                    value={teamCode}
+                    onChangeText={setTeamCode}
+                    placeholder="ABC123"
+                    placeholderTextColor={colors.textLight}
+                    autoCapitalize="characters"
+                    maxLength={6}
+                    returnKeyType="done"
+                    onSubmitEditing={handleJoinByCode}
+                  />
+                  <SoundTouchableOpacity
+                    style={styles.joinBtn}
+                    onPress={handleJoinByCode}
+                  >
+                    <Text style={styles.joinBtnText}>Join Team</Text>
+                  </SoundTouchableOpacity>
+                </View>
+              )}
+            </ScrollView>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
+  keyboardAvoider: {
+    flex: 1,
+  },
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
