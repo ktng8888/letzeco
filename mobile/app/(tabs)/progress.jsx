@@ -21,7 +21,6 @@ import ImpactCard from '../../components/progress/ImpactCard';
 import CategoryBreakdown from '../../components/progress/CategoryBreakdown';
 import ActivityChart from '../../components/progress/ActivityChart';
 import ComparisonCard from '../../components/progress/ComparisonCard';
-import TrendChart from '../../components/progress/TrendChart';
 import colors from '../../constants/colors';
 import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
 
@@ -64,19 +63,16 @@ export default function ProgressScreen() {
   const [period, setPeriod] = useState('this_week');
   const [progress, setProgress] = useState(null);
   const [comparison, setComparison] = useState(null);
-  const [trend, setTrend] = useState(null);
 
   const loadData = async () => {
     try {
-      const [progressData, comparisonData, trendData] = await Promise.all([
+      const [progressData, comparisonData] = await Promise.all([
         progressService.getProgress(period),
         progressService.getComparison(),
-        progressService.getTrend(),
       ]);
 
       setProgress(progressData.data);
       setComparison(comparisonData.data);
-      setTrend(trendData.data);
 
     } catch (err) {
       if (!isAuthError(err)) {
@@ -243,17 +239,6 @@ export default function ProgressScreen() {
         <View style={styles.section}>
           <SectionHeader title="Comparison" />
           <ComparisonCard data={comparison} period={period} />
-        </View>
-
-        {/* 6 Month Trend */}
-        <View style={styles.section}>
-          <SectionHeader title="6-Month Trend" />
-          <View style={styles.card}>
-            <TrendChart
-              data={trend?.trend || []}
-              growthPercent={trend?.growth_percent || 0}
-            />
-          </View>
         </View>
 
         <View style={{ height: 20 }} />
