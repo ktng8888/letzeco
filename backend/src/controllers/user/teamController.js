@@ -17,6 +17,13 @@ const teamController = {
         });
       }
 
+      const teamName = name.trim();
+      if (!teamName) {
+        return res.status(400).json({
+          message: 'Team name is required.'
+        });
+      }
+
       // Check challenge exists and is team type
       const challenge = await challengeModel.getById(challenge_id);
       if (!challenge) {
@@ -37,9 +44,19 @@ const teamController = {
         });
       }
 
+      const duplicateTeam = await teamModel.getByNameAndChallenge(
+        teamName,
+        challenge_id
+      );
+      if (duplicateTeam) {
+        return res.status(400).json({
+          message: 'Team name already exists in this challenge.'
+        });
+      }
+
       // Create team
       const team = await teamModel.create(
-        name, userId, is_private, challenge_id
+        teamName, userId, is_private, challenge_id
       );
 
       // Add creator as first member

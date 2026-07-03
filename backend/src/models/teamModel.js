@@ -31,6 +31,18 @@ const teamModel = {
     return result.rows;
   },
 
+  getByNameAndChallenge: async (name, challengeId) => {
+    const result = await pool.query(
+      `SELECT *
+       FROM team
+       WHERE challenge_id = $1
+       AND LOWER(TRIM(name)) = LOWER(TRIM($2))
+       LIMIT 1`,
+      [challengeId, name]
+    );
+    return result.rows[0];
+  },
+
   // Get public teams for a challenge
   getPublicTeams: async (challengeId) => {
     const result = await pool.query(
