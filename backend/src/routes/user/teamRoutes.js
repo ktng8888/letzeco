@@ -6,6 +6,7 @@ const verifyToken = require('../../middleware/authMiddleware');
 router.post('/', verifyToken, teamController.create);
 router.get('/public/:challengeId', verifyToken, teamController.getPublicTeams);
 router.get('/:id', verifyToken, teamController.getById);
+router.patch('/:id/privacy', verifyToken, teamController.updatePrivacy);
 router.post('/join/public/:teamId', verifyToken, teamController.joinPublic);
 router.post('/join/code', verifyToken, teamController.joinByCode);
 router.delete('/:id/leave', verifyToken, teamController.leave);

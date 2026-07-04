@@ -59,8 +59,11 @@ const teamModel = {
        SELECT t.*,
               u.username AS leader_username,
               COUNT(DISTINCT tu.user_id) AS member_count,
-              COALESCE(SUM(uc.progress_value), 0) AS total_progress
+              ROUND(COALESCE(SUM(uc.progress_value), 0)::numeric, 2) AS total_progress,
+              c.target_type,
+              c.unit
        FROM team t
+       JOIN challenge c ON c.id = t.challenge_id
        LEFT JOIN "user" u ON t.leader_user_id = u.id
        LEFT JOIN team_users tu ON t.id = tu.team_id
        LEFT JOIN user_challenge uc ON t.id = uc.team_id
@@ -68,7 +71,7 @@ const teamModel = {
          AND uc.user_id = tu.user_id
        WHERE t.challenge_id = $1
        AND t.is_private = false
-       GROUP BY t.id, u.username
+       GROUP BY t.id, u.username, c.target_type, c.unit
        ORDER BY total_progress DESC`,
       [challengeId]
     );
@@ -104,6 +107,17 @@ const teamModel = {
        WHERE id = $2
        RETURNING *`,
       [leaderUserId, id]
+    );
+    return result.rows[0];
+  },
+
+  updatePrivacy: async (id, isPrivate) => {
+    const result = await pool.query(
+      `UPDATE team
+       SET is_private = $1
+       WHERE id = $2
+       RETURNING *`,
+      [isPrivate, id]
     );
     return result.rows[0];
   },

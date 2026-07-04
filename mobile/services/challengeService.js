@@ -52,6 +52,13 @@ const challengeService = {
     return response.data;
   },
 
+  updateTeamPrivacy: async (teamId, isPrivate) => {
+    const response = await api.patch(`/teams/${teamId}/privacy`, {
+      is_private: isPrivate,
+    });
+    return response.data;
+  },
+
   leaveTeam: async (teamId) => {
     const response = await api.delete(`/teams/${teamId}/leave`);
     return response.data;

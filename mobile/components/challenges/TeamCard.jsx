@@ -6,11 +6,17 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../constants/colors';
 import SoundTouchableOpacity from '../common/SoundTouchableOpacity';
+import { formatProgress } from '../../utils/challengeHelpers';
 
 export default function TeamCard({ team, onJoin, showJoinBtn }) {
   const memberCount = parseInt(team.member_count) || 0;
   const isFull = memberCount >= 5;
   const progress = parseFloat(team.total_progress) || 0;
+  const progressLabel = formatProgress(
+    progress,
+    team.target_type,
+    team.unit
+  );
 
   return (
     <View style={styles.card}>
@@ -54,7 +60,7 @@ export default function TeamCard({ team, onJoin, showJoinBtn }) {
         {progress > 0 && (
           <View style={styles.metaItem}>
             <Text style={styles.progressText}>
-              {progress.toFixed(1)} progress
+              {progressLabel}
             </Text>
           </View>
         )}
