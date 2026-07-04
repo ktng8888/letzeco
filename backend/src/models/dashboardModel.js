@@ -73,12 +73,21 @@ const dashboardModel = {
     return result.rows[0];
   },
 
-  getTopActions: async (limit = 10) => {
+  getTopActions: async (limit = 10, period = 'all_time') => {
+    const periodFilters = {
+      today: "AND ua.end_time >= CURRENT_DATE AND ua.end_time < CURRENT_DATE + INTERVAL '1 day'",
+      this_week: "AND ua.end_time >= DATE_TRUNC('week', CURRENT_DATE) AND ua.end_time < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '1 week'",
+      this_month: "AND ua.end_time >= DATE_TRUNC('month', CURRENT_DATE) AND ua.end_time < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'",
+      all_time: '',
+    };
+    const dateFilter = periodFilters[period] || periodFilters.all_time;
+
     const result = await pool.query(
       `SELECT a.name, COUNT(ua.id) AS log_count
       FROM user_action ua
       LEFT JOIN action a ON ua.action_id = a.id
       WHERE ua.status = 'completed'
+      ${dateFilter}
       GROUP BY a.name
       ORDER BY log_count DESC
       LIMIT $1`,
@@ -88,6 +97,9 @@ const dashboardModel = {
   },
 
   getTopBadgesUnlocked: async (limit = 5) => {
+    const limitClause = limit ? 'LIMIT $1' : '';
+    const params = limit ? [limit] : [];
+
     const result = await pool.query(
       `SELECT
          b.id,
@@ -100,8 +112,8 @@ const dashboardModel = {
        WHERE ub.status IN ('unlocked', 'claimed')
        GROUP BY b.id, b.name, b.image, b.type
        ORDER BY unlock_count DESC, b.name ASC
-       LIMIT $1`,
-      [limit]
+       ${limitClause}`,
+      params
     );
     return result.rows;
   },

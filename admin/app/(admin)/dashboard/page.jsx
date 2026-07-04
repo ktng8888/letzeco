@@ -24,16 +24,34 @@ import { getImageUrl } from '../../../utils/imageUrl';
 
 const nf = new Intl.NumberFormat('en-US');
 
+const badgeLimitOptions = [
+  { value: '5', label: 'Top 5' },
+  { value: '10', label: 'Top 10' },
+  { value: 'all', label: 'All' },
+];
+
+const actionPeriodOptions = [
+  { value: 'today', label: 'Today' },
+  { value: 'this_week', label: 'This Week' },
+  { value: 'this_month', label: 'This Month' },
+  { value: 'all_time', label: 'All Time' },
+];
+
 export default function DashboardPage() {
   const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [badgeLimit, setBadgeLimit] = useState('5');
+  const [actionPeriod, setActionPeriod] = useState('all_time');
 
   useEffect(() => {
-    dashboardService.get()
+    dashboardService.get({
+      badge_limit: badgeLimit,
+      action_period: actionPeriod,
+    })
       .then((res) => setData(res.data))
       .catch(console.error)
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [badgeLimit, actionPeriod]);
 
   const dashboard = useMemo(() => {
     const impact = data?.environmental_impact || {};
@@ -236,7 +254,14 @@ export default function DashboardPage() {
               icon={Trophy}
               title="Top Badges Unlocked"
               subtitle="Badges most frequently earned by users"
-              tag="Top 5"
+              action={
+                <FilterSelect
+                  label="Badge display limit"
+                  value={badgeLimit}
+                  onChange={setBadgeLimit}
+                  options={badgeLimitOptions}
+                />
+              }
             />
 
             <div className="mt-5 space-y-3">
@@ -268,7 +293,14 @@ export default function DashboardPage() {
             icon={BarChart3}
             title="Popular Eco Actions"
             subtitle="Top completed actions by log count"
-            tag="All Time"
+            action={
+              <FilterSelect
+                label="Popular action period"
+                value={actionPeriod}
+                onChange={setActionPeriod}
+                options={actionPeriodOptions}
+              />
+            }
           />
 
           <div className="mt-5 space-y-3">
@@ -336,7 +368,7 @@ function MiniStat({ icon: Icon, label, value }) {
   );
 }
 
-function SectionTitle({ icon: Icon, title, subtitle, tag }) {
+function SectionTitle({ icon: Icon, title, subtitle, tag, action }) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex items-start gap-3">
@@ -353,7 +385,25 @@ function SectionTitle({ icon: Icon, title, subtitle, tag }) {
           {tag}
         </span>
       )}
+      {action}
     </div>
+  );
+}
+
+function FilterSelect({ label, value, onChange, options }) {
+  return (
+    <select
+      aria-label={label}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="rounded-full border-0 bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 outline-none transition hover:bg-gray-200 focus:ring-2 focus:ring-green-200"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
 

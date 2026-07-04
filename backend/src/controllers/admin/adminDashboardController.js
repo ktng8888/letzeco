@@ -1,8 +1,21 @@
 const dashboardModel = require('../../models/dashboardModel');
 
+const BADGE_LIMITS = new Set(['5', '10', 'all']);
+const ACTION_PERIODS = new Set(['today', 'this_week', 'this_month', 'all_time']);
+
 const adminDashboardController = {
   getDashboard: async (req, res) => {
     try {
+      const badgeLimitParam = BADGE_LIMITS.has(req.query.badge_limit)
+        ? req.query.badge_limit
+        : '5';
+      const actionPeriod = ACTION_PERIODS.has(req.query.action_period)
+        ? req.query.action_period
+        : 'all_time';
+      const badgeLimit = badgeLimitParam === 'all'
+        ? null
+        : Number(badgeLimitParam);
+
       const [
         totalUsers, totalAdmins, totalCategories,
         totalActionsAvailable, totalActionsLogged,
@@ -17,8 +30,8 @@ const adminDashboardController = {
         dashboardModel.getActiveChallenges(),
         dashboardModel.getTotalChallenges(),
         dashboardModel.getTotalEnvironmentalImpact(),
-        dashboardModel.getTopActions(10),
-        dashboardModel.getTopBadgesUnlocked(5),
+        dashboardModel.getTopActions(10, actionPeriod),
+        dashboardModel.getTopBadgesUnlocked(badgeLimit),
       ]);
 
       res.json({
@@ -34,6 +47,10 @@ const adminDashboardController = {
           environmental_impact: environmentalImpact,
           top_actions: topActions,
           top_badges: topBadges,
+          filters: {
+            badge_limit: badgeLimitParam,
+            action_period: actionPeriod,
+          },
         }
       });
     } catch (err) {
