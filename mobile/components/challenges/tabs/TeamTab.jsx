@@ -3,7 +3,9 @@ import {
   Text,
   Image,
   StyleSheet,
-  Alert
+  Alert,
+  Switch,
+  ActivityIndicator
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useRouter } from 'expo-router';
@@ -13,12 +15,48 @@ import useAuthStore from '../../../store/authStore';
 import colors from '../../../constants/colors';
 import SoundTouchableOpacity from '../../common/SoundTouchableOpacity';
 
-export default function TeamTab({ team }) {
+export default function TeamTab({ team, onPrivacyToggle, isPrivacyUpdating = false }) {
   const { user } = useAuthStore();
   if (!team) return null;
 
+  const isLeader = Number(team.leader_user_id) === Number(user?.id);
+  const isPrivate = team.is_private === true || team.is_private === 'true';
+
   return (
     <View style={styles.container}>
+      {isLeader && (
+        <View style={styles.privacyCard}>
+          <View style={styles.privacyCopy}>
+            <View style={styles.privacyTitleRow}>
+              <Ionicons
+                name={isPrivate ? 'lock-closed-outline' : 'earth-outline'}
+                size={18}
+                color={colors.primary}
+              />
+              <Text style={styles.privacyTitle}>
+                {isPrivate ? 'Private Team' : 'Public Team'}
+              </Text>
+            </View>
+            <Text style={styles.privacyHint}>
+              {isPrivate
+                ? 'Only people with code can join'
+                : 'Visible in the public team list'}
+            </Text>
+          </View>
+
+          {isPrivacyUpdating ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : (
+            <Switch
+              value={isPrivate}
+              onValueChange={onPrivacyToggle}
+              trackColor={{ false: colors.bgGrey, true: colors.primaryLight }}
+              thumbColor={isPrivate ? colors.primary : colors.bgWhite}
+            />
+          )}
+        </View>
+      )}
+
       <Text style={styles.sectionTitle}>
         Team Members ({team.member_count}/5)
       </Text>
@@ -130,6 +168,42 @@ function CodeCard({ code }) {
 
 const styles = StyleSheet.create({
   container: { gap: 12 },
+
+  privacyCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    backgroundColor: colors.bgWhite,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  privacyCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  privacyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  privacyTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.textPrimary,
+  },
+  privacyHint: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
 
   sectionTitle: {
     fontSize: 15,

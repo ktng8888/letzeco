@@ -12,6 +12,7 @@ import {
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 import challengeService   from '../../services/challengeService';
@@ -50,6 +51,7 @@ export default function ChallengeDetailScreen() {
   const [activeTab, setActiveTab]   = useState('Overview');
   const [isJoining, setIsJoining]   = useState(false);
   const [isLeaving, setIsLeaving]   = useState(false);
+  const [isPrivacyUpdating, setIsPrivacyUpdating] = useState(false);
 
   // ── Tab data state
   const [ranking, setRanking]       = useState(null);
@@ -64,7 +66,7 @@ export default function ChallengeDetailScreen() {
   const [showImagePreview, setShowImagePreview] = useState(false);
 
   // ── Load challenge
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const data = await challengeService.getById(id);
       setChallenge(data.data);
@@ -77,9 +79,13 @@ export default function ChallengeDetailScreen() {
       setIsLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [id]);
 
-  useEffect(() => { loadData(); }, [id]);
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   // ── Load tab data lazily
   useEffect(() => {
@@ -96,7 +102,7 @@ export default function ChallengeDetailScreen() {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
-  }, []);
+  }, [loadData]);
 
   const loadPublicTeams = async () => {
     setIsTeamLoading(true);
@@ -214,6 +220,32 @@ export default function ChallengeDetailScreen() {
       });
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to create team.');
+    }
+  };
+
+  const handleTeamPrivacyToggle = async (isPrivate) => {
+    if (!challenge?.team?.id) return;
+
+    setIsPrivacyUpdating(true);
+    try {
+      await challengeService.updateTeamPrivacy(challenge.team.id, isPrivate);
+      setChallenge((current) => current
+        ? {
+            ...current,
+            team: {
+              ...current.team,
+              is_private: isPrivate,
+            },
+          }
+        : current
+      );
+    } catch (err) {
+      Alert.alert(
+        'Error',
+        err.response?.data?.message || 'Failed to update team privacy.'
+      );
+    } finally {
+      setIsPrivacyUpdating(false);
     }
   };
 
@@ -378,7 +410,29 @@ export default function ChallengeDetailScreen() {
                       <Ionicons name="people-outline" size={18} color="#3b82f6" />
                       <Text style={styles.teamName}>{challenge.team.name}</Text>
                     </View>
-                    <Text style={styles.teamCode}>Code: {challenge.team.code}</Text>
+                    <View style={styles.teamMetaRow}>
+                      <View style={[
+                        styles.privacyTag,
+                        challenge.team.is_private
+                          ? styles.privateTag
+                          : styles.publicTag,
+                      ]}>
+                        <Ionicons
+                          name={challenge.team.is_private ? 'lock-closed-outline' : 'earth-outline'}
+                          size={11}
+                          color={challenge.team.is_private ? '#64748b' : colors.primary}
+                        />
+                        <Text style={[
+                          styles.privacyTagText,
+                          challenge.team.is_private
+                            ? styles.privateTagText
+                            : styles.publicTagText,
+                        ]}>
+                          {challenge.team.is_private ? 'Private' : 'Public'}
+                        </Text>
+                      </View>
+                      <Text style={styles.teamCode}>Code: {challenge.team.code}</Text>
+                    </View>
                   </View>
                   <View style={styles.teamRankPill}>
                     <Ionicons name="trophy-outline" size={13} color={colors.primary} />
@@ -528,6 +582,8 @@ export default function ChallengeDetailScreen() {
           {activeTab === 'Team' && (
             <TeamTab
               team={challenge.team}
+              onPrivacyToggle={handleTeamPrivacyToggle}
+              isPrivacyUpdating={isPrivacyUpdating}
             />
           )}
           {activeTab === 'Ranking' && (
@@ -764,6 +820,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '700',
     color: colors.textPrimary,
+  },
+  teamMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  privacyTag: {
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  publicTag: {
+    backgroundColor: colors.primaryBg,
+    borderWidth: 1,
+    borderColor: colors.primaryLight,
+  },
+  privateTag: {
+    backgroundColor: '#f1f5f9',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  privacyTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+  },
+  publicTagText: {
+    color: colors.primary,
+  },
+  privateTagText: {
+    color: '#64748b',
   },
   teamCode: { fontSize: 12, color: colors.primary, fontWeight: '500' },
   teamRankPill: {

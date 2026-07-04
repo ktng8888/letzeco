@@ -128,6 +128,36 @@ const teamController = {
     }
   },
 
+  // UPDATE TEAM PRIVACY
+  updatePrivacy: async (req, res) => {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const { is_private } = req.body;
+
+    try {
+      const team = await teamModel.getById(id);
+      if (!team) {
+        return res.status(404).json({ message: 'Team not found.' });
+      }
+
+      if (Number(team.leader_user_id) !== Number(userId)) {
+        return res.status(403).json({
+          message: 'Only the team leader can update team privacy.'
+        });
+      }
+
+      const updatedTeam = await teamModel.updatePrivacy(id, !!is_private);
+
+      res.json({
+        message: 'Team privacy updated successfully.',
+        data: updatedTeam
+      });
+    } catch (err) {
+      console.error('Update team privacy error:', err);
+      res.status(500).json({ message: 'Server error.' });
+    }
+  },
+
   // JOIN PUBLIC TEAM
   joinPublic: async (req, res) => {
     const userId = req.user.id;

@@ -118,7 +118,17 @@ function UserSummary({ user, progress, compact, onFriendAction, isSending }) {
       </View>
 
       <View style={styles.userSummaryInfo}>
-        <Text style={styles.modalUserName}>{username}</Text>
+        <View style={styles.modalUserNameRow}>
+          <Text style={styles.modalUserName} numberOfLines={1}>
+            {username}
+          </Text>
+          {user.is_leader && (
+            <View style={styles.leaderPill}>
+              <Ionicons name="ribbon-outline" size={11} color={colors.xpColor} />
+              <Text style={styles.leaderPillText}>Leader</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.modalMeta}>{progress}</Text>
       </View>
 
@@ -240,6 +250,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: colors.textPrimary,
+    flexShrink: 1,
+  },
+  modalUserNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 0,
+  },
+  leaderPill: {
+    flexShrink: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    borderRadius: 999,
+    backgroundColor: '#fffbeb',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+  },
+  leaderPillText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: colors.xpColor,
   },
   modalMeta: {
     marginTop: 2,
