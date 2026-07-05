@@ -270,6 +270,14 @@ const challengeController = {
         });
       }
 
+      const hasChallengeReward = await userChallengeRewardModel
+        .hasAnyForChallenge(userId, id);
+      if (hasChallengeReward) {
+        return res.status(400).json({
+          message: 'You cannot leave this challenge after receiving a challenge reward.'
+        });
+      }
+
       // If team challenge, also remove from team
       if (existing.team_id) {
         const team = await teamModel.getById(existing.team_id);

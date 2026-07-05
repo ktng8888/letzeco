@@ -42,13 +42,18 @@ const challengeService = {
     return response.data;
   },
 
-  joinPublicTeam: async (teamId) => {
-    const response = await api.post(`/teams/join/public/${teamId}`);
+  joinPublicTeam: async (teamId, confirmGoalReached = false) => {
+    const response = await api.post(`/teams/join/public/${teamId}`, {
+      confirm_goal_reached: confirmGoalReached,
+    });
     return response.data;
   },
 
-  joinByCode: async (code) => {
-    const response = await api.post('/teams/join/code', { code });
+  joinByCode: async (code, confirmGoalReached = false) => {
+    const response = await api.post('/teams/join/code', {
+      code,
+      confirm_goal_reached: confirmGoalReached,
+    });
     return response.data;
   },
 

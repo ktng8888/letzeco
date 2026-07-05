@@ -156,6 +156,28 @@ export default function ChallengeDetailScreen() {
     }
   };
 
+  const showGoalReachedJoinAlert = (onConfirm) => {
+    Alert.alert(
+      'Goal Already Reached',
+      'This team has already reached the challenge goal. You can still join and contribute toward ranking rewards, but you will not receive the completion reward.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Join Anyway',
+          onPress: onConfirm,
+        },
+      ]
+    );
+  };
+
+  const redirectToParticipating = () => {
+    setShowJoinTeam(false);
+    router.replace({
+      pathname: '/screens/challenges',
+      params: { tab: 'Participating' },
+    });
+  };
+
   const handleLeave = () => {
     Alert.alert(
       'Leave Challenge',
@@ -184,30 +206,52 @@ export default function ChallengeDetailScreen() {
     );
   };
 
-  const handleJoinPublicTeam = async (teamId) => {
+  const joinPublicTeam = async (teamId, confirmGoalReached = false) => {
     try {
-      await challengeService.joinPublicTeam(teamId);
-      setShowJoinTeam(false);
-      router.replace({
-        pathname: '/screens/challenges',
-        params: { tab: 'Participating' },
-      });
+      await challengeService.joinPublicTeam(teamId, confirmGoalReached);
+      redirectToParticipating();
     } catch (err) {
+      if (
+        err.response?.status === 409 &&
+        err.response?.data?.code === 'TEAM_GOAL_ALREADY_REACHED'
+      ) {
+        showGoalReachedJoinAlert(() => joinPublicTeam(teamId, true));
+        return;
+      }
       Alert.alert('Error', err.response?.data?.message || 'Failed to join.');
     }
   };
 
-  const handleJoinByCode = async (code) => {
+  const handleJoinPublicTeam = async (team) => {
+    const teamProgress = parseFloat(team?.total_progress || 0);
+    const teamAlreadyReachedGoal = targetValue > 0 && teamProgress >= targetValue;
+
+    if (teamAlreadyReachedGoal) {
+      showGoalReachedJoinAlert(() => joinPublicTeam(team.id, true));
+      return;
+    }
+
+    await joinPublicTeam(team.id);
+  };
+
+  const joinByCode = async (code, confirmGoalReached = false) => {
     try {
-      await challengeService.joinByCode(code);
-      setShowJoinTeam(false);
-      router.replace({
-        pathname: '/screens/challenges',
-        params: { tab: 'Participating' },
-      });
+      await challengeService.joinByCode(code, confirmGoalReached);
+      redirectToParticipating();
     } catch (err) {
+      if (
+        err.response?.status === 409 &&
+        err.response?.data?.code === 'TEAM_GOAL_ALREADY_REACHED'
+      ) {
+        showGoalReachedJoinAlert(() => joinByCode(code, true));
+        return;
+      }
       Alert.alert('Error', err.response?.data?.message || 'Invalid code.');
     }
+  };
+
+  const handleJoinByCode = async (code) => {
+    await joinByCode(code);
   };
 
   const handleCreateTeam = async (teamName, isPrivate) => {
@@ -277,6 +321,9 @@ export default function ChallengeDetailScreen() {
   const hasUnclaimedCompletionReward = challenge.rewards?.some(
     reward => reward.type === 'completion'
       && reward.user_reward_status === 'unclaimed'
+  );
+  const hasAnyChallengeReward = challenge.rewards?.some(
+    reward => reward.user_challenge_reward_id
   );
 
   return (
@@ -498,7 +545,7 @@ export default function ChallengeDetailScreen() {
           </View>
         ) : isParticipating ? (
           <View style={styles.actionButtons}>
-            {!hasCompletedChallenge && (
+            {!hasAnyChallengeReward && (
               <SoundTouchableOpacity
                 style={styles.leaveBtn}
                 onPress={handleLeave}

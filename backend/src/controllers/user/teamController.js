@@ -2,6 +2,25 @@ const teamModel = require('../../models/teamModel');
 const teamMemberModel = require('../../models/teamMemberModel');
 const challengeModel = require('../../models/challengeModel');
 const userChallengeModel = require('../../models/userChallengeModel');
+const userChallengeRewardModel = require('../../models/userChallengeRewardModel');
+
+const hasTeamReachedGoal = async (teamId, challengeId) => {
+  const challenge = await challengeModel.getById(challengeId);
+  const targetValue = parseFloat(challenge?.target_value || 0);
+  if (!Number.isFinite(targetValue) || targetValue <= 0) return false;
+
+  const teamProgress = await userChallengeModel.getTeamProgress(
+    teamId,
+    challengeId
+  );
+  return teamProgress >= targetValue;
+};
+
+const goalReachedJoinWarning = {
+  message: 'This team has already reached the challenge goal.',
+  code: 'TEAM_GOAL_ALREADY_REACHED',
+  requires_confirmation: true,
+};
 
 const teamController = {
 
@@ -162,6 +181,7 @@ const teamController = {
   joinPublic: async (req, res) => {
     const userId = req.user.id;
     const { teamId } = req.params;
+    const { confirm_goal_reached } = req.body || {};
 
     try {
       const team = await teamModel.getById(teamId);
@@ -194,6 +214,14 @@ const teamController = {
         });
       }
 
+      const alreadyReachedGoal = await hasTeamReachedGoal(
+        teamId,
+        team.challenge_id
+      );
+      if (alreadyReachedGoal && !confirm_goal_reached) {
+        return res.status(409).json(goalReachedJoinWarning);
+      }
+
       // Add to team
       await teamMemberModel.create(userId, teamId);
 
@@ -205,7 +233,8 @@ const teamController = {
         data: {
           team_id: team.id,
           team_name: team.name,
-          challenge_id: team.challenge_id
+          challenge_id: team.challenge_id,
+          already_reached_goal: alreadyReachedGoal
         }
       });
 
@@ -218,7 +247,7 @@ const teamController = {
   // JOIN PRIVATE TEAM BY CODE
   joinByCode: async (req, res) => {
     const userId = req.user.id;
-    const { code } = req.body;
+    const { code, confirm_goal_reached } = req.body;
 
     try {
       if (!code) {
@@ -255,6 +284,14 @@ const teamController = {
         });
       }
 
+      const alreadyReachedGoal = await hasTeamReachedGoal(
+        team.id,
+        team.challenge_id
+      );
+      if (alreadyReachedGoal && !confirm_goal_reached) {
+        return res.status(409).json(goalReachedJoinWarning);
+      }
+
       // Add to team
       await teamMemberModel.create(userId, team.id);
 
@@ -268,7 +305,8 @@ const teamController = {
         data: {
           team_id: team.id,
           team_name: team.name,
-          challenge_id: team.challenge_id
+          challenge_id: team.challenge_id,
+          already_reached_goal: alreadyReachedGoal
         }
       });
 
@@ -295,6 +333,14 @@ const teamController = {
       if (!member && !isLeader) {
         return res.status(404).json({
           message: 'You are not a member of this team.'
+        });
+      }
+
+      const hasChallengeReward = await userChallengeRewardModel
+        .hasAnyForChallenge(userId, team.challenge_id);
+      if (hasChallengeReward) {
+        return res.status(400).json({
+          message: 'You cannot leave this challenge after receiving a challenge reward.'
         });
       }
 

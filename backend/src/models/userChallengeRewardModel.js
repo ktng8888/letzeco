@@ -13,12 +13,27 @@ const userChallengeRewardModel = {
     return result.rows[0];
   },
 
+  // Check if user has received any reward from a specific challenge.
+  hasAnyForChallenge: async (userId, challengeId) => {
+    const result = await pool.query(
+      `SELECT ucr.id
+       FROM user_challenge_reward ucr
+       JOIN challenge_reward cr ON cr.id = ucr.challenge_reward_id
+       WHERE ucr.user_id = $1
+         AND cr.challenge_id = $2
+       LIMIT 1`,
+      [userId, challengeId]
+    );
+    return !!result.rows[0];
+  },
+
   // Give a gift to a user (unclaimed by default)
   create: async (userId, challengeRewardId) => {
     const result = await pool.query(
       `INSERT INTO user_challenge_reward
         (user_id, challenge_reward_id, obtain_date, status)
        VALUES ($1, $2, NOW(), 'unclaimed')
+       ON CONFLICT (user_id, challenge_reward_id) DO NOTHING
        RETURNING *`,
       [userId, challengeRewardId]
     );
