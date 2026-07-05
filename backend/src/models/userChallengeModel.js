@@ -136,10 +136,19 @@ const userChallengeModel = {
 
   markTeamCompletionTime: async (teamId, challengeId) => {
     const result = await pool.query(
-      `UPDATE user_challenge
-       SET completion_time = COALESCE(completion_time, NOW())
-       WHERE team_id = $1 AND challenge_id = $2
-       RETURNING *`,
+      `WITH cutoff AS (
+         SELECT COALESCE(MIN(completion_time), NOW()) AS reached_at
+         FROM user_challenge
+         WHERE team_id = $1
+           AND challenge_id = $2
+       )
+       UPDATE user_challenge uc
+       SET completion_time = COALESCE(uc.completion_time, cutoff.reached_at)
+       FROM cutoff
+       WHERE uc.team_id = $1
+         AND uc.challenge_id = $2
+         AND COALESCE(uc.joined_at, cutoff.reached_at) <= cutoff.reached_at
+       RETURNING uc.*`,
       [teamId, challengeId]
     );
     return result.rows;

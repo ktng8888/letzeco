@@ -89,7 +89,7 @@ export default function JoinTeamModal({
                         key={team.id}
                         team={team}
                         showJoinBtn
-                        onJoin={() => onJoinPublic(team.id)}
+                        onJoin={() => onJoinPublic(team)}
                       />
                     ))
                   )}
