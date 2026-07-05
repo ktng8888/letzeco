@@ -29,6 +29,7 @@ import ActivityTab  from '../../components/challenges/tabs/ActivityTab';
 // Modals
 import JoinTeamModal    from '../../components/challenges/modals/JoinTeamModal';
 import CreateTeamModal  from '../../components/challenges/modals/CreateTeamModal';
+import ChallengeRulesModal from '../../components/challenges/modals/ChallengeRulesModal';
 
 // Helpers
 import { getDaysLeft, formatDate, getTargetLabel, formatProgress } from '../../utils/challengeHelpers';
@@ -64,6 +65,7 @@ export default function ChallengeDetailScreen() {
   const [publicTeams, setPublicTeams]       = useState([]);
   const [isTeamLoading, setIsTeamLoading]   = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   // ── Load challenge
   const loadData = useCallback(async () => {
@@ -346,6 +348,19 @@ export default function ChallengeDetailScreen() {
               {isTeamChallenge ? 'Team' : 'Solo'}
             </Text>
           </View>
+          <SoundTouchableOpacity
+            style={[
+              styles.rulesInfoBtn,
+              { backgroundColor: isTeamChallenge ? '#eff6ff' : colors.primaryBg },
+            ]}
+            onPress={() => setShowRulesModal(true)}
+          >
+            <Ionicons
+              name="information-circle-outline"
+              size={18}
+              color={isTeamChallenge ? '#3b82f6' : colors.primary}
+            />
+          </SoundTouchableOpacity>
         </View>
       </View>
 
@@ -670,6 +685,11 @@ export default function ChallengeDetailScreen() {
         onClose={() => setShowCreateTeam(false)}
         onSubmit={handleCreateTeam}
       />
+      <ChallengeRulesModal
+        visible={showRulesModal}
+        type={challenge.type}
+        onClose={() => setShowRulesModal(false)}
+      />
 
       <Modal
         visible={showImagePreview}
@@ -710,9 +730,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  headerBadges: { flexDirection: 'row', gap: 8 },
+  headerBadges: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   typeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   typeText: { fontSize: 12, fontWeight: '700' },
+  rulesInfoBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   infoSection: {
     backgroundColor: colors.bgWhite,
     paddingHorizontal: 16,
