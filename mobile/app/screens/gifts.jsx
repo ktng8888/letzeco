@@ -14,7 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import challengeService from '../../services/challengeService';
 import LoadingScreen from '../../components/common/LoadingScreen';
-import { RewardClaimedModal } from '../../components/modals';
+import { GiftDetailModal, RewardClaimedModal } from '../../components/modals';
 import colors from '../../constants/colors';
 import { BASE_URL } from '../../constants/api';
 import SoundTouchableOpacity from '../../components/common/SoundTouchableOpacity';
@@ -26,6 +26,7 @@ export default function GiftsScreen() {
   const [gifts, setGifts]             = useState([]);
   const [claimingId, setClaimingId]   = useState(null);
   const [claimResult, setClaimResult] = useState(null);
+  const [selectedGift, setSelectedGift] = useState(null);
 
   const loadGifts = async () => {
     try {
@@ -58,6 +59,7 @@ export default function GiftsScreen() {
           g => g.user_challenge_reward_id !== gift.user_challenge_reward_id
         )
       );
+      setSelectedGift(null);
       setClaimResult(res.data);
     } catch (err) {
       Alert.alert('Error', err.response?.data?.message || 'Failed to claim.');
@@ -105,49 +107,57 @@ export default function GiftsScreen() {
         >
           {gifts.map((gift) => (
             <View key={gift.user_challenge_reward_id} style={styles.card}>
-              {/* Badge image */}
-              {gift.badge_image ? (
-                <Image
-                  source={{ uri: `${BASE_URL}/${gift.badge_image}` }}
-                  style={styles.badgeImg}
-                />
-              ) : (
-                <View style={styles.badgePlaceholder}>
-                  <Ionicons name="ribbon-outline" size={30} color={colors.primary} />
-                </View>
-              )}
-
-              <View style={styles.cardInfo}>
-                <Text style={styles.challengeName} numberOfLines={1}>
-                  {gift.challenge_name}
-                </Text>
-                <View style={styles.rewardTypeRow}>
-                  <Ionicons
-                    name={gift.type === 'completion' ? 'checkmark-circle-outline' : 'trophy-outline'}
-                    size={13}
-                    color={gift.type === 'completion' ? colors.success : colors.xpColor}
+              <SoundTouchableOpacity
+                style={styles.detailArea}
+                onPress={() => setSelectedGift(gift)}
+                activeOpacity={0.82}
+              >
+                {/* Badge image */}
+                {gift.badge_image ? (
+                  <Image
+                    source={{ uri: `${BASE_URL}/${gift.badge_image}` }}
+                    style={styles.badgeImg}
                   />
-                  <Text style={styles.rewardType}>
-                    {gift.type === 'completion'
-                      ? 'Completion Reward'
-                      : `Top ${gift.top_value} Ranking Reward`
-                    }
+                ) : (
+                  <View style={styles.badgePlaceholder}>
+                    <Ionicons name="ribbon-outline" size={30} color={colors.primary} />
+                  </View>
+                )}
+
+                <View style={styles.cardInfo}>
+                  <Text style={styles.challengeName} numberOfLines={1}>
+                    {gift.challenge_name}
                   </Text>
+                  <View style={styles.rewardTypeRow}>
+                    <Ionicons
+                      name={gift.type === 'completion' ? 'checkmark-circle-outline' : 'trophy-outline'}
+                      size={13}
+                      color={gift.type === 'completion' ? colors.success : colors.xpColor}
+                    />
+                    <Text style={styles.rewardType}>
+                      {gift.type === 'completion'
+                        ? 'Completion Reward'
+                        : `Top ${gift.top_value} Ranking Reward`
+                      }
+                    </Text>
+                  </View>
+                  <View style={styles.pills}>
+                    {gift.xp_reward > 0 && (
+                      <View style={styles.pill}>
+                        <Text style={styles.pillText}>+{gift.xp_reward} XP</Text>
+                      </View>
+                    )}
+                    {gift.badge_name && (
+                      <View style={[styles.pill, styles.pillBadge]}>
+                        <Ionicons name="ribbon-outline" size={11} color={colors.xpColor} />
+                        <Text style={styles.pillText} numberOfLines={1}>
+                          {gift.badge_name}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
                 </View>
-                <View style={styles.pills}>
-                  {gift.xp_reward > 0 && (
-                    <View style={styles.pill}>
-                      <Text style={styles.pillText}>+{gift.xp_reward} XP</Text>
-                    </View>
-                  )}
-                  {gift.badge_name && (
-                    <View style={[styles.pill, styles.pillBadge]}>
-                      <Ionicons name="ribbon-outline" size={11} color={colors.xpColor} />
-                      <Text style={styles.pillText}>{gift.badge_name}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
+              </SoundTouchableOpacity>
 
               <SoundTouchableOpacity
                 style={[
@@ -169,6 +179,14 @@ export default function GiftsScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       )}
+
+      <GiftDetailModal
+        visible={!!selectedGift}
+        gift={selectedGift}
+        claiming={claimingId === selectedGift?.user_challenge_reward_id}
+        onClose={() => setSelectedGift(null)}
+        onClaim={handleClaim}
+      />
 
       <RewardClaimedModal
         visible={!!claimResult}
@@ -207,26 +225,49 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06, shadowRadius: 4, elevation: 2,
   },
+  detailArea: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   badgeImg: { width: 56, height: 56, borderRadius: 28 },
   badgePlaceholder: {
     width: 56, height: 56, borderRadius: 28,
     backgroundColor: colors.primaryBg,
     alignItems: 'center', justifyContent: 'center',
   },
-  cardInfo: { flex: 1, gap: 3 },
+  cardInfo: { flex: 1, minWidth: 0, gap: 3 },
   challengeName: {
     fontSize: 14, fontWeight: '700', color: colors.textPrimary,
   },
   rewardTypeRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   rewardType: { fontSize: 12, color: colors.textSecondary },
-  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginTop: 4 },
+  pills: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+    gap: 4,
+    marginTop: 4,
+  },
   pill: {
     backgroundColor: colors.primaryBg, borderRadius: 20,
     paddingHorizontal: 8, paddingVertical: 3,
     flexDirection: 'row', alignItems: 'center', gap: 3,
+    maxWidth: '100%',
   },
-  pillBadge: { backgroundColor: '#fef3c7' },
-  pillText: { fontSize: 11, fontWeight: '600', color: colors.primary },
+  pillBadge: {
+    backgroundColor: '#fef3c7',
+    flexShrink: 1,
+  },
+  pillText: {
+    flexShrink: 1,
+    minWidth: 0,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.primary,
+  },
 
   claimBtn: {
     backgroundColor: colors.primary, borderRadius: 10,
