@@ -41,6 +41,10 @@ Respond ONLY in this exact JSON format, no other text:
 
 Rules:
 - Be strict but fair. If the image clearly matches the requirement, pass it.
+- The proof may be a direct real camera photo of the required scene/object/action.
+- For demo purposes, a real camera photo of a computer, phone, or tablet screen is allowed only if the screen shows a real photo matching the requirement.
+- Reject cartoons, illustrations, drawings, icons, rendered images, AI-generated images, stock illustrations, or obviously edited graphics.
+- If the image is cartoon/illustration/rendered/AI-style, set passed to false even if it visually matches the requirement.
 - If failed, do not only say the image does not meet the requirement.
 - If failed, first describe the main visible subject in the photo, then say why it is not the required proof.
 - Keep issue under 18 words.
@@ -53,7 +57,15 @@ Good failed examples:
   expected: "Photo inside the public transport."
 - requirement: "Photo taken inside a bus, train, or similar public transport"; image: office chair
   issue: "The image shows an office chair, not inside public transport."
-  expected: "Photo taken inside a bus, train, or similar public transport."`,
+  expected: "Photo taken inside a bus, train, or similar public transport."
+- requirement: "Photo of a bucket of reused water"; image: cartoon bucket
+  issue: "The image shows a cartoon bucket, not acceptable proof."
+  expected: "Photo of a bucket of reused water."
+- requirement: "Photo inside the public transport"; image: illustrated bus interior
+  issue: "The image shows an illustrated bus interior, not acceptable proof."
+  expected: "Photo inside the public transport."
+- requirement: "Photo inside the public transport"; image: camera photo of a laptop screen showing a real bus interior photo
+  passed: true`,
           },
         ],
       },

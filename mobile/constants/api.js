@@ -6,6 +6,8 @@ const UNIFI_IP = '192.168.0.50';
 // Hotspot (in supervisor's office)
 const HOTSPOT_IP = '10.25.58.170';
 
+const PRESENTATION_IP = '10.25.58.170';
+
 // Change this to switch networks
 const NETWORK_IP = UNIFI_IP;
 
