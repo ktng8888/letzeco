@@ -38,6 +38,7 @@ export default function ActionCompleteScreen() {
       if (parsed.xp) {
         updateUser({
           level_xp: parsed.xp.new_level_xp,
+          xp_to_next_level: parsed.xp.xp_to_next_level,
           total_xp: parsed.xp.new_total_xp,
           weekly_xp: parsed.xp.new_weekly_xp,
           level: parsed.new_level,
@@ -85,7 +86,7 @@ export default function ActionCompleteScreen() {
   const todayLitre = todayImpact.total_litre_saved ?? user_action?.litre_saved ?? 0;
   const todayKwh = todayImpact.total_kwh_saved ?? user_action?.kwh_saved ?? 0;
   const activeModal = activeModalIndex >= 0 ? modalQueue[activeModalIndex] : null;
-  const levelMax = getLevelMax(data.new_level);
+  const levelMax = xp?.xp_to_next_level || 1000;
   const levelXp = xp?.new_level_xp ?? 0;
   const levelPercent = Math.min((levelXp / levelMax) * 100, 100);
   const currentStreak = streak?.new_streak ?? data.new_streak ?? 0;
@@ -292,14 +293,6 @@ function ImpactRow({ label, value, icon, iconColor }) {
       <Text style={styles.impactRowValue}>{value}</Text>
     </View>
   );
-}
-
-function getLevelMax(level) {
-  const table = {
-    1: 100, 2: 200, 3: 300, 4: 400, 5: 500,
-    6: 600, 7: 700, 8: 800, 9: 900, 10: 1000,
-  };
-  return table[level] || 1000;
 }
 
 const styles = StyleSheet.create({

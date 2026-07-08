@@ -216,12 +216,18 @@ const xpService = {
       }
 
       const finalUser = await normalizeCurrentUserLevel(userId);
+      const finalLevelResult = await pool.query(
+        'SELECT xp_to_next_level FROM level WHERE level_value = $1',
+        [finalUser.level]
+      );
+      const finalLevelInfo = finalLevelResult.rows[0];
 
       return {
         xp_added: xpAmount,
         level_up: finalUser.level > user.level,
         new_level: finalUser.level,
         new_level_xp: finalUser.level_xp,
+        xp_to_next_level: finalLevelInfo?.xp_to_next_level || null,
         new_total_xp: finalUser.total_xp,
         new_weekly_xp: finalUser.weekly_xp,
         new_achievement: firstUnlocked(allAchievements),
