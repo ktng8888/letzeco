@@ -359,6 +359,7 @@ const userActionController = {
           xp: {
             xp_added:      xpResult.xp_added,
             new_level_xp:  xpResult.new_level_xp,
+            xp_to_next_level: xpResult.xp_to_next_level,
             new_total_xp:  xpResult.new_total_xp,
             new_weekly_xp: xpResult.new_weekly_xp,
           },
