@@ -3,13 +3,16 @@ import { Platform } from 'react-native';
 // D1002 unifi
 const UNIFI_IP = '192.168.0.50';
 
+//Hotspot (penang home)
+const HOTSPOT_PENANG_HOME_IP = '10.16.193.170';
+
 // Hotspot (in supervisor's office)
 const HOTSPOT_IP = '10.25.58.170';
 
 const PRESENTATION_IP = '10.25.58.170';
 
 // Change this to switch networks
-const NETWORK_IP = UNIFI_IP;
+const NETWORK_IP = HOTSPOT_PENANG_HOME_IP;
 
 // Backend tunnel URL (Update this if the tunnel URL changes)
 const TUNNEL_URL = 'https://gods-russia-casino-symantec.trycloudflare.com';
